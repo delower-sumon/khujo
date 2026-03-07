@@ -1,21 +1,22 @@
 import React from 'react';
-import { Globe } from 'lucide-react';
 import SearchBar from '../components/search/SearchBar';
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
-      <div className="w-full max-w-2xl flex flex-col items-center">
+    <div className="min-h-screen flex flex-col items-center justify-start bg-white px-4 pt-32">
+      <div className="w-full max-w-2xl flex flex-col items-center space-y-8">
         {/* Logo Section */}
-        <div className="mb-8 text-center">
-          <img src="/src/assets/logo.png" alt="খোঁজো" className="h-16 w-auto mx-auto mb-4" />
-          {/* Search Bar Section <p className="mt-2 text-sm text-gray-500 font-medium tracking-widest uppercase">
-            Bangladesh's Own Search Engine 
-          </p> */}
+        <div className="text-center">
+          <img src="/src/assets/logo.png" alt="খোঁজো" className="h-32 w-auto mx-auto" />
         </div>
 
         {/* Search Bar Section */}
         <SearchBar autoFocus className="w-full" />
+
+        {/* Bangladesh Text */}
+        <div className="text-center">
+          <p className="text-sm text-gray-700 font-medium">বাংলাদেশ</p>
+        </div>
       </div>
 
       {/* Footer */}
