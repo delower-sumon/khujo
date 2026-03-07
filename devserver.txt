@@ -1,0 +1,89 @@
+## 🚀 Quick Start Commands
+
+### 1. Start Frontend (React/Vite)
+
+npm run dev
+
+- Runs on: http://localhost:5173/
+- Auto-reloads on file changes
+- For mobile access: http://YOUR_IP:5173/
+
+### 2. Start Backend (FastAPI)
+
+cd backend
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+- Runs on: http://localhost:8000/
+- API docs: http://localhost:8000/docs
+- For mobile access: http://YOUR_IP:8000/
+
+## 🛑 Stop Servers
+
+### Kill Processes
+# Find and kill Node.js processes (frontend)
+taskkill /f /im node.exe
+
+# Find and kill Python processes (backend)
+taskkill /f /im python.exe
+
+## 🚀 Production Deployment
+
+### Build Frontend
+npm run build
+# Creates dist/ folder with static files
+
+### Install Backend Dependencies
+cd backend
+pip install -r requirements.txt
+
+### Start with Nginx (Reverse Proxy)
+# Install Nginx (Windows: download from nginx.org, Linux: apt install nginx)
+# Copy nginx.conf to nginx/conf/nginx.conf
+# Update root path in nginx.conf to point to dist/ folder
+# Start nginx: nginx.exe (Windows) or systemctl start nginx (Linux)
+
+# Nginx will serve frontend on port 80 and proxy API to backend
+
+### Start Backend (Production)
+# For production, use gunicorn or multiple uvicorn workers
+# But for MVP on low-end, single uvicorn is fine
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+
+## 📋 Prerequisites
+
+### Python Environment
+- Install dependencies: `pip install -r requirements.txt` (if exists)
+- Or manually: `pip install fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv requests`
+
+### Node.js Environment
+- Dependencies are already installed via package.json
+- Run `npm install` if needed
+
+## 📄 Project Files
+- `requirements.txt` - All project dependencies (backend + frontend)
+- `feature.md` - User features roadmap and expansion plans
+- `nginx.conf` - Production nginx configuration
+- `devserver.txt` - This development guide
+
+## 🔧 Database Setup
+- Uses Neon PostgreSQL
+- Connection string in `backend/.env`
+- Tables: documents, crawl_queue, transliteration_map
+
+## 📱 Mobile Testing
+1. Find your IP: `ipconfig` (Windows) or `ifconfig` (Linux/Mac)
+2. Use: `http://YOUR_IP:5173/` (frontend) and `http://YOUR_IP:8000/` (backend)
+
+## 🛠️ Development Features
+- **Search**: Queries documents and crawl_queue tables
+- **Auto-suggestions**: From transliteration_map table
+- **Bangla UI**: Logo and branding
+- **Real-time**: Auto-reload enabled
+
+## 📊 API Endpoints
+- `GET /` - Welcome message
+- `GET /api/v1/search?q=<query>` - Search documents
+- `GET /api/v1/suggestions?q=<query>` - Get suggestions
+
+---
+Last updated: March 6, 2026
