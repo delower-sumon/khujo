@@ -74,4 +74,4 @@ This repository hosts both the **frontend** and **backend** for the Khujo minimu
 
 ---
 
-*This README has been customized for the Khujo MVP project. Remove or expand sections as the project evolves.*
+
