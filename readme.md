@@ -16,7 +16,8 @@ This repository hosts both the **frontend** and **backend** for the Khujo minimu
    .\.venv\Scripts\Activate.ps1   # Windows PowerShell
    pip install -r requirements.txt
    # run the server
-   uvicorn main:app --reload
+   follow devserver 
+   python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 2. **Frontend setup**
    ```bash

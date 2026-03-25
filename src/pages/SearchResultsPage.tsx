@@ -33,7 +33,7 @@ const SearchResultsPage: React.FC = () => {
         const response = await fetch(
           `http://localhost:8000/api/v1/search?q=${encodeURIComponent(query)}&limit=10&offset=0`
         );
-        
+
         if (response.ok) {
           const data = await response.json();
           setResults(data.results || []);
@@ -56,9 +56,9 @@ const SearchResultsPage: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 sm:px-8 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
         <Link to="/" className="flex items-center">
-          <img src="/src/assets/logo.png" alt="খোঁজো" className="h-8 w-auto" />
+          <img src="/src/assets/khojo.png" alt="খোঁজো" className="h-8 w-auto" />
         </Link>
-        
+
         <div className="w-full max-w-2xl">
           <SearchBar initialValue={query} className="w-full" />
         </div>

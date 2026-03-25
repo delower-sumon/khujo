@@ -12,32 +12,45 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
   const [query, setQuery] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isFocusedRef = useRef(false);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
+      // Only fetch if currently focused
+      if (!isFocusedRef.current) return;
+
       if (query.trim().length > 1) {
         try {
           const response = await fetch(`http://localhost:8000/api/v1/suggestions?q=${encodeURIComponent(query.trim())}&limit=5`);
           if (response.ok) {
             const data = await response.json();
-            setSuggestions(data);
-            setShowSuggestions(true);
+            // Re-check focus before updating state to avoid race conditions
+            if (isFocusedRef.current) {
+              setSuggestions(data);
+              setShowSuggestions(true);
+              setActiveIndex(-1);
+            }
           }
         } catch (error) {
-          // Fallback to empty suggestions if API is not available
           console.warn('Suggestions API unavailable:', error);
           setSuggestions([]);
         }
       } else {
         setSuggestions([]);
         setShowSuggestions(false);
+        setActiveIndex(-1);
       }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 200);
-    return () => clearTimeout(debounce);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(fetchSuggestions, 200);
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
   }, [query]);
 
   useEffect(() => {
@@ -54,8 +67,32 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
     e?.preventDefault();
     const finalQuery = selectedQuery || query;
     if (finalQuery.trim()) {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      isFocusedRef.current = false; // Mark as not focused to prevent new fetches
       setShowSuggestions(false);
+      setSuggestions([]);
+      setActiveIndex(-1);
       navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      const selected = suggestions[activeIndex];
+      setQuery(selected);
+      handleSearch(undefined, selected);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setActiveIndex(-1);
     }
   };
 
@@ -67,8 +104,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => query.length > 1 && setShowSuggestions(true)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setActiveIndex(-1);
+            }}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
+              isFocusedRef.current = true;
+              if (query.length > 1) setShowSuggestions(true);
+            }}
+            onBlur={() => {
+              // Small delay to allow click handlers on suggestions to fire
+              setTimeout(() => {
+                isFocusedRef.current = false;
+                setShowSuggestions(false);
+              }, 200);
+            }}
             placeholder="খুঁজুন..."
             className="flex-grow bg-transparent outline-none text-lg text-gray-800 placeholder-gray-400"
             autoFocus={autoFocus}
@@ -96,10 +147,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
                 setQuery(suggestion);
                 handleSearch(undefined, suggestion);
               }}
-              className="w-full text-left px-5 py-2.5 hover:bg-gray-50 flex items-center space-x-3 transition-colors"
+              className={`w-full text-left px-5 py-2.5 flex items-center space-x-3 transition-colors ${
+                index === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+              }`}
             >
-              <Search className="w-4 h-4 text-gray-300" />
-              <span className="text-gray-700">{suggestion}</span>
+              <Search className={`w-4 h-4 ${index === activeIndex ? 'text-gray-400' : 'text-gray-300'}`} />
+              <span className={`text-gray-700 ${index === activeIndex ? 'font-medium' : ''}`}>{suggestion}</span>
             </button>
           ))}
         </div>
