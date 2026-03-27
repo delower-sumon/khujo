@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Mic, X } from 'lucide-react';
+import { Search, Mic, X, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface SearchBarProps {
@@ -25,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
 
       if (query.trim().length > 1) {
         try {
-          const response = await fetch(`http://localhost:8000/api/v1/suggestions?q=${encodeURIComponent(query.trim())}&limit=5`);
+          const response = await fetch(`http://localhost:8000/api/v1/suggestions?q=${encodeURIComponent(query.trim())}&limit=8`);
           if (response.ok) {
             const data = await response.json();
             // Re-check focus before updating state to avoid race conditions
@@ -85,9 +85,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActiveIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      const selected = suggestions[activeIndex];
+      const selected = activeIndex >= 0 ? suggestions[activeIndex] : query;
       setQuery(selected);
       handleSearch(undefined, selected);
     } else if (e.key === 'Escape') {
@@ -96,10 +96,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
     }
   };
 
+  const hasSuggestions = showSuggestions && suggestions.length > 0;
+
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
-      <form onSubmit={(e) => handleSearch(e)} className="relative group">
-        <div className="relative flex items-center w-full bg-white border border-gray-200 rounded-full hover:shadow-md focus-within:shadow-md transition-shadow duration-200 px-5 py-3">
+      <form onSubmit={(e) => handleSearch(e)} className="relative z-[60]">
+        <div className={`relative flex items-center w-full bg-white border border-gray-200 transition-all duration-200 px-5 py-3 ${
+          hasSuggestions 
+            ? 'rounded-t-[24px] border-b-0 shadow-lg' 
+            : 'rounded-full hover:shadow-md focus-within:shadow-md'
+        }`}>
           <Search className="w-5 h-5 text-gray-400 mr-3" />
           <input
             type="text"
@@ -114,7 +120,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
               if (query.length > 1) setShowSuggestions(true);
             }}
             onBlur={() => {
-              // Small delay to allow click handlers on suggestions to fire
+              // Delay to allow suggestion clicks to register
               setTimeout(() => {
                 isFocusedRef.current = false;
                 setShowSuggestions(false);
@@ -135,28 +141,45 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
             </button>
           </div>
         </div>
-      </form>
 
-      {/* Suggestions Dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden py-2">
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setQuery(suggestion);
-                handleSearch(undefined, suggestion);
-              }}
-              className={`w-full text-left px-5 py-2.5 flex items-center space-x-3 transition-colors ${
-                index === activeIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
-              }`}
-            >
-              <Search className={`w-4 h-4 ${index === activeIndex ? 'text-gray-400' : 'text-gray-300'}`} />
-              <span className={`text-gray-700 ${index === activeIndex ? 'font-medium' : ''}`}>{suggestion}</span>
-            </button>
-          ))}
-        </div>
-      )}
+        {/* Unified Dropdown Container */}
+        {hasSuggestions && (
+          <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 border-t-0 rounded-b-[24px] shadow-lg z-50 overflow-hidden pb-4 pt-1">
+            <div className="h-[1px] bg-gray-100 mx-5 mb-1" />
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setQuery(suggestion);
+                  handleSearch(undefined, suggestion);
+                }}
+                className={`w-full text-left px-5 py-2 flex items-center transition-all relative group ${
+                  index === activeIndex ? 'bg-[#f1f3f4]' : 'hover:bg-[#f1f3f4]'
+                }`}
+              >
+                {/* Vertical selector line - Only shown for active/focused index */}
+                {index === activeIndex && (
+                  <div className="absolute left-0 top-1 bottom-1 w-[4px] bg-[#006a4e] rounded-r-md" />
+                )}
+                
+                <div className="flex items-center w-full ml-1">
+                  {/* Alternating icon for aesthetic Variety, or we can just stick to search */}
+                  {index % 3 === 2 ? (
+                    <History className="w-5 h-5 mr-3 flex-shrink-0 text-gray-400" />
+                  ) : (
+                    <Search className="w-5 h-5 mr-3 flex-shrink-0 text-gray-400" />
+                  )}
+                  <span className={`text-[16px] text-gray-800 flex-grow truncate ${
+                    index === activeIndex ? 'font-medium' : ''
+                  }`}>
+                    {suggestion}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </form>
     </div>
   );
 };
