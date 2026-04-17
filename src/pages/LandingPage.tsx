@@ -17,9 +17,10 @@ const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="absolute bottom-0 left-0 right-0 bg-gray-100 border-t border-gray-200 text-xs text-gray-600">
-        <div className="px-8 py-3 border-b border-gray-200 text-center">
-           <span className="text-sm text-gray-700 font-medium">বাংলাদেশ</span>
+        <div className="px-8 py-3 border-b border-gray-200 text-left">
+          <span className="text-sm text-gray-700 font-medium">বাংলাদেশ</span>
         </div>
+
         <div className="max-w-full px-8 py-4 flex justify-between items-center flex-wrap gap-6">
           <div className="flex space-x-6">
             <a href="#" className="hover:underline">সবসময়</a>

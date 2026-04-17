@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, case, and_
 from typing import List, Optional
 import os
 import re
@@ -29,24 +29,70 @@ async def root():
 @app.get("/api/v1/search")
 async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
     """
-    Search across documents and crawl_queue tables
+    Search across documents and crawl_queue tables with prioritized ranking.
+    Prioritizes base URLs (root domains) and exact title matches over deep links and content matches.
+    Supports bilingual search via transliteration expansion.
     """
     try:
-        # Search in documents table
-        documents = db.query(Document).filter(
+        if not q or len(q.strip()) < 1:
+            return {"query": q, "results": [], "total": 0}
+
+        # 1. Expand query with transliterations for broader bilingual matching
+        search_terms = {q.strip()}
+        trans_results = db.query(TransliterationMap).filter(
             or_(
-                Document.title.ilike(f"%{q}%"),
-                Document.content.ilike(f"%{q}%"),
-                Document.url.ilike(f"%{q}%")
+                TransliterationMap.bangla.ilike(f"%{q}%"),
+                TransliterationMap.english.ilike(f"%{q}%")
             )
+        ).limit(5).all()
+        
+        for t in trans_results:
+            if t.bangla: search_terms.add(t.bangla.strip())
+            if t.english: search_terms.add(t.english.strip())
+
+        # 2. Build Filter Conditions for Documents
+        filter_conditions = []
+        for term in search_terms:
+            filter_conditions.append(Document.title.ilike(f"%{term}%"))
+            filter_conditions.append(Document.content.ilike(f"%{term}%"))
+            filter_conditions.append(Document.url.ilike(f"%{term}%"))
+
+        # 3. Define depth (slash count) as a proxy for 'base' vs 'deep' page
+        # Base URLs typically have 2 (http://site.com) or 3 (https://site.com/) slashes
+        slash_count = func.char_length(Document.url) - func.char_length(func.replace(Document.url, '/', ''))
+
+        # 4. Search documents with prioritized ranking
+        documents = db.query(Document).filter(
+            or_(*filter_conditions)
+        ).order_by(
+            # Rank 1: Exact phrase match in title (Highest priority)
+            case((or_(*[Document.title.ilike(term) for term in search_terms]), 0), else_=1),
+            
+            # Rank 2: Root-level page match (Base URL)
+            case((and_(slash_count <= 3, 
+                       or_(*[or_(Document.title.ilike(f"%{term}%"), Document.url.ilike(f"%{term}%")) 
+                             for term in search_terms])), 0), else_=1),
+            
+            # Rank 3: Partial title match
+            case((or_(*[Document.title.ilike(f"%{term}%") for term in search_terms]), 0), else_=1),
+            
+            # Rank 4: URL depth (shorter paths first)
+            slash_count.asc(),
+            
+            # Rank 5: Absolute URL length
+            func.char_length(Document.url).asc(),
+            
+            # Rank 6: Most recent
+            Document.updated_at.desc()
         ).limit(limit).offset(offset).all()
 
-        # Search in crawl_queue table
+        # 5. Search in crawl_queue for pending items that match the query
+        cq_filters = [CrawlQueue.url.ilike(f"%{term}%") for term in search_terms]
         crawl_items = db.query(CrawlQueue).filter(
-            or_(
-                CrawlQueue.url.ilike(f"%{q}%")
-            )
-        ).limit(limit - len(documents)).offset(offset).all()
+            or_(*cq_filters)
+        ).order_by(
+            func.char_length(CrawlQueue.url).asc()
+        ).limit(max(0, limit - len(documents))).offset(offset).all()
 
         results = []
 
@@ -66,8 +112,8 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
         for item in crawl_items:
             results.append({
                 "id": f"crawl_{item.id}",
-                "title": item.url.split("/")[-1] or item.url,
-                "snippet": f"Status: {item.status} | Priority: {item.priority}",
+                "title": item.url.split("//")[-1].split("/")[0] or item.url, # Show domain as title for crawl items
+                "snippet": f"Status: {item.status} | Priority: {item.priority} (Crawling in progress...)",
                 "url": item.url or "",
                 "favicon": None,
                 "source": "Crawl Queue",
@@ -80,6 +126,8 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             "total": len(results)
         }
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/suggestions")
