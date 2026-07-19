@@ -199,7 +199,7 @@ class SearchBar {
     if (this.onSearch) {
       this.onSearch(query);
     } else {
-      window.location.href = `/search?q=${encodeURIComponent(query)}`;
+      window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
     }
   }
 
@@ -511,7 +511,7 @@ function renderSessionCard(card, list, currentQuery) {
     btn.className = 'session-item';
     btn.innerHTML = `<span class="session-query">${esc(h.query)}</span><span class="session-time">${esc(h.ts)}</span>`;
     btn.addEventListener('click', () => {
-      window.location.href = `/search?q=${encodeURIComponent(h.query)}`;
+      window.location.href = `/search.html?q=${encodeURIComponent(h.query)}`;
     });
     list.appendChild(btn);
   });
@@ -614,7 +614,7 @@ function initTrendingChips() {
   document.querySelectorAll('[data-query]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const q = btn.getAttribute('data-query');
-      if (q) window.location.href = `/search?q=${encodeURIComponent(q)}`;
+      if (q) window.location.href = `/search.html?q=${encodeURIComponent(q)}`;
     });
   });
 }
@@ -639,13 +639,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (serpInput && serpWrap) {
     new SearchBar(serpInput, serpWrap, {
       onSearch: (q) => {
-        window.location.href = `/search?q=${encodeURIComponent(q)}`;
+        window.location.href = `/search.html?q=${encodeURIComponent(q)}`;
       },
     });
     const serpForm = document.getElementById('serpForm');
     serpForm?.addEventListener('submit', (e) => {
       e.preventDefault();
-      window.location.href = `/search?q=${encodeURIComponent(serpInput.value.trim())}`;
+      window.location.href = `/search.html?q=${encodeURIComponent(serpInput.value.trim())}`;
     });
   }
 
