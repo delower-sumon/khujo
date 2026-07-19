@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="bn" translate="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="google" content="notranslate" />
+  <meta name="description" content="খোঁজো — বাংলাদেশের স্থানীয় অনুসন্ধান। বাংলা, Banglish ও English-এ নির্ভরযোগ্য স্থানীয় উৎস খুঁজুন।" />
+  <meta name="khujo-api" content="http://localhost:8000" />
+  <title>খোঁজো — বাংলাদেশের স্থানীয় অনুসন্ধান</title>
+
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600&family=Inter:opsz,wght@14..32,300..600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/khujo.css" />
+</head>
+<body>
+  <div class="page-container landing-bg">
+
+    <!-- ── HEADER ──────────────────────────────────────── -->
+    <header>
+      <div class="content-container">
+        <div class="landing-header">
+          <a href="/" class="brand-mark" aria-label="খোঁজো হোম">
+            <span class="brand-icon">
+              <span class="brand-icon-ring"></span>
+              <span class="brand-icon-dot"></span>
+            </span>
+            <span class="brand-text">
+              <span class="brand-name latin">khujo</span>
+              <span class="brand-tagline">বাংলার খোঁজ</span>
+            </span>
+          </a>
+          <span class="for-bd-badge">বাংলাদেশের জন্য</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── MAIN ────────────────────────────────────────── -->
+    <main class="landing-main">
+      <div class="content-container" style="display:flex;flex-direction:column;align-items:center;">
+
+        <!-- Hero text -->
+        <div class="hero-text">
+          <p class="hero-label">স্থানীয় তথ্য, আপনার ভাষায়</p>
+          <h1 class="hero-title">খুঁজুন যা আপনার কাছে জরুরি</h1>
+          <p class="hero-sub">
+            খোঁজো বাংলা, Banglish এবং English প্রশ্ন থেকে নির্ভরযোগ্য
+            স্থানীয় উৎস খুঁজে আনবে।
+          </p>
+        </div>
+
+        <!-- Search bar -->
+        <div class="search-wrap-landing">
+          <form id="landingForm" role="search" action="/search" method="get">
+            <div class="search-wrap" id="landingSearchWrap">
+              <div class="search-field">
+                <div class="search-input-row">
+                  <span class="search-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  </span>
+                  <input
+                    id="landingSearchInput"
+                    name="q"
+                    type="search"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="বাংলা, Banglish বা English-এ খুঁজুন"
+                    class="search-input"
+                    aria-label="খোঁজো সার্চ"
+                    autofocus
+                  />
+                </div>
+              </div>
+            </div>
+          </form>
+          <p class="landing-hint">সাজেশন, উৎস ও ফলাফল—সবকিছু ধাপে ধাপে যাচাই করা হবে।</p>
+        </div>
+
+        <!-- Trending chips -->
+        <div class="trending-section" aria-label="ট্রেন্ডিং অনুসন্ধান">
+          <span class="trending-label">ট্রেন্ডিং:</span>
+          <button class="trend-chip" data-query="ঢাকা আবহাওয়া">ঢাকা আবহাওয়া</button>
+          <button class="trend-chip" data-query="পদ্মা সেতু">পদ্মা সেতু</button>
+          <button class="trend-chip" data-query="বাংলাদেশ ক্রিকেট">বাংলাদেশ ক্রিকেট</button>
+          <button class="trend-chip" data-query="ঢাকা বিশ্ববিদ্যালয়">ঢাকা বিশ্ববিদ্যালয়</button>
+          <button class="trend-chip" data-query="চট্টগ্রাম বন্দর">চট্টগ্রাম বন্দর</button>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ── FOOTER ───────────────────────────────────────── -->
+    <footer>
+      <div class="content-container">
+        <div class="landing-footer">
+          <span>বাংলাদেশ</span>
+          <span>খোঁজো একটি স্থানীয় জ্ঞানভিত্তিক অনুসন্ধান প্রকল্প</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="js/khujo.js?v=2"></script>
+</body>
+</html>

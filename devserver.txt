@@ -1,21 +1,26 @@
 ## 🚀 Quick Start Commands
 
-### 1. Start Frontend (React/Vite)
-
-npm run dev
-
-- Runs on: http://localhost:5173/
-- Auto-reloads on file changes
-- For mobile access: http://YOUR_IP:5173/
+### 1. Activate Virtual Environment
+Open a terminal in the project root and run:
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
 ### 2. Start Backend (FastAPI)
+In the same terminal (after activation), run:
+```powershell
+python backend/main.py
+```
+- API: http://localhost:8000/
+- Docs: http://localhost:8000/docs
 
-cd backend
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+### 3. Start Frontend (React/Vite)
+Open a **SECOND** terminal in the project root and run:
+```powershell
+npm run dev
+```
+- Frontend: http://localhost:5173/
 
-- Runs on: http://localhost:8000/
-- API docs: http://localhost:8000/docs
-- For mobile access: http://YOUR_IP:8000/
 
 ## 🛑 Stop Servers
 

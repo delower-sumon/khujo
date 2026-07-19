@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Mic, X, History } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface SearchBarProps {
@@ -8,6 +8,8 @@ interface SearchBarProps {
   className?: string;
 }
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = false, className = '' }) => {
   const [query, setQuery] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -15,34 +17,33 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
   const [activeIndex, setActiveIndex] = useState(-1);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFocusedRef = useRef(false);
 
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      // Only fetch if currently focused
-      if (!isFocusedRef.current) return;
+    setQuery(initialValue);
+  }, [initialValue]);
 
-      if (query.trim().length > 1) {
-        try {
-          const response = await fetch(`http://localhost:8000/api/v1/suggestions?q=${encodeURIComponent(query.trim())}&limit=8`);
-          if (response.ok) {
-            const data = await response.json();
-            // Re-check focus before updating state to avoid race conditions
-            if (isFocusedRef.current) {
-              setSuggestions(data);
-              setShowSuggestions(true);
-              setActiveIndex(-1);
-            }
-          }
-        } catch (error) {
-          console.warn('Suggestions API unavailable:', error);
-          setSuggestions([]);
-        }
-      } else {
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!isFocusedRef.current || query.trim().length < 2) {
         setSuggestions([]);
         setShowSuggestions(false);
         setActiveIndex(-1);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/v1/suggestions?q=${encodeURIComponent(query.trim())}&limit=8`);
+        if (response.ok && isFocusedRef.current) {
+          const data = await response.json();
+          setSuggestions(data);
+          setShowSuggestions(data.length > 0);
+          setActiveIndex(-1);
+        }
+      } catch {
+        setSuggestions([]);
+        setShowSuggestions(false);
       }
     };
 
@@ -55,44 +56,44 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setShowSuggestions(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = (e?: React.FormEvent, selectedQuery?: string) => {
-    e?.preventDefault();
+  const handleSearch = (event?: React.FormEvent, selectedQuery?: string) => {
+    event?.preventDefault();
     const finalQuery = selectedQuery || query;
-    if (finalQuery.trim()) {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      isFocusedRef.current = false; // Mark as not focused to prevent new fetches
-      setShowSuggestions(false);
-      setSuggestions([]);
-      setActiveIndex(-1);
-      navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
-    }
+    if (!finalQuery.trim()) return;
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    isFocusedRef.current = false;
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setActiveIndex(-1);
+    navigate(`/search?q=${encodeURIComponent(finalQuery.trim())}`);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setShowSuggestions(false);
+      setActiveIndex(-1);
+      return;
+    }
     if (!showSuggestions || suggestions.length === 0) return;
 
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((current) => Math.min(current + 1, suggestions.length - 1));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((current) => Math.max(current - 1, 0));
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
       const selected = activeIndex >= 0 ? suggestions[activeIndex] : query;
       setQuery(selected);
       handleSearch(undefined, selected);
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setActiveIndex(-1);
     }
   };
 
@@ -100,18 +101,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
-      <form onSubmit={(e) => handleSearch(e)} className="relative z-[60]">
-        <div className={`relative flex items-center w-full bg-white border border-gray-200 transition-all duration-200 px-5 py-3 ${
-          hasSuggestions 
-            ? 'rounded-t-[24px] border-b-0 shadow-lg' 
-            : 'rounded-full hover:shadow-md focus-within:shadow-md'
+      <form onSubmit={(event) => handleSearch(event)} className="relative z-[60]">
+        <div className={`relative flex w-full items-center border border-slate-200 bg-white px-4 py-3 transition-all duration-200 ${
+          hasSuggestions
+            ? 'rounded-t-2xl border-b-0 shadow-[0_18px_38px_-24px_rgba(15,23,42,0.42)]'
+            : 'rounded-2xl shadow-sm hover:border-slate-300 hover:shadow-md focus-within:border-[#006a4e] focus-within:ring-4 focus-within:ring-emerald-50'
         }`}>
-          <Search className="w-5 h-5 text-gray-400 mr-3" />
+          <Search className="mr-3 h-5 w-5 shrink-0 text-[#006a4e]" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
+            onChange={(event) => {
+              setQuery(event.target.value);
               setActiveIndex(-1);
             }}
             onKeyDown={handleKeyDown}
@@ -120,61 +121,39 @@ const SearchBar: React.FC<SearchBarProps> = ({ initialValue = '', autoFocus = fa
               if (query.length > 1) setShowSuggestions(true);
             }}
             onBlur={() => {
-              // Delay to allow suggestion clicks to register
               setTimeout(() => {
                 isFocusedRef.current = false;
                 setShowSuggestions(false);
               }, 200);
             }}
-            placeholder="খুঁজুন..."
-            className="flex-grow bg-transparent outline-none text-lg text-gray-800 placeholder-gray-400"
+            placeholder="বাংলা, Banglish বা English-এ খুঁজুন"
+            className="min-w-0 flex-grow bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400 sm:text-[17px]"
             autoFocus={autoFocus}
+            aria-label="খোঁজো সার্চ"
           />
-          <div className="flex items-center space-x-3 ml-3 border-l border-gray-200 pl-3">
-            {query && (
-              <button type="button" onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            )}
-            <button type="button" className="text-gray-400 hover:text-[#006a4e] transition-colors">
-              <Mic className="w-5 h-5" />
+          {query && (
+            <button type="button" onClick={() => setQuery('')} className="ml-3 rounded-full border-l border-slate-200 pl-3 text-slate-400 transition-colors hover:text-slate-700" aria-label="খোঁজ মুছুন">
+              <X className="h-4 w-4" />
             </button>
-          </div>
+          )}
         </div>
 
-        {/* Unified Dropdown Container */}
         {hasSuggestions && (
-          <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 border-t-0 rounded-b-[24px] shadow-lg z-50 overflow-hidden pb-4 pt-1">
-            <div className="h-[1px] bg-gray-100 mx-5 mb-1" />
+          <div className="absolute left-0 right-0 top-full z-50 overflow-hidden rounded-b-2xl border border-slate-200 border-t-0 bg-white pb-3 pt-1 shadow-[0_18px_38px_-24px_rgba(15,23,42,0.42)]">
+            <div className="mx-4 mb-1 h-px bg-slate-100" />
             {suggestions.map((suggestion, index) => (
               <button
-                key={index}
+                key={suggestion}
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   setQuery(suggestion);
                   handleSearch(undefined, suggestion);
                 }}
-                className={`w-full text-left px-5 py-2 flex items-center transition-all relative group ${
-                  index === activeIndex ? 'bg-[#f1f3f4]' : 'hover:bg-[#f1f3f4]'
-                }`}
+                className={`relative flex w-full items-center px-5 py-2 text-left transition-colors ${index === activeIndex ? 'bg-emerald-50' : 'hover:bg-slate-50'}`}
               >
-                {/* Vertical selector line - Only shown for active/focused index */}
-                {index === activeIndex && (
-                  <div className="absolute left-0 top-1 bottom-1 w-[4px] bg-[#006a4e] rounded-r-md" />
-                )}
-                
-                <div className="flex items-center w-full ml-1">
-                  {/* Alternating icon for aesthetic Variety, or we can just stick to search */}
-                  {index % 3 === 2 ? (
-                    <History className="w-5 h-5 mr-3 flex-shrink-0 text-gray-400" />
-                  ) : (
-                    <Search className="w-5 h-5 mr-3 flex-shrink-0 text-gray-400" />
-                  )}
-                  <span className={`text-[16px] text-gray-800 flex-grow truncate ${
-                    index === activeIndex ? 'font-medium' : ''
-                  }`}>
-                    {suggestion}
-                  </span>
-                </div>
+                {index === activeIndex && <span className="absolute bottom-1 left-0 top-1 w-1 rounded-r-md bg-[#006a4e]" />}
+                <Search className="mr-3 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                <span className={`flex-grow truncate text-[15px] text-slate-800 ${index === activeIndex ? 'font-medium' : ''}`}>{suggestion}</span>
               </button>
             ))}
           </div>
