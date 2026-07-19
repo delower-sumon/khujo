@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>khujo Search</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --border-color: #e2e8f0;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-sky: #06b6d4;
+      --accent-violet: #8b5cf6;
+      --accent-emerald: #10b981;
+      --shadow-soft: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, #ffffff 100%);
+      color: var(--text-primary);
+    }
+    
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+    }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .logo-gradient {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-violet) 100%);
+    }
+    
+    .search-focus:focus-within {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), var(--shadow-card);
+      border-color: var(--accent-blue);
+    }
+    
+    .tag-neutral {
+      background: rgba(241, 245, 249, 0.8);
+      color: var(--text-secondary);
+      border: 1px solid rgba(226, 232, 240, 0.6);
+    }
+    
+    .tag-accent {
+      background: rgba(59, 130, 246, 0.08);
+      color: var(--accent-blue);
+      border: 1px solid rgba(59, 130, 246, 0.15);
+    }
+    
+    .tag-success {
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+    
+    .card-hover {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03);
+      border-color: var(--accent-blue);
+    }
+    
+    .text-gradient {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-violet) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .ai-overview-bg {
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.7) 0%, rgba(221, 214, 254, 0.7) 100%);
+    }
+    
+    .knowledge-graph-bg {
+      background: linear-gradient(135deg, rgba(224, 242, 254, 0.7) 0%, rgba(236, 252, 203, 0.7) 100%);
+    }
+  </style>
+</head>
+<body class="h-full">
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- Top Nav -->
+    <header class="w-full flex items-center justify-between px-6 py-4 border-b border-slate-200/80 bg-white/80 backdrop-blur-sm z-20">
+      <div class="flex items-center gap-2">
+        <div class="h-7 w-7 rounded-xl logo-gradient flex items-center justify-center shadow-sm">
+          <div class="h-3 w-3 rounded-full bg-white/90"></div>
+        </div>
+        <div class="flex flex-col leading-tight">
+          <span class="font-semibold tracking-tight text-slate-900 text-lg">khujo</span>
+          <span class="text-[11px] uppercase tracking-[0.18em] text-blue-600">Search</span>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-600">
+        <button class="hover:text-blue-600 transition-colors flex items-center gap-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+          Live Index: <span id="indexCount" class="font-mono text-xs">18,204,991,203</span>
+        </button>
+        <button class="hover:text-blue-600 transition-colors">Labs</button>
+        <button class="hover:text-blue-600 transition-colors">Insights</button>
+        <button class="hover:text-blue-600 transition-colors">About</button>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="modeToggle" class="h-8 w-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-600 hover:text-blue-600 hover:border-blue-400/70 transition-colors">
+          <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 hidden"><path fill="currentColor" d="M10.5 2.25a.75.75 0 0 1 .75.75 9.5 9.5 0 0 0 9.5 9.5.75.75 0 0 1 0 1.5 11 11 0 1 1-10.9-11.99.75.75 0 0 1 .65.74Z"/></svg>
+          <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4"><path fill="currentColor" d="M12 4.75a.75.75 0 0 1-.75-.75V2a.75.75 0 0 1 1.5 0v2a.75.75 0 0 1-.75.75Zm0 14.5a.75.75 0 0 1 .75.75v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 1 .75-.75Zm8.25-7.25a.75.75 0 0 1 .75-.75h2a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1-.75-.75Zm-19.5 0a.75.75 0 0 1 .75-.75h2a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1-.75-.75Zm3.22-6.53a.75.75 0 0 1 1.06 0L7.97 5.7a.75.75 0 1 1-1.06 1.06L4.97 5.03a.75.75 0 0 1 0-1.06Zm12.02 12.02a.75.75 0 0 1 1.06 0l1.94 1.94a.75.75 0 0 1-1.06 1.06l-1.94-1.94a.75.75 0 0 1 0-1.06Zm1.94-12.02a.75.75 0 0 1 0 1.06L18.3 6.76A.75.75 0 0 1 17.24 5.7l1.94-1.94a.75.75 0 0 1 1.06 0ZM6.91 17.97a.75.75 0 0 1 0 1.06L4.97 21a.75.75 0 0 1-1.06-1.06l1.94-1.94a.75.75 0 0 1 1.06 0ZM12 7.25A4.75 4.75 0 1 0 16.75 12 4.76 4.76 0 0 0 12 7.25Zm0 8A3.25 3.25 0 1 1 15.25 12 3.25 3.25 0 0 1 12 15.25Z"/></svg>
+        </button>
+        <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-violet-500 flex items-center justify-center text-xs font-semibold text-white shadow-sm">JL</div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col">
+      <!-- Landing View -->
+      <section id="landingView" class="flex-1 flex flex-col items-center justify-center px-4 py-10">
+        <div class="max-w-2xl w-full flex flex-col items-center">
+          <div class="relative mb-10 flex flex-col items-center">
+            <div class="relative flex items-end gap-3 mb-2">
+              <span class="text-6xl md:text-7xl font-semibold tracking-tight text-gradient mb-10 p-4">
+                khujo
+              </span>
+              <span class="px-2 py-1 rounded-full border border-blue-500/30 bg-blue-50 text-[11px] uppercase tracking-[0.24em] text-blue-600 mb-12">
+                Search
+              </span>
+            </div>
+            <p class="relative text-slate-600 text-sm md:text-base text-center max-w-xl">
+              
+            </p>
+          </div>
+
+          <div class="w-full max-w-2xl relative mb-4">
+            <div class="relative rounded-2xl glass search-focus shadow-[var(--shadow-soft)]">
+              <div class="flex items-center gap-3 px-4 py-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-blue-500"><path fill="currentColor" d="M10.5 3a7.5 7.5 0 0 1 5.93 12.12l3.2 3.2a.75.75 0 0 1-.98 1.13l-.08-.07-3.2-3.2A7.5 7.5 0 1 1 10.5 3Zm0 1.5A6 6 0 1 0 10.5 16.5 6 6 0 0 0 10.5 4.5Z"/></svg>
+                <input id="mainSearchInput" type="text" autocomplete="off" placeholder="Search the web, code, research, or ask a question" class="flex-1 bg-transparent text-sm md:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none" />
+                <button id="micBtn" class="h-8 w-8 rounded-full bg-white/70 border border-blue-500/30 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4"><path fill="currentColor" d="M12 2a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V5a3 3 0 0 1 3-3Zm0 13.5a4.5 4.5 0 0 0 4.5-4.5a.75.75 0 0 1 1.5 0a6 6 0 0 1-5.25 5.96V20h2.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5H11v-2.04A6 6 0 0 1 6 11a.75.75 0 0 1 1.5 0a4.5 4.5 0 0 0 4.5 4.5Z"/></svg>
+                </button>
+                <button id="lensBtn" class="hidden sm:flex h-8 px-2 rounded-full border border-slate-300 bg-white/70 text-[11px] uppercase tracking-[0.22em] text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                  Visual
+                </button>
+              </div>
+              <div class="px-4 pb-3 flex flex-wrap gap-2 text-[11px] text-slate-600 border-t border-slate-200/60">
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full tag-accent">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                  Live semantic suggestions
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full tag-neutral">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-3 w-3"><path fill="currentColor" d="M5.25 4A3.25 3.25 0 0 0 2 7.25v9.5A3.25 3.25 0 0 0 5.25 20h13.5A3.25 3.25 0 0 0 22 16.75v-9.5A3.25 3.25 0 0 0 18.75 4Zm0 1.5h13.5A1.75 1.75 0 0 1 20.5 7.25V9h-17V7.25A1.75 1.75 0 0 1 5.25 5.5Zm-1.75 5V16.75A1.75 1.75 0 0 0 5.25 18.5h13.5a1.75 1.75 0 0 0 1.75-1.75V10.5Z"/></svg>
+                  Private edge compute
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full tag-neutral">
+                  Multi-modal reasoning
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-3 text-[13px] mt-10">
+            <button id="searchWebBtn" class="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors shadow-sm mb-6">
+              khujo Search
+            </button>
+            <button id="luckyBtn" class="px-4 py-2 rounded-full bg-white/80 border border-slate-200 text-slate-600 hover:border-emerald-400 hover:text-emerald-600 transition-colors">
+              I'm Feeling Curious
+            </button>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-2 text-[11px] text-slate-500">
+            <span>Trending: </span>
+            <button class="px-2 py-1 rounded-full border border-slate-200 hover:border-blue-400 hover:text-blue-600 transition-colors" data-query="how quantum search works">
+              quantum search
+            </button>
+            <button class="px-2 py-1 rounded-full border border-slate-200 hover:border-blue-400 hover:text-blue-600 transition-colors" data-query="best ai research papers 2024">
+              ai research 2024
+            </button>
+            <button class="px-2 py-1 rounded-full border border-slate-200 hover:border-blue-400 hover:text-blue-600 transition-colors" data-query="build a search engine from scratch">
+              build a search engine
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results View -->
+      <section id="resultsView" class="hidden flex-1 flex flex-col">
+        <!-- Search Bar Docked -->
+        <div class="border-b border-slate-200/80 bg-white/96 backdrop-blur-sm z-10">
+          <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
+            <div class="hidden sm:flex flex-col mr-2">
+              <span class="text-sm font-semibold text-slate-900 leading-tight">Aurora</span>
+              <span class="text-[10px] text-blue-600 uppercase tracking-[0.22em]">Quantum</span>
+            </div>
+            <div class="flex-1">
+              <div class="relative max-w-3xl w-full">
+                <div class="relative rounded-xl glass search-focus shadow-[var(--shadow-soft)]">
+                  <div class="flex items-center gap-3 px-3 py-2.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-blue-500"><path fill="currentColor" d="M10.5 3a7.5 7.5 0 0 1 5.93 12.12l3.2 3.2a.75.75 0 0 1-.98 1.13l-.08-.07-3.2-3.2A7.5 7.5 0 1 1 10.5 3Zm0 1.5A6 6 0 1 0 10.5 16.5 6 6 0 0 0 10.5 4.5Z"/></svg>
+                    <input id="resultsSearchInput" type="text" class="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none" />
+                    <div class="hidden md:flex items-center gap-2 text-[10px] text-slate-500">
+                      <span class="px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 font-mono">↵</span>
+                      <span>Search</span>
+                    </div>
+                    <button id="resultsMicBtn" class="h-7 w-7 rounded-full bg-white/70 border border-blue-400/30 flex items-center justify-center text-blue-500 hover:bg-blue-50">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-3.5 w-3.5"><path fill="currentColor" d="M12 2a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V5a3 3 0 0 1 3-3Zm0 13.5a4.5 4.5 0 0 0 4.5-4.5a.75.75 0 0 1 1.5 0a6 6 0 0 1-5.25 5.96V20h2.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5H11v-2.04A6 6 0 0 1 6 11a.75.75 0 0 1 1.5 0a4.5 4.5 0 0 0 4.5 4.5Z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="hidden md:flex items-center gap-3 text-[11px] text-slate-600">
+              <span class="px-2 py-1 rounded-full border border-slate-200 bg-slate-50 flex items-center gap-1">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                Safe mode
+              </span>
+              <button class="px-2 py-1 rounded-full border border-slate-200 hover:border-blue-400">Filters</button>
+            </div>
+          </div>
+          <div class="max-w-6xl mx-auto px-4 pb-1 flex gap-4 text-xs text-slate-600 overflow-x-auto no-scrollbar">
+            <button class="px-3 py-1 border-b-2 border-blue-500 text-blue-600 font-medium whitespace-nowrap">All</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">Images</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">Video</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">Code</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">Scholarly</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">Discussions</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">News</button>
+            <button class="px-3 py-1 border-b-2 border-transparent hover:border-slate-300 whitespace-nowrap">Tools</button>
+          </div>
+        </div>
+
+        <!-- Results Layout -->
+        <div class="flex-1 max-w-6xl mx-auto w-full px-4 py-4 flex gap-6">
+          <!-- Main column -->
+          <div class="flex-1 flex flex-col gap-4 min-w-0">
+            <p id="resultMeta" class="text-[11px] text-slate-500"></p>
+            
+            <!-- AI Overview Card -->
+            <div id="aiOverview" class="rounded-2xl p-4 ai-overview-bg border border-white/60 shadow-[var(--shadow-card)] hidden">
+              <div class="flex items-start justify-between gap-4 mb-2">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-600">Aurora synthesis</span>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white border border-emerald-200 text-[10px] text-emerald-700">
+                      <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                      Live
+                    </span>
+                  </div>
+                  <h2 class="text-sm font-semibold text-slate-900 mb-1">Contextual overview</h2>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                  <span class="px-1.5 py-0.5 rounded-full border border-slate-200 bg-white/70">Reasoning</span>
+                  <span class="px-1.5 py-0.5 rounded-full border border-slate-200 bg-white/70">Sources</span>
+                </div>
+              </div>
+              <p id="aiSummary" class="text-[13px] text-slate-800 leading-relaxed mb-3"></p>
+              <div class="flex flex-wrap gap-2 mb-3 text-[11px]">
+                <span class="px-2 py-1 rounded-full bg-slate-900 text-slate-50">Semantic clusters</span>
+                <span class="px-2 py-1 rounded-full bg-white border border-slate-200">Temporal trends</span>
+                <span class="px-2 py-1 rounded-full bg-white border border-slate-200">Authority signals</span>
+              </div>
+              <div id="aiSources" class="grid sm:grid-cols-3 gap-2 text-[11px]"></div>
+            </div>
+
+            <!-- Organic Results -->
+            <div id="resultsList" class="flex flex-col gap-4"></div>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="w-80 hidden lg:flex flex-col gap-4">
+            <!-- Knowledge Card -->
+            <div id="knowledgeCard" class="rounded-2xl p-4 knowledge-graph-bg border border-white/60 shadow-[var(--shadow-card)] hidden">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <p class="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-1">Knowledge graph</p>
+                  <h3 id="kgTitle" class="text-base font-semibold text-slate-900"></h3>
+                  <p id="kgSubtitle" class="text-[11px] text-slate-500"></p>
+                </div>
+                <span class="px-1.5 py-0.5 rounded-full bg-slate-900 text-[10px] text-slate-50">Entity</span>
+              </div>
+              <div class="relative h-36 mb-3 rounded-xl overflow-hidden bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50">
+                <div class="absolute inset-0 opacity-70" id="kgCanvasPlaceholder"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-[11px] text-slate-600">
+                  Dynamic concept map
+                </div>
+              </div>
+              <dl id="kgFacts" class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-700 mb-3"></dl>
+              <div>
+                <p class="text-[11px] font-semibold text-slate-600 mb-1">Related concepts</p>
+                <div id="kgRelated" class="flex flex-wrap gap-1.5 text-[11px]"></div>
+              </div>
+            </div>
+
+            <!-- Perspective Cards -->
+            <div class="rounded-2xl p-3 bg-white border border-slate-200 shadow-[var(--shadow-card)] text-[12px]">
+              <div class="flex items-center justify-between mb-2">
+                <p class="text-[11px] uppercase tracking-[0.22em] text-slate-500">Perspectives</p>
+                <span class="px-1.5 py-0.5 rounded-full bg-slate-900 text-[10px] text-slate-50">Beta</span>
+              </div>
+              <div id="perspectiveList" class="flex flex-col gap-2"></div>
+            </div>
+
+            <!-- Activity Card -->
+            <div class="rounded-2xl p-3 bg-white border border-slate-200 shadow-[var(--shadow-card)] text-[11px]">
+              <p class="text-[11px] uppercase tracking-[0.22em] text-slate-500 mb-2">Your session</p>
+              <div id="historyList" class="flex flex-col gap-1"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200/80 bg-white/90 text-[11px] text-slate-500">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+        <p>Aurora Search prototype · Latency simulated · Not connected to the real web</p>
+        
+        <button class="hover:text-blue-600 transition-colors flex items-center gap-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+          Live Index: <span id="indexCount" class="font-mono text-xs">18,204,991,203</span>
+        </button>
+        <div class="flex flex-wrap gap-4">
+          <button class="hover:text-blue-600">Privacy</button>
+          <button class="hover:text-blue-600">Terms</button>
+          <button class="hover:text-blue-600">API</button>
+          <button class="hover:text-blue-600">Feedback</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const state = {
+      darkMode: false,
+      history: [],
+      indexCount: 18204991203,
+      indexTicker: null
+    };
+
+    const landingView = document.getElementById('landingView');
+    const resultsView = document.getElementById('resultsView');
+    const mainSearchInput = document.getElementById('mainSearchInput');
+    const resultsSearchInput = document.getElementById('resultsSearchInput');
+    const searchWebBtn = document.getElementById('searchWebBtn');
+    const luckyBtn = document.getElementById('luckyBtn');
+    const resultMeta = document.getElementById('resultMeta');
+    const resultsList = document.getElementById('resultsList');
+    const aiOverview = document.getElementById('aiOverview');
+    const aiSummary = document.getElementById('aiSummary');
+    const aiSources = document.getElementById('aiSources');
+    const knowledgeCard = document.getElementById('knowledgeCard');
+    const kgTitle = document.getElementById('kgTitle');
+    const kgSubtitle = document.getElementById('kgSubtitle');
+    const kgFacts = document.getElementById('kgFacts');
+    const kgRelated = document.getElementById('kgRelated');
+    const perspectiveList = document.getElementById('perspectiveList');
+    const historyList = document.getElementById('historyList');
+    const indexCountEl = document.getElementById('indexCount');
+
+    function nanoTime() {
+      return (20 + Math.random() * 40).toFixed(2);
+    }
+
+    function formatIndex(num) {
+      return num.toLocaleString('en-US');
+    }
+
+    function startIndexTicker() {
+      if (state.indexTicker) return;
+      indexCountEl.textContent = formatIndex(state.indexCount);
+      state.indexTicker = setInterval(() => {
+        state.indexCount += Math.floor(Math.random() * 10000);
+        indexCountEl.textContent = formatIndex(state.indexCount);
+      }, 950);
+    }
+
+    startIndexTicker();
+
+    function toggleMode() {
+      state.darkMode = !state.darkMode;
+      document.body.className = state.darkMode ? 'h-full bg-slate-950 text-slate-100' : 'h-full bg-white text-slate-900';
+      const moon = document.getElementById('moonIcon');
+      const sun = document.getElementById('sunIcon');
+      if (state.darkMode) {
+        moon.classList.remove('hidden');
+        sun.classList.add('hidden');
+      } else {
+        moon.classList.add('hidden');
+        sun.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('modeToggle').addEventListener('click', toggleMode);
+
+    function mockSearch(query) {
+      const now = new Date();
+      const millis = nanoTime();
+      resultMeta.textContent = `About ${formatIndex(123456789)} results (${millis} seconds) · Context-aware ranking`;
+
+      const base = query.toLowerCase();
+
+      const results = Array.from({ length: 7 }).map((_, i) => {
+        const rank = i + 1;
+        return {
+          title: `${query} — deep dive ${rank}`,
+          url: `https://example.com/${encodeURIComponent(base)}/${rank}`,
+          breadcrumb: `example.com › ${base.replace(/\s+/g, ' › ')}`,
+          snippet: `An in-depth exploration of "${query}" with emphasis on semantic relationships, best practices, and practical applications in modern systems (${2020 + i}).`,
+          meta: {
+            updated: `${now.getFullYear() - i}-${String(now.getMonth() + 1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
+            type: i % 2 === 0 ? 'Long-form guide' : 'Technical reference',
+            readTime: `${8 + i} min read`
+          },
+          badges: rank <= 2 ? ['Highly cited', 'Authoritative'] : rank <= 4 ? ['Community favorite'] : ['Emerging'],
+          sitelinks: i < 3 ? ['Overview', 'Architecture', 'Examples', 'FAQ'].slice(0, 2 + (i % 3)) : []
+        };
+      });
+
+      const overview = {
+        summary: `"${query}" sits at the intersection of information retrieval, modern AI, and user experience. Contemporary systems combine classic ranking signals (links, freshness, structure) with embedding-based semantic search, personalization controls, and safety layers. The current best practice is to treat search as a reasoning problem: understand intent, map entities and relationships, then orchestrate multiple retrieval strategies rather than relying on a single keyword index.`,
+        sources: results.slice(0, 3).map(r => ({ title: r.title, url: r.url, domain: r.breadcrumb.split(' › ')[0] }))
+      };
+
+      const knowledge = {
+        title: query.replace(/\bsearch\b/i, 'Search systems').replace(/\bengine\b/i, 'Search engine architecture'),
+        subtitle: 'Concept • Information retrieval & AI',
+        facts: [
+          ['Domain', 'Information retrieval'],
+          ['Core signals', 'Relevance, quality, freshness'],
+          ['Modern stack', 'Index + vector search + ranking'],
+          ['Latency budget', '~200 ms perceived']
+        ],
+        related: ['Vector search', 'Ranking models', 'Knowledge graphs', 'Semantic caching', 'RAG', 'User intent modeling']
+      };
+
+      const perspectives = [
+        {
+          label: 'For engineers',
+          text: 'Focus on architecture: index sharding, vector databases, ranking models, and observability.',
+          tone: 'Technical'
+        },
+        {
+          label: 'For product teams',
+          text: 'Think about user journeys: zero-query suggestions, session memory, and trustworthy answers.',
+          tone: 'UX'
+        },
+        {
+          label: 'For researchers',
+          text: 'Evaluate long-horizon metrics: satisfaction over clicks, robustness to adversarial content, and bias.',
+          tone: 'Research'
+        }
+      ];
+
+      return { results, overview, knowledge, perspectives };
+    }
+
+    function renderResults(query) {
+      const { results, overview, knowledge, perspectives } = mockSearch(query);
+
+      // AI overview
+      aiSummary.textContent = overview.summary;
+      aiSources.innerHTML = '';
+      overview.sources.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'px-2 py-1.5 rounded-lg bg-white border border-slate-200 flex flex-col gap-0.5';
+        div.innerHTML = `<span class="text-[11px] font-medium text-slate-600">${s.domain}</span><a href="#" class="text-[10px] text-blue-600 truncate">${s.title}</a>`;
+        aiSources.appendChild(div);
+      });
+      aiOverview.classList.remove('hidden');
+
+      // Organic list
+      resultsList.innerHTML = '';
+      results.forEach(r => {
+        const card = document.createElement('article');
+        card.className = 'group rounded-xl border border-slate-200 bg-white card-hover shadow-[var(--shadow-soft)] p-4 text-sm';
+        card.innerHTML = `
+          <div class="text-[11px] text-slate-500 mb-1">${r.breadcrumb}</div>
+          <a href="#" class="text-[15px] leading-snug font-medium text-blue-600 group-hover:text-blue-700">${r.title}</a>
+          <p class="mt-1 text-[13px] text-slate-600">${r.snippet}</p>
+          <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+            <span>${r.meta.type}</span>
+            <span>·</span>
+            <span>Updated ${r.meta.updated}</span>
+            <span>·</span>
+            <span>${r.meta.readTime}</span>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-1">
+            ${r.badges.map(b => `<span class="px-1.5 py-0.5 rounded-full border border-blue-200 text-[10px] text-blue-600 bg-blue-50">${b}</span>`).join('')}
+          </div>
+          ${r.sitelinks.length ? `<div class="mt-3 grid sm:grid-cols-2 gap-1">${r.sitelinks.map(s => `<button class="text-[11px] text-blue-600 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-left hover:border-blue-300">${s}</button>`).join('')}</div>` : ''}
+        `;
+        resultsList.appendChild(card);
+      });
+
+      // Knowledge card
+      kgTitle.textContent = knowledge.title;
+      kgSubtitle.textContent = knowledge.subtitle;
+      kgFacts.innerHTML = '';
+      knowledge.facts.forEach(([k, v]) => {
+        const dt = document.createElement('dt');
+        dt.className = 'text-slate-500';
+        dt.textContent = k;
+        const dd = document.createElement('dd');
+        dd.className = 'text-slate-800 font-medium';
+        dd.textContent = v;
+        kgFacts.appendChild(dt);
+        kgFacts.appendChild(dd);
+      });
+      kgRelated.innerHTML = '';
+      knowledge.related.forEach(r => {
+        const span = document.createElement('button');
+        span.className = 'px-2 py-1 rounded-full bg-slate-900 text-slate-50 hover:bg-slate-800 transition-colors';
+        span.textContent = r;
+        span.addEventListener('click', () => runSearch(r));
+        kgRelated.appendChild(span);
+      });
+      knowledgeCard.classList.remove('hidden');
+
+      // Perspectives
+      perspectiveList.innerHTML = '';
+      perspectives.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'rounded-lg border border-slate-200 bg-white/70 px-3 py-2';
+        div.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-semibold text-slate-900">${p.label}</span>
+            <span class="text-[10px] text-slate-500">${p.tone}</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">${p.text}</p>
+        `;
+        perspectiveList.appendChild(div);
+      });
+
+      // History
+      state.history.unshift({ query, ts: new Date() });
+      state.history = state.history.slice(0, 6);
+      historyList.innerHTML = '';
+      state.history.forEach(h => {
+        const div = document.createElement('button');
+        div.className = 'flex items-center justify-between gap-2 px-2 py-1 rounded-lg hover:bg-slate-50 w-full text-left';
+        div.innerHTML = `
+          <span class="truncate text-left text-slate-700">${h.query}</span>
+          <span class="text-slate-400 text-[10px]">${h.ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        `;
+        div.addEventListener('click', () => runSearch(h.query));
+        historyList.appendChild(div);
+      });
+    }
+
+    function showResultsView() {
+      landingView.classList.add('hidden');
+      resultsView.classList.remove('hidden');
+    }
+
+    function runSearch(query) {
+      if (!query.trim()) return;
+      resultsSearchInput.value = query;
+      mainSearchInput.value = query;
+      showResultsView();
+      renderResults(query);
+    }
+
+    // Event bindings
+    searchWebBtn.addEventListener('click', () => runSearch(mainSearchInput.value || 'designing a modern search engine'));
+
+    luckyBtn.addEventListener('click', () => {
+      const prompts = [
+        'how to design a google-like search engine',
+        'vector search vs keyword search',
+        'ranking algorithms for web search',
+        'how search engines crawl and index the web'
+      ];
+      const q = prompts[Math.floor(Math.random() * prompts.length)];
+      runSearch(q);
+    });
+
+    mainSearchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') runSearch(mainSearchInput.value);
+    });
+
+    resultsSearchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') runSearch(resultsSearchInput.value);
+    });
+
+    document.querySelectorAll('[data-query]').forEach(btn => {
+      btn.addEventListener('click', () => runSearch(btn.getAttribute('data-query')));
+    });
+
+    // Fake mic actions
+    document.getElementById('micBtn').addEventListener('click', () => {
+      mainSearchInput.value = 'describe quantum search in simple terms';
+      runSearch(mainSearchInput.value);
+    });
+
+    document.getElementById('resultsMicBtn').addEventListener('click', () => {
+      resultsSearchInput.value = 'explain how search ranking works';
+      runSearch(resultsSearchInput.value);
+    });
+  </script>
+</body>
+</html>
