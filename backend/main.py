@@ -46,17 +46,24 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 "sources": []
             }
 
-        # 2. Search content.document for web and news results using trigram/ILIKE
-        doc_res = db.execute(text("""
-            SELECT document_id, canonical_url, title, body_text, document_kind
+        # 2. Lookup documents matching trigrams and only return verified ones
+        docs = db.execute(text("""
+            SELECT document_id, canonical_url, title, body_text, published_at, 
+                   source.source_name as source
             FROM content.document
-            WHERE title_normalised % :q OR body_normalised % :q OR title_normalised ILIKE :q_like
-            ORDER BY similarity(title_normalised, :q) DESC, discovered_at DESC
+            JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
+            LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
+            WHERE content.document.state = 'verified'
+              AND (content.document.title_normalised % :q OR content.document.body_normalised % :q)
+            ORDER BY GREATEST(
+                similarity(content.document.title_normalised, :q),
+                similarity(content.document.body_normalised, :q)
+            ) DESC
             LIMIT :limit OFFSET :offset
-        """), {"q": q.strip(), "q_like": f"%{q.strip()}%", "limit": limit, "offset": offset}).fetchall()
+        """), {"q": q.strip(), "limit": limit, "offset": offset}).fetchall()
 
         results = []
-        for d in doc_res:
+        for d in docs:
             results.append({
                 "id": str(d[0]),
                 "title": d[2] or "Untitled",
