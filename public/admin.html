@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>Khujo Admin - Data Verification</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f5; }
+    .card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card h3 { margin-top: 0; }
+    .url { color: #2563eb; font-size: 0.9em; text-decoration: none; }
+    .body { font-size: 0.9em; color: #4b5563; max-height: 100px; overflow: hidden; text-overflow: ellipsis; }
+    .actions { margin-top: 10px; }
+    button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+    .btn-approve { background: #006a4e; }
+    .btn-reject { background: #dc2626; }
+  </style>
+</head>
+<body>
+  <h1>Khujo Data Verification Queue</h1>
+  <div id="queue">Loading candidates...</div>
+  
+  <script>
+    const API_BASE = 'http://localhost:8000/api/v1/admin';
+
+    async function loadCandidates() {
+      const q = document.getElementById('queue');
+      try {
+        const res = await fetch(`${API_BASE}/candidates`);
+        const data = await res.json();
+        if (data.length === 0) {
+          q.innerHTML = "<p>No candidate documents waiting for verification!</p>";
+          return;
+        }
+        q.innerHTML = data.map(doc => `
+          <div class="card" id="doc-${doc.id}">
+            <h3>${doc.title || 'No Title'}</h3>
+            <a class="url" href="${doc.url}" target="_blank">${doc.url}</a>
+            <p class="body">${(doc.body || '').substring(0, 300)}...</p>
+            <div class="actions">
+              <button class="btn-approve" onclick="verifyDoc('${doc.id}')">Approve</button>
+              <button class="btn-reject" onclick="rejectDoc('${doc.id}')">Reject</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        q.innerHTML = `<p>Error loading queue: ${e.message}</p>`;
+      }
+    }
+
+    async function verifyDoc(id) {
+      await fetch(`${API_BASE}/verify/${id}`, { method: 'POST' });
+      document.getElementById(`doc-${id}`).remove();
+    }
+
+    async function rejectDoc(id) {
+      await fetch(`${API_BASE}/reject/${id}`, { method: 'POST' });
+      document.getElementById(`doc-${id}`).remove();
+    }
+
+    loadCandidates();
+  </script>
+</body>
+</html>

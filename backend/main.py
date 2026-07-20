@@ -70,7 +70,7 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 "snippet": (d[3][:200] + "...") if d[3] else "No description available",
                 "url": d[1],
                 "favicon": None,
-                "source": d[4],
+                "source": d[5],
                 "type": "document"
             })
 
@@ -105,6 +105,40 @@ async def suggestions(q: str, limit: int = 5, db: Session = Depends(get_db)):
     except Exception as e:
         import traceback
         print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/admin/candidates")
+async def get_candidates(db: Session = Depends(get_db)):
+    try:
+        docs = db.execute(text("""
+            SELECT document_id, canonical_url, title, body_text
+            FROM content.document
+            WHERE state = 'candidate'
+            ORDER BY discovered_at DESC
+            LIMIT 50
+        """)).fetchall()
+        return [{"id": str(d[0]), "url": d[1], "title": d[2], "body": d[3]} for d in docs]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/verify/{document_id}")
+async def verify_document(document_id: str, db: Session = Depends(get_db)):
+    try:
+        db.execute(text("UPDATE content.document SET state = 'verified' WHERE document_id = :id"), {"id": document_id})
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/reject/{document_id}")
+async def reject_document(document_id: str, db: Session = Depends(get_db)):
+    try:
+        db.execute(text("UPDATE content.document SET state = 'rejected' WHERE document_id = :id"), {"id": document_id})
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
