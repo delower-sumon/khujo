@@ -40,8 +40,10 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             SELECT e.entity_id, e.display_name, e.summary
             FROM core.entity_name n
             JOIN core.entity e ON n.entity_id = e.entity_id
-            WHERE n.normalised_name % :q OR n.normalised_name ILIKE :q_like OR e.display_name ILIKE :q_like
-            ORDER BY similarity(n.normalised_name, :q) DESC
+            WHERE lower(n.name) = lower(:q) 
+               OR n.normalised_name ILIKE :q_like 
+               OR e.display_name ILIKE :q_like
+            ORDER BY (CASE WHEN lower(n.name) = lower(:q) THEN 1 ELSE 2 END), n.entity_name_id
             LIMIT 1
         """), {"q": clean_q, "q_like": f"%{clean_q}%"}).fetchone()
 
@@ -64,32 +66,45 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 if a[0] and a[0] not in search_terms:
                     search_terms.append(a[0])
 
-        # 2. Lookup documents matching any search term (or trigram)
+        # 2. Composite Ranking Engine: Multi-signal scoring algorithm
+        # Score = Domain Match (100) + Title Match (80) + Title Sim (20) + Body Sim (5) + Homepage Boost (15)
         docs = db.execute(text("""
             SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
                    content.document.summary, content.document.body_text, content.document.published_at, 
-                   core.source.source_name as source
+                   core.source.source_name as source,
+                   (
+                       CASE WHEN EXISTS (
+                           SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
+                           WHERE content.document.canonical_url ILIKE '%' || term || '%'
+                       ) THEN 100.0 ELSE 0.0 END +
+
+                       CASE WHEN EXISTS (
+                           SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
+                           WHERE lower(content.document.title) ILIKE '%' || lower(term) || '%'
+                       ) THEN 80.0 ELSE 0.0 END +
+
+                       (similarity(content.document.title_normalised, :q) * 20.0) +
+                       (similarity(content.document.body_normalised, :q) * 5.0) +
+
+                       CASE WHEN CAST(content.document.document_kind AS text) IN ('listing', 'official') THEN 15.0 ELSE 0.0 END
+
+                   ) as final_score
             FROM content.document
             JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
             LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
             WHERE content.document.state = 'verified'
               AND (
-                content.document.title_normalised % :q 
-                OR content.document.body_normalised % :q
-                OR EXISTS (
+                EXISTS (
                     SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
                     WHERE content.document.title_normalised ILIKE '%' || term || '%'
                        OR content.document.canonical_url ILIKE '%' || term || '%'
                        OR content.document.body_normalised ILIKE '%' || term || '%'
                 )
               )
-
-            ORDER BY GREATEST(
-                similarity(content.document.title_normalised, :q),
-                similarity(content.document.body_normalised, :q)
-            ) DESC
+            ORDER BY final_score DESC, content.document.published_at DESC NULLS LAST
             LIMIT :limit OFFSET :offset
         """), {"q": clean_q, "terms": search_terms, "limit": limit, "offset": offset}).fetchall()
+
 
         results = []
         for d in docs:
@@ -121,6 +136,7 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
         import logging
         logging.error("Search error: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
