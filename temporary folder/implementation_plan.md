@@ -6,20 +6,24 @@
 
 ---
 
-## Audit of Previous Agent Actions
+## System Status Audit — As of 2026-07-22
 
-> [!WARNING]
-> **Critical: The previous agent claimed the DB cleanup succeeded — it did not.**
-> Running `db_space_check.py` just now shows `transliteration_map` (288 MB) and the old `suggestion` table (134 MB) are **still present** in Neon. The Neon DB is still ~93% full. This must be the very first real task.
-
-| Claim | Actual Status |
-|---|---|
-| Legacy tables dropped (`transliteration_map`, `autosuggestions`) | ❌ Still present — 288MB + 1.8MB |
-| `search.suggestion` cleaned of bad data | ❌ Still 764 rows, column `source_type` doesn't exist |
-| SERP API restricted to `verified` docs | ✅ Done (`main.py` updated) |
-| Admin verification dashboard built | ✅ Done (`public/admin.html`) |
-| DB Schema initialized (`core`, `content`, etc.) | ✅ Done |
-| Static UI (homepage + SERP) | ✅ Done |
+| Item | Status | Notes |
+|---|---|---|
+| Legacy tables dropped (all ~430MB) | ✅ Complete | B.1 finished — DB is 19MB |
+| `search.suggestion` cleaned | ✅ Complete | 748 junk rows deleted, REINDEX run |
+| 16 curated suggestions activated | ✅ Complete | Division names in bn + en |
+| SERP API restricted to `verified` docs only | ✅ Complete | `main.py` confirmed |
+| Admin dashboard — basic | ✅ Complete | First version shipped |
+| Admin dashboard — upgraded (stats, batch, filter) | ✅ Complete | Light mode, mobile-friendly |
+| DB schema (`core`, `content`, `search`, `crawl`, `media`) | ✅ Complete | 29 entity types seeded |
+| Static UI — homepage + SERP | ✅ Complete | Vanilla JS, no build step |
+| Cloudflare R2 favicon pipeline | ✅ Complete | `backend/r2_media.py`, verified live uploads |
+| Geographic entity seeding (Upazilas, Unions) | ⏳ Not started | KhujoBot v1 Phase 0 |
+| Person entities (MPs, Ministers) | ⏳ Not started | KhujoBot v1 Phase 0 |
+| KhujoBot v1 crawler (GitHub Actions) | ⏳ Not started | See `khujobot_v1_plan.md` |
+| Legal policies (Privacy, ToS, Crawl Policy) | ⏳ Not started | Required before public launch |
+| Hetzner VPS deployment | ⏳ Not started | Gate: 50+ verified docs needed first |
 
 ---
 
@@ -70,29 +74,35 @@ What was done (in order):
 
 ## 🟡 Phase B.2 — Entity Seeding `[DATA]` + `[AGENT]`
 
-The knowledge graph is Khujo's durable asset. Entities must exist **before** crawling begins, so searches return Knowledge Cards from day one.
+> [!IMPORTANT]
+> This is **KhujoBot v1 Phase 0** — entities must be seeded BEFORE content crawling begins so the Knowledge Graph shows structured data from day one of first approval. See [`khujobot_v1_plan.md`](file:///C:/Users/Sumon/.gemini/antigravity-ide/brain/e52dea24-74e4-466d-af18-42fdb9fa7725/khujobot_v1_plan.md) for the `seed_geography.py` and `seed_entities.py` implementation.
 
 ### B.2.1 — Geography: Complete Bangladesh Admin Hierarchy
 Hierarchy: Country → Division (8) → District (64) → **Upazila (495)** → Union → Ward/Moholla
 
-- [ ] `[AGENT]` Write seed script from authoritative source (BBS / OISF official data)
-- [ ] `[DATA]` Verify Bangla names, official codes, parent links
-- [ ] Each place = `core.entity` + `core.place` + `core.entity_name` (bn + en + Banglish aliases)
+**Target tables per entity:**
+- `core.entity` — `entity_type = 'administrative_area'`
+- `core.place` — lat/lon, BBS geo code, population
+- `core.entity_name` — `bn` (official Bangla), `en` (English), Banglish transliteration
+
+- [ ] `[AGENT]` Source authoritative BD admin data file (OISF open-data / BBS CSV)
+- [ ] `[AGENT]` Write `crawler/seed_geography.py` — seeds all levels top-down
+- [ ] `[DATA]` Verify Bangla names, official codes, parent-child links before committing
+- [ ] Seed into `search.suggestion` (priority=10) so district/upazila names appear in autocomplete
 
 ### B.2.2 — Persons: Bangladesh Public Figures
 Priority order:
 1. Members of Parliament (current — 300 seats + reserved)
 2. Cabinet Ministers
-3. Notable professionals (future phase)
 
-- [ ] `[DATA]` Source: Bangladesh Parliament website (`parliament.gov.bd`)
-- [ ] `[AGENT]` Write seed script: entity type = `person`, identifiers = NID-free public profiles only
+- [ ] `[DATA]` Source: `parliament.gov.bd` (public record)
+- [ ] `[AGENT]` Write `crawler/seed_persons.py` — entity type = `person`, source = `parliament.gov.bd`
 - [ ] **Strict policy:** No private addresses, phone numbers, NID, or family member data indexed
 
-### B.2.3 — Organizations & Institutions
-- [ ] `[DATA]` Seed top 50 government bodies (ministries, agencies)
-- [ ] `[DATA]` Seed top 50 public universities and colleges
-- [ ] `[DATA]` Seed top 20 major news publishers (with crawl permission noted)
+### B.2.3 — Organizations & News Sources
+- [ ] `[DATA]` Seed top 20 major news publishers into `core.source` + `core.entity` (used for favicon display and trust tier)
+- [ ] `[DATA]` Seed top 10 government ministries as `organization` entities
+- [ ] `[DATA]` Seed top 10 public universities
 
 ---
 
@@ -156,10 +166,11 @@ The crawler must:
 - [x] `[CRAWLER]` Upload favicon to Cloudflare R2 bucket (`khujo` under `favicons/{domain}.ext`) via `backend/r2_media.py`
 - [x] `[AGENT]` Verified live uploads to Cloudflare R2 public URL (`https://pub-d8ff02e059814132b7f971370e65283d.r2.dev`)
 
-### B.4.2 — Image Crawling
-- [ ] Extract `og:image` from every crawled page
-- [ ] Upload to R2: `khujo-media/images/{content_hash}.jpg`
-- [ ] Store R2 URL in `media.asset` with `media_kind = 'image'`, linked to document
+### B.4.2 — Image Crawling (R2 Storage Policy)
+
+> [!IMPORTANT]
+> **Strict DB Rule:** **No binary image data, base64 blobs, or raw image bytes EVER touch Neon DB.**
+> If `og:image` is fetched during crawling, the crawler uploads the image directly to Cloudflare R2 (`khujo` bucket under `images/{hash}.jpg`) and ONLY writes the short public R2 URL string (`https://pub-d8ff.../images/{hash}.jpg`) to `media.asset` linked to the document. This keeps Postgres DB size clean and minimal (<20MB).
 
 ### B.4.3 — Video Scouting (YouTube)
 - [ ] `[AGENT]` Write YouTube Data API v3 scout script

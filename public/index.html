@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="bn" translate="no">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="google" content="notranslate" />
-  <meta name="description" content="খোঁজো — বাংলাদেশের স্থানীয় অনুসন্ধান। বাংলা, Banglish ও English-এ নির্ভরযোগ্য স্থানীয় উৎস খুঁজুন।" />
+  <meta name="description"
+    content="খোঁজো — বাংলাদেশের স্থানীয় অনুসন্ধান। বাংলা, Banglish ও English-এ নির্ভরযোগ্য স্থানীয় উৎস খুঁজুন।" />
   <meta name="khujo-api" content="http://localhost:8000" />
   <title>খোঁজো — বাংলাদেশের স্থানীয় অনুসন্ধান</title>
 
@@ -13,10 +15,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600&family=Inter:opsz,wght@14..32,300..600&display=swap"
-    rel="stylesheet"
-  />
+    rel="stylesheet" />
   <link rel="stylesheet" href="css/khujo.css" />
 </head>
+
 <body>
   <div class="page-container landing-bg">
 
@@ -34,7 +36,7 @@
               <span class="brand-tagline">বাংলার খোঁজ</span>
             </span>
           </a>
-          <span class="for-bd-badge">বাংলাদেশের জন্য</span>
+          <span class="for-bd-badge">বেটা সংস্করণ</span>
         </div>
       </div>
     </header>
@@ -45,12 +47,7 @@
 
         <!-- Hero text -->
         <div class="hero-text">
-          <p class="hero-label">স্থানীয় তথ্য, আপনার ভাষায়</p>
-          <h1 class="hero-title">খুঁজুন যা আপনার কাছে জরুরি</h1>
-          <p class="hero-sub">
-            খোঁজো বাংলা, Banglish এবং English প্রশ্ন থেকে নির্ভরযোগ্য
-            স্থানীয় উৎস খুঁজে আনবে।
-          </p>
+          <h1 class="hero-title">খুঁজো</h1>
         </div>
 
         <!-- Search bar -->
@@ -60,24 +57,19 @@
               <div class="search-field">
                 <div class="search-input-row">
                   <span class="search-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
                   </span>
-                  <input
-                    id="landingSearchInput"
-                    name="q"
-                    type="search"
-                    autocomplete="off"
-                    spellcheck="false"
-                    placeholder="বাংলা, Banglish বা English-এ খুঁজুন"
-                    class="search-input"
-                    aria-label="খোঁজো সার্চ"
-                    autofocus
-                  />
+                  <input id="landingSearchInput" name="q" type="search" autocomplete="off" spellcheck="false"
+                    placeholder="বাংলা, Banglish বা English-এ খুঁজুন" class="search-input" aria-label="খোঁজো সার্চ"
+                    autofocus />
                 </div>
               </div>
             </div>
           </form>
-          <p class="landing-hint">সাজেশন, উৎস ও ফলাফল—সবকিছু ধাপে ধাপে যাচাই করা হবে।</p>
         </div>
 
         <!-- Trending chips -->
@@ -89,6 +81,10 @@
           <button class="trend-chip" data-query="ঢাকা বিশ্ববিদ্যালয়">ঢাকা বিশ্ববিদ্যালয়</button>
           <button class="trend-chip" data-query="চট্টগ্রাম বন্দর">চট্টগ্রাম বন্দর</button>
         </div>
+
+        <p class="hero-sub" style="margin-top: 40px;">
+          বাংলায় স্থানীয় অনুসন্ধান
+        </p>
 
       </div>
     </main>
@@ -107,4 +103,5 @@
 
   <script type="module" src="/js/khujo.js?v=3"></script>
 </body>
+
 </html>
