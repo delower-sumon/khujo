@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khujo Admin — Data Verification Queue</title>
+  <title>Khujo Admin — Verification Vault & Curation</title>
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f8fafc;
@@ -111,13 +111,54 @@
       box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
+    .stat-card:hover { border-color: #cbd5e1; transform: translateY(-1px); }
     .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
     .stat-val { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.1; }
     .stat-pending { color: var(--yellow-text); }
     .stat-verified { color: var(--green-text); }
     .stat-rejected { color: var(--red-text); }
     .stat-db { color: var(--blue-text); }
+
+    /* Nav Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover { background: #f1f5f9; color: var(--text-main); }
+    .tab-btn.active {
+      background: var(--card-bg);
+      border-color: var(--card-border);
+      color: var(--brand-green);
+      box-shadow: var(--shadow-sm);
+    }
+    .tab-badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+    .tab-btn.active .tab-badge { background: var(--green-bg); color: var(--green-text); }
 
     /* Toolbar */
     .toolbar {
@@ -149,8 +190,14 @@
     .btn-approve { background: var(--brand-green); color: white; box-shadow: 0 1px 2px rgba(0, 106, 78, 0.2); }
     .btn-approve:hover:not(:disabled) { background: #00523d; }
     
+    .btn-edit { background: var(--blue-bg); color: var(--blue-text); border: 1px solid var(--blue-border); }
+    .btn-edit:hover:not(:disabled) { background: #dbeafe; }
+
     .btn-reject { background: var(--red-text); color: white; box-shadow: 0 1px 2px rgba(220, 38, 38, 0.2); }
     .btn-reject:hover:not(:disabled) { background: #b91c1c; }
+
+    .btn-restore { background: #f59e0b; color: white; }
+    .btn-restore:hover:not(:disabled) { background: #d97706; }
 
     .checkbox-label {
       font-size: 13px;
@@ -240,21 +287,53 @@
     }
     .url-link:hover { text-decoration: underline; }
 
-    .doc-body {
+    .doc-snippet-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    .snippet-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .snippet-text {
       font-size: 13px;
       color: var(--text-secondary);
-      background: #f8fafc;
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-bottom: 14px;
-      white-space: pre-wrap;
+      line-height: 1.5;
       word-break: break-word;
-      max-height: 130px;
-      overflow-y: auto;
-      border: 1px solid #e2e8f0;
-      font-family: inherit;
-      line-height: 1.6;
     }
+
+    /* Inline Curation Editor */
+    .edit-form {
+      display: none;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .edit-form.active { display: flex; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    .form-input, .form-textarea, .form-select {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      outline: none;
+      background: white;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--brand-green); }
+    .form-textarea { resize: vertical; min-height: 60px; }
 
     .card-footer {
       display: flex;
@@ -264,8 +343,7 @@
       flex-wrap: wrap;
     }
     .meta-time { font-size: 12px; color: var(--text-muted); }
-
-    .card-actions { display: flex; gap: 8px; }
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .empty-state {
       text-align: center;
@@ -312,8 +390,8 @@
       <div class="brand">
         <div class="brand-logo">K</div>
         <div>
-          <h1>Khujo Verification Vault</h1>
-          <div class="subtitle">Human-in-the-Loop Content Gatekeeper</div>
+          <h1>Khujo Verification Vault & Curation</h1>
+          <div class="subtitle">Human-in-the-Loop Content Gatekeeper & Editor</div>
         </div>
       </div>
       <button class="btn-refresh" onclick="loadAll()">
@@ -324,15 +402,15 @@
 
     <!-- Stats Grid -->
     <div class="stats-grid">
-      <div class="stat-card">
+      <div class="stat-card" onclick="switchTab('candidate')">
         <span class="stat-label">Pending Review</span>
         <span class="stat-val stat-pending" id="statPending">-</span>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="switchTab('verified')">
         <span class="stat-label">Approved & Live</span>
         <span class="stat-val stat-verified" id="statVerified">-</span>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" onclick="switchTab('rejected')">
         <span class="stat-label">Rejected</span>
         <span class="stat-val stat-rejected" id="statRejected">-</span>
       </div>
@@ -340,6 +418,19 @@
         <span class="stat-label">Neon DB Storage</span>
         <span class="stat-val stat-db" id="statDbSize">-</span>
       </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tab-candidate" onclick="switchTab('candidate')">
+        🟡 Pending Review <span class="tab-badge" id="badgeCandidate">0</span>
+      </button>
+      <button class="tab-btn" id="tab-verified" onclick="switchTab('verified')">
+        🟢 Approved & Live <span class="tab-badge" id="badgeVerified">0</span>
+      </button>
+      <button class="tab-btn" id="tab-rejected" onclick="switchTab('rejected')">
+        🔴 Rejected History <span class="tab-badge" id="badgeRejected">0</span>
+      </button>
     </div>
 
     <!-- Toolbar -->
@@ -352,16 +443,17 @@
         <button class="btn-approve" id="btnBatchApprove" disabled onclick="batchAction('verify')">✓ Approve Selected</button>
         <button class="btn-reject" id="btnBatchReject" disabled onclick="batchAction('reject')">✕ Reject Selected</button>
       </div>
-      <input type="text" class="search-filter" id="filterInput" placeholder="Search candidates..." oninput="filterQueue()">
+      <input type="text" class="search-filter" id="filterInput" placeholder="Search documents..." oninput="filterQueue()">
     </div>
 
     <!-- Candidates List -->
-    <div id="queue" class="queue-list">Loading candidate documents...</div>
+    <div id="queue" class="queue-list">Loading documents...</div>
   </div>
 
   <script>
     const API_BASE = 'http://localhost:8000/api/v1/admin';
-    let candidatesData = [];
+    let currentStatus = 'candidate';
+    let documentsData = [];
     let selectedIds = new Set();
 
     async function loadStats() {
@@ -372,41 +464,63 @@
         document.getElementById('statVerified').textContent = stats.verified_count;
         document.getElementById('statRejected').textContent = stats.rejected_count;
         document.getElementById('statDbSize').textContent = stats.db_size;
+
+        document.getElementById('badgeCandidate').textContent = stats.pending_candidates;
+        document.getElementById('badgeVerified').textContent = stats.verified_count;
+        document.getElementById('badgeRejected').textContent = stats.rejected_count;
       } catch (e) {
         console.error("Stats fetch error:", e);
       }
     }
 
-    async function loadCandidates() {
+    function switchTab(status) {
+      currentStatus = status;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`tab-${status}`).classList.add('active');
+      loadDocuments();
+    }
+
+    async function loadDocuments() {
       const q = document.getElementById('queue');
       try {
-        const res = await fetch(`${API_BASE}/candidates`);
-        candidatesData = await res.json();
+        const res = await fetch(`${API_BASE}/candidates?status=${currentStatus}`);
+        documentsData = await res.json();
         selectedIds.clear();
         updateSelectedUI();
 
-        if (candidatesData.length === 0) {
+        if (documentsData.length === 0) {
+          let emptyTitle = "🎉 Queue Clean!";
+          let emptyDesc = "No pending candidate documents waiting for review.";
+          if (currentStatus === 'verified') {
+            emptyTitle = "No Approved Documents Yet";
+            emptyDesc = "Approve candidates from the Pending Review tab to make them live on SERP.";
+          } else if (currentStatus === 'rejected') {
+            emptyTitle = "No Rejected Documents";
+            emptyDesc = "Rejected items will appear here for audit or restoration.";
+          }
+
           q.innerHTML = `
             <div class="empty-state">
-              <div class="empty-title">🎉 Verification Queue Clean!</div>
-              <div class="empty-desc">No candidate documents waiting for review. All crawled content has been verified or rejected.</div>
+              <div class="empty-title">${emptyTitle}</div>
+              <div class="empty-desc">${emptyDesc}</div>
             </div>
           `;
           return;
         }
 
-        renderCandidates(candidatesData);
+        renderDocuments(documentsData);
       } catch (e) {
         q.innerHTML = `<div class="empty-state"><div class="empty-title" style="color:var(--red-text);">Connection Failed</div><div class="empty-desc">${e.message}. Is backend running on port 8000?</div></div>`;
       }
     }
 
-    function renderCandidates(list) {
+    function renderDocuments(list) {
       const q = document.getElementById('queue');
       q.innerHTML = list.map(doc => {
         const isSelected = selectedIds.has(doc.id);
         const faviconUrl = doc.domain ? `https://www.google.com/s2/favicons?domain=${doc.domain}&sz=32` : '';
-        const previewText = doc.body ? doc.body.substring(0, 450) : '(No text extracted)';
+        const decodedUrl = safeDecodeUri(doc.url);
+        const snippetText = doc.description || (doc.body ? doc.body.substring(0, 300) : '(No description extracted)');
 
         return `
           <div class="card ${isSelected ? 'selected' : ''}" id="doc-${doc.id}">
@@ -414,22 +528,94 @@
               <div class="title-area">
                 <input type="checkbox" class="card-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect('${doc.id}', this.checked)">
                 ${faviconUrl ? `<img class="favicon-icon" src="${faviconUrl}" alt="">` : ''}
-                <a class="doc-title" href="${doc.url}" target="_blank">${escapeHtml(doc.title)}</a>
+                <a class="doc-title" id="title-text-${doc.id}" href="${doc.url}" target="_blank">${escapeHtml(doc.title)}</a>
               </div>
-              <span class="badge badge-kind">${escapeHtml(doc.kind)}</span>
+              <span class="badge badge-kind" id="kind-badge-${doc.id}">${escapeHtml(doc.kind)}</span>
             </div>
-            <a class="url-link" href="${doc.url}" target="_blank">${escapeHtml(doc.url)}</a>
-            <div class="doc-body">${escapeHtml(previewText)}</div>
+            <a class="url-link" href="${doc.url}" target="_blank">${escapeHtml(decodedUrl)}</a>
+            
+            <div class="doc-snippet-box">
+              <div class="snippet-title">SERP Snippet Preview</div>
+              <div class="snippet-text" id="desc-text-${doc.id}">${escapeHtml(snippetText)}</div>
+            </div>
+
+            <!-- Inline Curation Form -->
+            <div class="edit-form" id="edit-form-${doc.id}">
+              <div class="form-group">
+                <label class="form-label">Edit Title:</label>
+                <input type="text" class="form-input" id="edit-title-${doc.id}" value="${escapeHtml(doc.title)}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Edit SERP Snippet / Description:</label>
+                <textarea class="form-textarea" id="edit-desc-${doc.id}">${escapeHtml(doc.description || snippetText)}</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Document Kind:</label>
+                <select class="form-select" id="edit-kind-${doc.id}">
+                  <option value="news" ${doc.kind === 'news' ? 'selected' : ''}>News</option>
+                  <option value="article" ${doc.kind === 'article' ? 'selected' : ''}>Article</option>
+                  <option value="government" ${doc.kind === 'government' ? 'selected' : ''}>Government</option>
+                  <option value="wiki" ${doc.kind === 'wiki' ? 'selected' : ''}>Wiki / Knowledge</option>
+                  <option value="listing" ${doc.kind === 'listing' ? 'selected' : ''}>Listing / Directory</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+                <button class="btn-approve" onclick="saveAndApprove('${doc.id}')">💾 Save & Approve Live</button>
+                <button class="btn-edit" onclick="toggleEdit('${doc.id}')">Cancel</button>
+              </div>
+            </div>
+
             <div class="card-footer">
               <span class="meta-time">Source: <strong>${escapeHtml(doc.source_name)}</strong> | Discovered: ${doc.discovered_at ? doc.discovered_at.substring(0, 19) : 'Recently'}</span>
               <div class="card-actions">
-                <button class="btn-approve" onclick="verifyDoc('${doc.id}')">✓ Approve</button>
-                <button class="btn-reject" onclick="rejectDoc('${doc.id}')">✕ Reject</button>
+                ${currentStatus === 'candidate' ? `
+                  <button class="btn-approve" onclick="verifyDoc('${doc.id}')">✓ Approve</button>
+                  <button class="btn-edit" onclick="toggleEdit('${doc.id}')">✏️ Edit & Curate</button>
+                  <button class="btn-reject" onclick="rejectDoc('${doc.id}')">✕ Reject</button>
+                ` : ''}
+                ${currentStatus === 'verified' ? `
+                  <button class="btn-edit" onclick="toggleEdit('${doc.id}')">✏️ Edit Live SERP Snippet</button>
+                  <button class="btn-reject" onclick="rejectDoc('${doc.id}')">🗑 Revoke (Reject)</button>
+                ` : ''}
+                ${currentStatus === 'rejected' ? `
+                  <button class="btn-restore" onclick="restoreDoc('${doc.id}')">↺ Restore to Pending</button>
+                ` : ''}
               </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function toggleEdit(id) {
+      const form = document.getElementById(`edit-form-${id}`);
+      if (form) form.classList.toggle('active');
+    }
+
+    async function saveAndApprove(id) {
+      const title = document.getElementById(`edit-title-${id}`).value;
+      const description = document.getElementById(`edit-desc-${id}`).value;
+      const kind = document.getElementById(`edit-kind-${id}`).value;
+
+      try {
+        // 1. Update Document details
+        await fetch(`${API_BASE}/document/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description, kind, state: 'verified' })
+        });
+
+        // 2. Refresh UI
+        removeDocFromUI(id);
+        loadStats();
+      } catch (e) {
+        alert("Curation failed: " + e.message);
+      }
+    }
+
+    function safeDecodeUri(url) {
+      try { return decodeURIComponent(url); }
+      catch (e) { return url; }
     }
 
     function escapeHtml(text) {
@@ -453,7 +639,7 @@
 
     function toggleSelectAll(checked) {
       const filterVal = document.getElementById('filterInput').value.toLowerCase();
-      const visible = candidatesData.filter(d => 
+      const visible = documentsData.filter(d => 
         (d.title && d.title.toLowerCase().includes(filterVal)) || 
         (d.url && d.url.toLowerCase().includes(filterVal))
       );
@@ -463,7 +649,7 @@
         else selectedIds.delete(d.id);
       });
 
-      renderCandidates(visible);
+      renderDocuments(visible);
       updateSelectedUI();
     }
 
@@ -472,17 +658,18 @@
       document.getElementById('selectedCount').textContent = count;
       document.getElementById('btnBatchApprove').disabled = count === 0;
       document.getElementById('btnBatchReject').disabled = count === 0;
-      document.getElementById('selectAll').checked = count > 0 && count === candidatesData.length;
+      document.getElementById('selectAll').checked = count > 0 && count === documentsData.length;
     }
 
     function filterQueue() {
       const filterVal = document.getElementById('filterInput').value.toLowerCase();
-      const filtered = candidatesData.filter(d => 
+      const filtered = documentsData.filter(d => 
         (d.title && d.title.toLowerCase().includes(filterVal)) || 
         (d.url && d.url.toLowerCase().includes(filterVal)) ||
-        (d.body && d.body.toLowerCase().includes(filterVal))
+        (d.body && d.body.toLowerCase().includes(filterVal)) ||
+        (d.description && d.description.toLowerCase().includes(filterVal))
       );
-      renderCandidates(filtered);
+      renderDocuments(filtered);
     }
 
     async function verifyDoc(id) {
@@ -499,6 +686,14 @@
         removeDocFromUI(id);
         loadStats();
       } catch (e) { alert("Rejection failed: " + e.message); }
+    }
+
+    async function restoreDoc(id) {
+      try {
+        await fetch(`${API_BASE}/restore/${id}`, { method: 'POST' });
+        removeDocFromUI(id);
+        loadStats();
+      } catch (e) { alert("Restoration failed: " + e.message); }
     }
 
     async function batchAction(action) {
@@ -522,16 +717,16 @@
     }
 
     function removeDocFromUI(id) {
-      candidatesData = candidatesData.filter(d => d.id !== id);
+      documentsData = documentsData.filter(d => d.id !== id);
       selectedIds.delete(id);
       const card = document.getElementById(`doc-${id}`);
       if (card) card.remove();
-      if (candidatesData.length === 0) loadCandidates();
+      if (documentsData.length === 0) loadDocuments();
     }
 
     function loadAll() {
       loadStats();
-      loadCandidates();
+      loadDocuments();
     }
 
     loadAll();

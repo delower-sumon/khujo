@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from pydantic import BaseModel
 from typing import List, Optional
 import os
 import re
@@ -16,6 +17,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class DocumentUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    kind: Optional[str] = None
+    state: Optional[str] = None
 
 @app.get("/")
 async def root():
@@ -48,7 +55,8 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
 
         # 2. Lookup documents matching trigrams and only return verified ones
         docs = db.execute(text("""
-            SELECT content.document.document_id, content.document.canonical_url, content.document.title, content.document.body_text, content.document.published_at, 
+            SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
+                   content.document.summary, content.document.body_text, content.document.published_at, 
                    core.source.source_name as source
             FROM content.document
             JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
@@ -64,13 +72,14 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
 
         results = []
         for d in docs:
+            snippet = d[3] if d[3] and len(d[3].strip()) > 10 else ((d[4][:220] + "...") if d[4] else "No description available")
             results.append({
                 "id": str(d[0]),
                 "title": d[2] or "Untitled",
-                "snippet": (d[3][:200] + "...") if d[3] else "No description available",
+                "snippet": snippet,
                 "url": d[1],
                 "favicon": None,
-                "source": d[5],
+                "source": d[6],
                 "type": "document"
             })
 
@@ -91,7 +100,6 @@ async def suggestions(q: str, limit: int = 5, db: Session = Depends(get_db)):
         if not q or len(q.strip()) < 1:
             return []
 
-        # Query search.suggestion with pg_trgm similarity
         res = db.execute(text("""
             SELECT phrase 
             FROM search.suggestion 
@@ -131,23 +139,26 @@ async def get_admin_stats(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/admin/candidates")
-async def get_candidates(db: Session = Depends(get_db)):
+async def get_candidates(status: str = "candidate", limit: int = 50, db: Session = Depends(get_db)):
     try:
+        valid_statuses = ["candidate", "verified", "rejected"]
+        if status not in valid_statuses:
+            status = "candidate"
+
         docs = db.execute(text("""
-            SELECT d.document_id, d.canonical_url, d.title, d.body_text, d.discovered_at, d.document_kind,
-                   s.source_name
+            SELECT d.document_id, d.canonical_url, d.title, d.summary, d.body_text, d.discovered_at, d.document_kind,
+                   s.source_name, d.state
             FROM content.document d
             LEFT JOIN core.source_record sr ON d.source_record_id = sr.source_record_id
             LEFT JOIN core.source s ON sr.source_id = s.source_id
-            WHERE d.state = 'candidate'
+            WHERE d.state = :status
             ORDER BY d.discovered_at DESC
-            LIMIT 50
-        """)).fetchall()
+            LIMIT :limit
+        """), {"status": status, "limit": limit}).fetchall()
         
         results = []
         for d in docs:
             url = d[1] or ""
-            # Extract domain for favicon lookup
             domain = ""
             if "://" in url:
                 domain = url.split("://")[1].split("/")[0].replace("www.", "")
@@ -157,14 +168,49 @@ async def get_candidates(db: Session = Depends(get_db)):
                 "url": url,
                 "domain": domain,
                 "title": d[2] or "Untitled Document",
-                "body": d[3] or "",
-                "discovered_at": str(d[4]) if d[4] else None,
-                "kind": d[5] or "general",
-                "source_name": d[6] or domain
+                "description": d[3] or "",
+                "body": d[4] or "",
+                "discovered_at": str(d[5]) if d[5] else None,
+                "kind": d[6] or "news",
+                "source_name": d[7] or domain,
+                "state": d[8]
             })
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/v1/admin/document/{document_id}")
+async def update_document(document_id: str, update_data: DocumentUpdate, db: Session = Depends(get_db)):
+    try:
+        updates = []
+        params = {"id": document_id}
+
+        if update_data.title is not None:
+            updates.append("title = :title, title_normalised = lower(:title)")
+            params["title"] = update_data.title
+
+        if update_data.description is not None:
+            updates.append("summary = :description")
+            params["description"] = update_data.description
+
+        if update_data.kind is not None:
+            updates.append("document_kind = :kind")
+            params["kind"] = update_data.kind
+
+        if update_data.state is not None:
+            updates.append("state = :state")
+            params["state"] = update_data.state
+
+        if updates:
+            sql_query = f"UPDATE content.document SET {', '.join(updates)} WHERE document_id = :id"
+            db.execute(text(sql_query), params)
+            db.commit()
+
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/api/v1/admin/verify/{document_id}")
 async def verify_document(document_id: str, db: Session = Depends(get_db)):
@@ -180,6 +226,16 @@ async def verify_document(document_id: str, db: Session = Depends(get_db)):
 async def reject_document(document_id: str, db: Session = Depends(get_db)):
     try:
         db.execute(text("UPDATE content.document SET state = 'rejected' WHERE document_id = :id"), {"id": document_id})
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/restore/{document_id}")
+async def restore_document(document_id: str, db: Session = Depends(get_db)):
+    try:
+        db.execute(text("UPDATE content.document SET state = 'candidate' WHERE document_id = :id"), {"id": document_id})
         db.commit()
         return {"success": True}
     except Exception as e:
@@ -207,7 +263,6 @@ async def batch_reject(document_ids: List[str], db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 if __name__ == "__main__":
     import uvicorn

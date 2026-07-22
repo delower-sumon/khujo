@@ -149,10 +149,21 @@ def crawl_content_urls(batch_limit: int = 10):
                 content_hash = hashlib.sha256(body_text.encode("utf-8")).hexdigest()
 
                 with engine.begin() as write_conn:
-                    # Check if document already exists by canonical_url or content_hash
-                    exists = write_conn.execute(text("""
-                        SELECT 1 FROM content.document WHERE canonical_url = :url OR content_hash = :hash LIMIT 1
-                    """), {"url": data["canonical_url"], "hash": content_hash}).scalar()
+                    # Ensure source_record exists
+                    source_record_id = write_conn.execute(text("""
+                        SELECT source_record_id FROM core.source_record WHERE canonical_url = :url LIMIT 1
+                    """), {"url": data["canonical_url"]}).scalar()
+
+                    # Check if document already exists by canonical_url, content_hash, or source_record_id
+                    exists = False
+                    if source_record_id:
+                        exists = write_conn.execute(text("""
+                            SELECT 1 FROM content.document WHERE source_record_id = :srid OR canonical_url = :url OR content_hash = :hash LIMIT 1
+                        """), {"srid": source_record_id, "url": data["canonical_url"], "hash": content_hash}).scalar()
+                    else:
+                        exists = write_conn.execute(text("""
+                            SELECT 1 FROM content.document WHERE canonical_url = :url OR content_hash = :hash LIMIT 1
+                        """), {"url": data["canonical_url"], "hash": content_hash}).scalar()
 
                     if exists:
                         log.info("  Document already exists in DB. Skipping.")
@@ -161,11 +172,6 @@ def crawl_content_urls(batch_limit: int = 10):
                         """), {"fid": frontier_id})
                         continue
 
-                    # Ensure source_record exists
-                    source_record_id = write_conn.execute(text("""
-                        SELECT source_record_id FROM core.source_record WHERE canonical_url = :url LIMIT 1
-                    """), {"url": data["canonical_url"]}).scalar()
-
                     if not source_record_id:
                         source_record_id = write_conn.execute(text("""
                             INSERT INTO core.source_record (source_id, canonical_url, title, state)
@@ -173,14 +179,15 @@ def crawl_content_urls(batch_limit: int = 10):
                             RETURNING source_record_id
                         """), {"sid": source_id, "url": data["canonical_url"], "title": data["title"]}).scalar()
 
+
                     # Insert document into content.document (state = 'candidate' for Admin Gate!)
                     doc_id = write_conn.execute(text("""
                         INSERT INTO content.document (
-                            source_record_id, canonical_url, title, title_normalised, 
+                            source_record_id, canonical_url, title, title_normalised, summary,
                             body_text, body_normalised, language_code, content_hash, state, document_kind
                         )
                         VALUES (
-                            :srid, :url, :title, lower(:title), 
+                            :srid, :url, :title, lower(:title), :desc,
                             :body, lower(:body), 'bn', :hash, 'candidate', 'news'
                         )
                         RETURNING document_id
@@ -188,9 +195,12 @@ def crawl_content_urls(batch_limit: int = 10):
                         "srid": source_record_id,
                         "url": data["canonical_url"],
                         "title": data["title"],
+                        "desc": data["description"],
                         "body": body_text,
                         "hash": content_hash
                     }).scalar()
+
+
 
 
                     if doc_id:
