@@ -126,6 +126,35 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 "type": "document"
             })
 
+        # 3. Log search query event to search.query_event and update suggestion popularity
+        try:
+            import hashlib
+            q_fp = hashlib.md5(clean_q.encode('utf-8')).hexdigest()
+            db.execute(text("""
+                INSERT INTO search.query_event (query_fingerprint, normalised_query, result_count, occurred_at, expires_at)
+                VALUES (:fp, lower(:q), :rc, now(), now() + interval '30 days')
+            """), {"fp": q_fp, "q": clean_q, "rc": len(results)})
+
+            # Update popularity if exists, else insert
+            updated_sug = db.execute(text("""
+                UPDATE search.suggestion 
+                SET popularity_score = popularity_score + 1 
+                WHERE phrase_normalised = lower(:q)
+            """), {"q": clean_q}).rowcount
+
+            if updated_sug == 0:
+                db.execute(text("""
+                    INSERT INTO search.suggestion (phrase, phrase_normalised, language_code, priority, popularity_score)
+                    VALUES (:q, lower(:q), 'bn', 10, 1)
+                """), {"q": clean_q})
+
+            db.commit()
+        except Exception as log_err:
+            db.rollback()
+            pass
+
+
+
         return {
             "query": q,
             "results": results,
@@ -138,28 +167,64 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-
 @app.get("/api/v1/suggestions")
-async def suggestions(q: str, limit: int = 5, db: Session = Depends(get_db)):
+async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
     try:
-        if not q or len(q.strip()) < 1:
+        clean_q = q.strip()
+        if not clean_q or len(clean_q) < 1:
             return []
 
-        res = db.execute(text("""
+        prefix_like = f"{clean_q}%"
+        any_like = f"%{clean_q}%"
+
+        # 1. Fetch from search.suggestion table
+        sug_rows = db.execute(text("""
             SELECT phrase 
             FROM search.suggestion 
-            WHERE phrase_normalised % :q OR phrase_normalised ILIKE :q_like
-            ORDER BY similarity(phrase_normalised, :q) DESC, popularity_score DESC, priority DESC
+            WHERE phrase_normalised ILIKE :prefix 
+               OR phrase_normalised ILIKE :any 
+               OR phrase_normalised % :q
+            ORDER BY (CASE WHEN phrase_normalised ILIKE :prefix THEN 1 ELSE 2 END), 
+                     popularity_score DESC, priority DESC
             LIMIT :limit
-        """), {"q": q.strip(), "q_like": f"%{q.strip()}%", "limit": limit}).fetchall()
-        
-        return [r[0] for r in res]
+        """), {"q": clean_q, "prefix": prefix_like, "any": any_like, "limit": limit}).fetchall()
+
+        suggestions_set = []
+        for r in sug_rows:
+            if r[0] and r[0] not in suggestions_set:
+                suggestions_set.append(r[0])
+
+        # 2. Enrich from core.entity_name if needed
+        if len(suggestions_set) < limit:
+            entity_rows = db.execute(text("""
+                SELECT name 
+                FROM core.entity_name 
+                WHERE normalised_name ILIKE :prefix OR normalised_name ILIKE :any
+                LIMIT :limit
+            """), {"prefix": prefix_like, "any": any_like, "limit": limit}).fetchall()
+            for r in entity_rows:
+                if r[0] and r[0] not in suggestions_set:
+                    suggestions_set.append(r[0])
+
+        # 3. Enrich from content.document titles if needed
+        if len(suggestions_set) < limit:
+            doc_rows = db.execute(text("""
+                SELECT title 
+                FROM content.document 
+                WHERE state = 'verified' AND (title_normalised ILIKE :prefix OR title_normalised ILIKE :any)
+                LIMIT :limit
+            """), {"prefix": prefix_like, "any": any_like, "limit": limit}).fetchall()
+            for r in doc_rows:
+                if r[0] and r[0] not in suggestions_set:
+                    suggestions_set.append(r[0])
+
+        return suggestions_set[:limit]
 
     except Exception as e:
-        import traceback
-        print(traceback.format_exc())
+        import logging
+        logging.error("Suggestions error: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/api/v1/admin/stats")
 async def get_admin_stats(db: Session = Depends(get_db)):
