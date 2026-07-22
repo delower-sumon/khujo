@@ -313,30 +313,21 @@ function drawKnowledgeGraph(query, sources, containerEl) {
   innerRing.setAttribute('stroke-opacity', '0.35');
   svg.appendChild(innerRing);
 
-  // Central text — "খোঁজ"
+  // Central label — display Query cleanly centered inside the green circle
   const centerLabel = document.createElementNS(svgNS, 'text');
-  centerLabel.setAttribute('x', '66'); centerLabel.setAttribute('y', '76');
+  centerLabel.setAttribute('x', '66'); centerLabel.setAttribute('y', '83');
   centerLabel.setAttribute('fill', 'white');
   centerLabel.setAttribute('font-size', '11');
   centerLabel.setAttribute('font-weight', '600');
   centerLabel.setAttribute('text-anchor', 'middle');
-  centerLabel.textContent = 'খোঁজ';
+  centerLabel.textContent = (query || 'খোঁজ').slice(0, 14);
   svg.appendChild(centerLabel);
-
-  // Query preview text
-  const queryText = document.createElementNS(svgNS, 'text');
-  queryText.setAttribute('x', '66'); queryText.setAttribute('y', '91');
-  queryText.setAttribute('fill', 'white');
-  queryText.setAttribute('font-size', '9');
-  queryText.setAttribute('text-anchor', 'middle');
-  queryText.setAttribute('opacity', '0.85');
-  queryText.textContent = query.slice(0, 15);
-  svg.appendChild(queryText);
 
   // Replace container contents
   containerEl.innerHTML = '';
   containerEl.appendChild(svg);
 }
+
 
 /* ── 5. SERP LOADER ─────────────────────────────────────── */
 
@@ -460,10 +451,11 @@ async function loadSERP() {
       kgCard.classList.remove('hidden');
       const titleEl = document.getElementById('kgTitle');
       const subtitleEl = document.getElementById('kgSubtitle');
-      if (titleEl) titleEl.textContent = 'খোঁজার সংযোগ';
-      if (subtitleEl) subtitleEl.textContent = 'বর্তমান ফলাফলের উৎস-মানচিত্র';
+      if (titleEl) titleEl.style.display = 'none';
+      if (subtitleEl) subtitleEl.textContent = `${query} উৎস-মানচিত্র`;
       drawKnowledgeGraph(query, sources, kgGraphArea);
     }
+
 
     // ── Top sources sidebar
     if (sources.length > 0 && sourcesCard && sourcesList) {
@@ -564,10 +556,12 @@ function renderResultCard(r) {
   const pathPart = (() => {
     try {
       const u = new URL(r.url);
-      const p = u.pathname.slice(1);
+      let p = u.pathname.slice(1);
+      try { p = decodeURIComponent(p); } catch {}
       return p ? `<span class="result-domain-sep">/</span><span class="result-path">${esc(p)}</span>` : '';
     } catch { return ''; }
   })();
+
 
   const timestampHtml = r.timestamp
     ? `<span class="result-timestamp">${esc(r.timestamp)}</span>`

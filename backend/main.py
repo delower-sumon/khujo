@@ -31,29 +31,40 @@ async def root():
 @app.get("/api/v1/search")
 async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
     try:
-        if not q or len(q.strip()) < 1:
+        clean_q = q.strip()
+        if not clean_q:
             return {"query": q, "results": [], "total": 0}
 
-        # 1. First, lookup knowledge graph entities (districts, people, etc)
+        # 1. Lookup knowledge graph entity & all associated transliteration aliases
         entity_res = db.execute(text("""
-            SELECT e.entity_id, e.display_name, e.summary, n.normalised_name
+            SELECT e.entity_id, e.display_name, e.summary
             FROM core.entity_name n
             JOIN core.entity e ON n.entity_id = e.entity_id
-            WHERE n.normalised_name % :q OR n.normalised_name ILIKE :q_like
+            WHERE n.normalised_name % :q OR n.normalised_name ILIKE :q_like OR e.display_name ILIKE :q_like
             ORDER BY similarity(n.normalised_name, :q) DESC
             LIMIT 1
-        """), {"q": q.strip(), "q_like": f"%{q.strip()}%"}).fetchone()
+        """), {"q": clean_q, "q_like": f"%{clean_q}%"}).fetchone()
 
         knowledge_graph = None
+        search_terms = [clean_q]
+
         if entity_res:
+            entity_id, display_name, summary = entity_res
             knowledge_graph = {
-                "id": str(entity_res[0]),
-                "title": entity_res[1],
-                "description": entity_res[2] or f"{entity_res[1]} সম্পর্কিত তথ্য",
+                "id": str(entity_id),
+                "title": display_name,
+                "description": summary or f"{display_name} সম্পর্কিত তথ্য",
                 "sources": []
             }
+            # Fetch all linked names (Bangla, English, Banglish) for this entity
+            aliases = db.execute(text("""
+                SELECT normalised_name FROM core.entity_name WHERE entity_id = :eid
+            """), {"eid": entity_id}).fetchall()
+            for a in aliases:
+                if a[0] and a[0] not in search_terms:
+                    search_terms.append(a[0])
 
-        # 2. Lookup documents matching trigrams and only return verified ones
+        # 2. Lookup documents matching any search term (or trigram)
         docs = db.execute(text("""
             SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
                    content.document.summary, content.document.body_text, content.document.published_at, 
@@ -62,24 +73,41 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
             LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
             WHERE content.document.state = 'verified'
-              AND (content.document.title_normalised % :q OR content.document.body_normalised % :q)
+              AND (
+                content.document.title_normalised % :q 
+                OR content.document.body_normalised % :q
+                OR EXISTS (
+                    SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
+                    WHERE content.document.title_normalised ILIKE '%' || term || '%'
+                       OR content.document.canonical_url ILIKE '%' || term || '%'
+                       OR content.document.body_normalised ILIKE '%' || term || '%'
+                )
+              )
+
             ORDER BY GREATEST(
                 similarity(content.document.title_normalised, :q),
                 similarity(content.document.body_normalised, :q)
             ) DESC
             LIMIT :limit OFFSET :offset
-        """), {"q": q.strip(), "limit": limit, "offset": offset}).fetchall()
+        """), {"q": clean_q, "terms": search_terms, "limit": limit, "offset": offset}).fetchall()
 
         results = []
         for d in docs:
+            url = d[1] or ""
+            domain = ""
+            if "://" in url:
+                domain = url.split("://")[1].split("/")[0].replace("www.", "")
+            
+            favicon_url = f"https://www.google.com/s2/favicons?domain={domain}&sz=32" if domain else None
             snippet = d[3] if d[3] and len(d[3].strip()) > 10 else ((d[4][:220] + "...") if d[4] else "No description available")
+            
             results.append({
                 "id": str(d[0]),
                 "title": d[2] or "Untitled",
                 "snippet": snippet,
-                "url": d[1],
-                "favicon": None,
-                "source": d[6],
+                "url": url,
+                "favicon": favicon_url,
+                "source": d[6] or domain,
                 "type": "document"
             })
 
@@ -90,9 +118,11 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             "knowledge_graph": knowledge_graph
         }
     except Exception as e:
-        import traceback
-        print(traceback.format_exc())
+        import logging
+        logging.error("Search error: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
 @app.get("/api/v1/suggestions")
 async def suggestions(q: str, limit: int = 5, db: Session = Depends(get_db)):
