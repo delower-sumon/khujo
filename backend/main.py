@@ -48,8 +48,8 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
 
         # 2. Lookup documents matching trigrams and only return verified ones
         docs = db.execute(text("""
-            SELECT document_id, canonical_url, title, body_text, published_at, 
-                   source.source_name as source
+            SELECT content.document.document_id, content.document.canonical_url, content.document.title, content.document.body_text, content.document.published_at, 
+                   core.source.source_name as source
             FROM content.document
             JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
             LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
@@ -107,17 +107,62 @@ async def suggestions(q: str, limit: int = 5, db: Session = Depends(get_db)):
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/admin/stats")
+async def get_admin_stats(db: Session = Depends(get_db)):
+    try:
+        counts = db.execute(text("""
+            SELECT state, count(*) 
+            FROM content.document 
+            GROUP BY state
+        """)).fetchall()
+        
+        stat_map = {row[0]: row[1] for row in counts}
+        
+        db_size = db.execute(text("SELECT pg_size_pretty(pg_database_size(current_database()))")).scalar() or "0 B"
+        
+        return {
+            "pending_candidates": stat_map.get("candidate", 0),
+            "verified_count": stat_map.get("verified", 0),
+            "rejected_count": stat_map.get("rejected", 0),
+            "total_documents": sum(stat_map.values()),
+            "db_size": db_size
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/v1/admin/candidates")
 async def get_candidates(db: Session = Depends(get_db)):
     try:
         docs = db.execute(text("""
-            SELECT document_id, canonical_url, title, body_text
-            FROM content.document
-            WHERE state = 'candidate'
-            ORDER BY discovered_at DESC
+            SELECT d.document_id, d.canonical_url, d.title, d.body_text, d.discovered_at, d.document_kind,
+                   s.source_name
+            FROM content.document d
+            LEFT JOIN core.source_record sr ON d.source_record_id = sr.source_record_id
+            LEFT JOIN core.source s ON sr.source_id = s.source_id
+            WHERE d.state = 'candidate'
+            ORDER BY d.discovered_at DESC
             LIMIT 50
         """)).fetchall()
-        return [{"id": str(d[0]), "url": d[1], "title": d[2], "body": d[3]} for d in docs]
+        
+        results = []
+        for d in docs:
+            url = d[1] or ""
+            # Extract domain for favicon lookup
+            domain = ""
+            if "://" in url:
+                domain = url.split("://")[1].split("/")[0].replace("www.", "")
+            
+            results.append({
+                "id": str(d[0]),
+                "url": url,
+                "domain": domain,
+                "title": d[2] or "Untitled Document",
+                "body": d[3] or "",
+                "discovered_at": str(d[4]) if d[4] else None,
+                "kind": d[5] or "general",
+                "source_name": d[6] or domain
+            })
+        return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -140,6 +185,29 @@ async def reject_document(document_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/batch_verify")
+async def batch_verify(document_ids: List[str], db: Session = Depends(get_db)):
+    try:
+        if document_ids:
+            db.execute(text("UPDATE content.document SET state = 'verified' WHERE document_id = ANY(:ids)"), {"ids": document_ids})
+            db.commit()
+        return {"success": True, "count": len(document_ids)}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/batch_reject")
+async def batch_reject(document_ids: List[str], db: Session = Depends(get_db)):
+    try:
+        if document_ids:
+            db.execute(text("UPDATE content.document SET state = 'rejected' WHERE document_id = ANY(:ids)"), {"ids": document_ids})
+            db.commit()
+        return {"success": True, "count": len(document_ids)}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
