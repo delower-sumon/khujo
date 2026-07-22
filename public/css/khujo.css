@@ -496,15 +496,16 @@ input, button, select { font-family: inherit; }
 .serp-header {
   position: sticky;
   top: 0;
-  z-index: 30;
-  background: rgba(255, 255, 255, 0.92);
+  z-index: 500;
+  overflow: visible !important;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--surface-3);
 }
 @media (prefers-color-scheme: dark) {
   .serp-header {
-    background: rgba(15, 23, 42, 0.92);
+    background: rgba(15, 23, 42, 0.95);
   }
 }
 
@@ -513,6 +514,9 @@ input, button, select { font-family: inherit; }
   align-items: center;
   gap: 20px;
   padding: 12px 0;
+  overflow: visible !important;
+  position: relative;
+  z-index: 501;
 }
 
 .serp-tagline {
@@ -529,7 +533,11 @@ input, button, select { font-family: inherit; }
 .serp-search-wrap {
   flex: 1;
   max-width: 680px;
+  position: relative;
+  z-index: 502;
+  overflow: visible !important;
 }
+
 
 /* SERP search bar is slightly smaller */
 .serp-search-wrap .search-input-row {

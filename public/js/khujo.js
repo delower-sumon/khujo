@@ -74,12 +74,18 @@ class SearchBar {
       if (this.input.value.trim().length >= 1) this._debounceFetch();
     });
 
+    this.input.addEventListener('click', () => {
+      this.focused = true;
+      if (this.input.value.trim().length >= 1) this._debounceFetch();
+    });
+
     this.input.addEventListener('blur', () => {
       setTimeout(() => {
         this.focused = false;
         this._hideSuggestions();
-      }, 250);
+      }, 300);
     });
+
 
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { this._hideSuggestions(); return; }

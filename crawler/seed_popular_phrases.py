@@ -13,18 +13,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger("seed_phrases")
 
 popular_phrases = [
-    ("amar dekha noya chin", "en", 900),
-    ("amar dekha noya chin writer", "en", 850),
-    ("amar dekha noya chin kar lekha", "en", 840),
-    ("amar dekha noya chin book", "en", 820),
-    ("আমার দেখা নয়া চীন", "bn", 900),
-    ("আমার দেখা নয়া চীন কার লেখা", "bn", 850),
-    ("শেখ মুজিবুর রহমান", "bn", 950),
-    ("Sheikh Mujibur Rahman", "en", 950),
     ("ঢাকা আবহাওয়া আজ", "bn", 900),
     ("Dhaka weather today", "en", 900),
     ("পদ্মা সেতু আপডেট", "bn", 880),
     ("Padma Bridge updates", "en", 880),
+
     ("বাংলাদেশ ক্রিকেট খবর", "bn", 920),
     ("Bangladesh Cricket news", "en", 920),
     ("ঢাকা বিশ্ববিদ্যালয় ভর্তি", "bn", 870),
