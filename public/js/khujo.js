@@ -71,15 +71,14 @@ class SearchBar {
 
     this.input.addEventListener('focus', () => {
       this.focused = true;
-      if (this.input.value.length > 1) this._showExisting();
+      if (this.input.value.trim().length >= 1) this._debounceFetch();
     });
 
     this.input.addEventListener('blur', () => {
-      // Delay so click on suggestion fires first
       setTimeout(() => {
         this.focused = false;
         this._hideSuggestions();
-      }, 200);
+      }, 250);
     });
 
     this.input.addEventListener('keydown', (e) => {
@@ -114,20 +113,19 @@ class SearchBar {
   _debounceFetch() {
     clearTimeout(this.debounceTimer);
     const q = this.input.value.trim();
-    if (q.length < 2) { this._hideSuggestions(); return; }
-    this.debounceTimer = setTimeout(() => this._fetchSuggestions(q), 200);
+    if (q.length < 1) { this._hideSuggestions(); return; }
+    this.debounceTimer = setTimeout(() => this._fetchSuggestions(q), 100);
   }
 
   async _fetchSuggestions(q) {
-    if (!this.focused) return;
     try {
       const res = await fetch(`${API_BASE}/api/v1/suggestions?q=${encodeURIComponent(q)}&limit=8`);
-      if (!res.ok || !this.focused) return;
+      if (!res.ok) return;
       const data = await res.json();
       this.suggestions = Array.isArray(data) ? data : [];
       this.activeIndex = -1;
       if (this.suggestions.length > 0) {
-        this._renderSuggestions();
+        this._renderSuggestions(q);
       } else {
         this._hideSuggestions();
       }
@@ -136,37 +134,58 @@ class SearchBar {
     }
   }
 
-  _renderSuggestions() {
+  _renderSuggestions(query) {
     this._removeSuggestions();
     this.inputRow.classList.add('has-suggestions');
 
     const dropdown = document.createElement('div');
     dropdown.className = 'suggestions-list';
     dropdown.setAttribute('role', 'listbox');
-    const divider = document.createElement('div');
-    divider.className = 'suggestions-divider';
-    dropdown.appendChild(divider);
 
     this.suggestions.forEach((s, i) => {
-      const item = document.createElement('button');
-      item.type = 'button';
+      const item = document.createElement('div');
       item.className = 'suggestion-item';
       item.setAttribute('role', 'option');
       item.setAttribute('data-index', String(i));
-      item.innerHTML = `${icon.search.replace('class="', 'class="suggestion-icon ')}<span>${esc(s)}</span>`;
-      item.addEventListener('mousedown', (e) => e.preventDefault());
-      item.addEventListener('click', () => {
+
+      let formattedText = esc(s);
+      const qLower = query.toLowerCase();
+      const sLower = s.toLowerCase();
+
+      if (qLower && sLower.startsWith(qLower)) {
+        const prefix = esc(s.slice(0, query.length));
+        const rest = esc(s.slice(query.length));
+        formattedText = `${prefix}<b>${rest}</b>`;
+      } else if (qLower && sLower.includes(qLower)) {
+        const idx = sLower.indexOf(qLower);
+        const before = esc(s.slice(0, idx));
+        const match = esc(s.slice(idx, idx + query.length));
+        const after = esc(s.slice(idx + query.length));
+        formattedText = `${before}<b>${match}</b>${after}`;
+      }
+
+      item.innerHTML = `
+        <span class="suggestion-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <span class="suggestion-text">${formattedText}</span>
+      `;
+
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
         this.input.value = s;
         this._updateClearBtn();
         this._hideSuggestions();
         this._submit(s);
       });
+
       dropdown.appendChild(item);
     });
 
     this.dropdownEl = dropdown;
     this.wrap.appendChild(dropdown);
   }
+
 
   _showExisting() {
     if (this.suggestions.length > 0 && !this.dropdownEl) this._renderSuggestions();

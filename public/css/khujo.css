@@ -269,59 +269,73 @@ input, button, select { font-family: inherit; }
 .search-clear:hover { color: var(--text-secondary); }
 .search-clear svg { width: 16px; height: 16px; }
 
-/* Suggestions dropdown */
+/* Google-inspired Suggestions Dropdown */
 .suggestions-list {
   position: absolute;
   left: 0; right: 0;
-  top: 100%;
-  z-index: 50;
-  background: var(--surface-0);
-  border: 1px solid var(--surface-3);
-  border-top: none;
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
-  box-shadow: var(--shadow-search);
+  top: calc(100% + 4px);
+  z-index: 1000;
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--surface-3, #e2e8f0);
+  border-radius: 20px;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12), 0 4px 14px rgba(15, 23, 42, 0.06);
   overflow: hidden;
-  padding: 6px 0 10px;
+  padding: 8px 6px;
 }
 
-.suggestions-divider {
-  height: 1px;
-  background: var(--surface-2);
-  margin: 0 16px 6px;
+@media (prefers-color-scheme: dark) {
+  .suggestions-list {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+  }
 }
 
 .suggestion-item {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 9px 20px;
-  gap: 12px;
-  text-align: left;
+  padding: 10px 16px;
+  gap: 14px;
+  border-radius: 9999px;
   font-size: 15px;
   color: var(--text-primary);
-  transition: background var(--duration) var(--ease-out);
+  transition: background 0.15s ease;
   cursor: pointer;
+  user-select: none;
 }
+
 .suggestion-item:hover, .suggestion-item.active {
-  background: var(--green-light);
+  background: var(--green-light, #ecfdf5);
 }
-.suggestion-item.active { font-weight: 500; }
-.suggestion-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 2px; bottom: 2px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--green);
+
+@media (prefers-color-scheme: dark) {
+  .suggestion-item:hover, .suggestion-item.active {
+    background: rgba(0, 106, 78, 0.25);
+  }
 }
-.suggestion-item { position: relative; }
+
 .suggestion-icon {
-  flex-shrink: 0;
-  width: 16px; height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-muted);
+  flex-shrink: 0;
 }
+
+.suggestion-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion-text b {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 
 /* ── 6. LAYOUT CONTAINERS ───────────────────────────────── */
 .page-container {
