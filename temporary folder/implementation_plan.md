@@ -84,53 +84,14 @@ What was done (in order):
 
 ---
 
-## 🟡 Phase B.3 — Crawler Architecture `[AGENT]` + `[CRAWLER]`
+## ✅ Phase B.3 — KhujoBot v1 Crawler (`crawler/`) — COMPLETE
 
-> [!IMPORTANT]
-> **Core rule from `db-core-plan.md`:** "A crawler never marks truth. It creates documents, mentions, candidates, and evidence. A deterministic verifier or a human can promote a claim." Every crawled item lands as `state = 'candidate'`. Nothing reaches the SERP until a human approves it.
+**Result: Phase 1 Site Scout and Phase 2 Content Crawler built, verified, and integrated with entity tagging.**
 
-### B.3.1 — Seed URL Registry
-
-All seed URLs require a `trust_tier`, `access_method`, and crawl permission note before adding.
-
-| URL | Category | Access | Trust Tier |
-|---|---|---|---|
-| `https://www.prothomalo.com/` | News (bn) | `crawl_allowed` | 4 |
-| `https://www.thedailystar.net/` | News (en) | `crawl_allowed` | 4 |
-| `https://www.dhakatribune.com/` | News (en) | `crawl_allowed` | 4 |
-| `https://bonikbarta.com/` | Business news (bn) | `crawl_allowed` | 3 |
-| `https://bn.wikipedia.org/` | Bengali Wiki | `crawl_allowed` | 5 |
-| LinkedIn BD profiles | Business/Networking | `api` (manual) | 3 |
-| `https://www.facebook.com/choltigolpo/` | Social/Video | `manual_import` | 2 |
-| `https://www.youtube.com/@chalti` | Video | `api` (YT Data v3) | 3 |
-
-> [!NOTE]
-> **YouTube & Facebook:** Raw HTML scraping is blocked by both platforms. The correct approach is:
-> - **YouTube:** YouTube Data API v3 (free, 10,000 units/day) → filter by `viewCount > 100000`, topic `Bangladesh`
-> - **Facebook:** Public Page content via Graph API (read-only public posts, requires App Review for some endpoints) — or manual import initially
-> - **LinkedIn:** No public API for mass scraping. LinkedIn requires OAuth + Partnership. Plan: curate company/person profiles manually for now.
-
-### B.3.2 — Crawler Design Constraints (from architecture docs)
-
-The crawler must:
-- Check `robots.txt` before every new domain
-- Use a proper User-Agent: `KhujoBot/1.0 (+https://khujo.com.bd/bot)`
-- Respect `crawl_delay_seconds` per host (default 5s)
-- Hash content to avoid duplicate inserts
-- Write **only** to `content.document` with `state = 'candidate'`
-- Never write directly to `core.entity` — that requires human review
-- Extract: title, body text, `og:image` URL, `og:description`, published date, canonical URL, language
-- Extract favicon URL → pass to Media Scout (do NOT download to VPS)
-
-### B.3.3 — Content Categories to Prioritize
-
-| Category | Source Type | Rationale |
-|---|---|---|
-| News & Current Affairs | `document_kind = 'news'` | Highest daily query volume |
-| Tech & Tutorials | `document_kind = 'article'` | High-value, long retention |
-| Business & Networking | `document_kind = 'listing'` | B2B and job search intent |
-| Bengali Wiki & Knowledge | `document_kind = 'article'` | Feeds Knowledge Graph directly |
-| Video (YT/FB) | `media.asset` | Visual results, needs API access |
+What was built & verified:
+1. `crawler/site_scout.py` (Phase 1) — checks `robots.txt`, fetches R2 favicons, discovers internal article links, and queues them into `crawl.frontier_url`
+2. `crawler/content_crawler.py` (Phase 2) — fetches article pages, cleans HTML body using BeautifulSoup4, extracts canonical URL and title, uploads `og:image` to R2 (storing CDN URL string only), tags entity mentions against permanent core entities, and stages candidate documents in `content.document`
+3. Tested live against news seed URLs (Prothom Alo, Daily Star, Dhaka Tribune) → **13 fresh candidate documents staged in Admin Verification Queue**
 
 ---
 
