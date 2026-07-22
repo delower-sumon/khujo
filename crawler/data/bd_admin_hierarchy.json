@@ -1,0 +1,282 @@
+{
+  "divisions": [
+    {
+      "code": "30",
+      "name_bn": "ঢাকা",
+      "name_en": "Dhaka",
+      "name_banglish": "Dhaka",
+      "lat": 23.8103,
+      "lon": 90.4125,
+      "summary": "ঢাকা বিভাগ বাংলাদেশের দক্ষিণ-মধ্য অঞ্চলের প্রশাসনিক বিভাগ এবং দেশের রাজধানী শহর কেন্দ্রিক।",
+      "districts": [
+        {
+          "code": "3026",
+          "name_bn": "ঢাকা",
+          "name_en": "Dhaka",
+          "name_banglish": "Dhaka",
+          "lat": 23.8103,
+          "lon": 90.4125,
+          "summary": "ঢাকা জেলা বাংলাদেশের ঢাকা বিভাগের একটি প্রশাসনিক অঞ্চল ও দেশের কেন্দ্রস্থল।",
+          "upazilas": [
+            { "name_bn": "সাভার", "name_en": "Savar", "name_banglish": "Savar", "lat": 23.8583, "lon": 90.2667, "unions": ["আমিনবাজার", "বনগাঁও", "কাফরুল", "তেঁতুলঝোড়া", "সাভার সদর", "শিমুলিয়া", "পাধ্যাভিটা", "ভার্কুতা", "ইয়ারপুর"] },
+            { "name_bn": "কেরানীগঞ্জ", "name_en": "Keraniganj", "name_banglish": "Keraniganj", "lat": 23.6833, "lon": 90.3167, "unions": ["জিনজিরা", "আটিবাজার", "কালিন্দী", "শুভাঢ্যা", "বাস্তা", "রোহিতপুর", "তারানগর", "শুভাঢ্যা"] },
+            { "name_bn": "ধামরাই", "name_en": "Dhamrai", "name_banglish": "Dhamrai", "lat": 23.9167, "lon": 90.2167, "unions": ["ধামরাই সদর", "আমতা", "বাইশাকান্দা", "সোমভাগ", "গঙ্গুটিয়া"] },
+            { "name_bn": "দোহার", "name_en": "Dohar", "name_banglish": "Dohar", "lat": 23.5958, "lon": 90.1375, "unions": ["জয়পাড়া", "মুকসুদপুর", "রাইপাড়া", "সুতারপাড়া", "বিলাসপুর"] },
+            { "name_bn": "নবাবগঞ্জ", "name_en": "Nawabganj", "name_banglish": "Nawabganj", "lat": 23.6667, "lon": 90.1667, "unions": ["বান্দুরা", "কৈলাইলি", "গালিমপুর", "শোল্লা", "যন্ত্রাইল"] }
+          ]
+        },
+        {
+          "code": "3033",
+          "name_bn": "গাজীপুর",
+          "name_en": "Gazipur",
+          "name_banglish": "Gazipur",
+          "lat": 23.9999,
+          "lon": 90.4203,
+          "summary": "গাজীপুর জেলা বাংলাদেশের কেন্দ্রীয় অঞ্চলে অবস্থিত শিল্পোন্নত জেলা।",
+          "upazilas": [
+            { "name_bn": "গাজীপুর সদর", "name_en": "Gazipur Sadar", "name_banglish": "Gazipur Sadar", "lat": 24.0, "lon": 90.42, "unions": ["বাসন", "কাউশিল", "মির্জাপুর", "বাড়িয়া"] },
+            { "name_bn": "কালিয়াকৈড়", "name_en": "Kaliakair", "name_banglish": "Kaliakair", "lat": 24.07, "lon": 90.22, "unions": ["আটাবহ", "বোড়ালী", "চাপাইর", "ফুলবাড়ীয়া"] },
+            { "name_bn": "শ্রীপুর", "name_en": "Sreepur", "name_banglish": "Sreepur", "lat": 24.2, "lon": 90.47, "unions": ["মাওনা", "কাওরাইদ", "গোসিংগা", "রাজাবাড়ী"] },
+            { "name_bn": "কাপাসিয়া", "name_en": "Kapasia", "name_banglish": "Kapasia", "lat": 24.1, "lon": 90.57, "unions": ["কাপাসিয়া সদর", "দূর্গাপুর", "সনমানিয়া", "সিংহশ্রী"] },
+            { "name_bn": "কালীগঞ্জ", "name_en": "Kaliganj", "name_banglish": "Kaliganj", "lat": 23.9, "lon": 90.57, "unions": ["কালীগঞ্জ সদর", "মোক্তারপুর", "বক্তারপুর", "নাগরি"] }
+          ]
+        },
+        {
+          "code": "3067",
+          "name_bn": "নারায়ণগঞ্জ",
+          "name_en": "Narayanganj",
+          "name_banglish": "Narayanganj",
+          "lat": 23.6238,
+          "lon": 90.5000,
+          "summary": "নারায়ণগঞ্জ জেলা প্রাচ্যের ডান্ডি নামে খ্যাত ঐতিহাসিক শিল্প ও নদী বন্দর জেলা।",
+          "upazilas": [
+            { "name_bn": "নারায়ণগঞ্জ সদর", "name_en": "Narayanganj Sadar", "name_banglish": "Narayanganj Sadar", "lat": 23.62, "lon": 90.5, "unions": ["ফতুল্লা", "সিদ্ধিরগঞ্জ", "বক্তাবলী", "কাশিপুর", "এনায়েতপুর"] },
+            { "name_bn": "সোনারগাঁও", "name_en": "Sonargaon", "name_banglish": "Sonargaon", "lat": 23.65, "lon": 90.6, "unions": ["মোগরাপাড়া", "আমিনপুর", "বারদী", "বৈদ্যেরবাজার", "জামপুর"] },
+            { "name_bn": "আড়াইহাজার", "name_en": "Araihazar", "name_banglish": "Araihazar", "lat": 23.79, "lon": 90.65, "unions": ["আড়াইহাজার সদর", "ফতেপুর", "দুপ্তারা", "ব্রাহ্মণদী"] },
+            { "name_bn": "রূপগঞ্জ", "name_en": "Rupganj", "name_banglish": "Rupganj", "lat": 23.79, "lon": 90.52, "unions": ["তারাবো", "কাঞ্চন", "মুড়াপাড়া", "ভোলাবো", "দাউদপুর"] }
+          ]
+        },
+        {
+          "code": "3068",
+          "name_bn": "নরসিংদী",
+          "name_en": "Narsingdi",
+          "name_banglish": "Narsingdi",
+          "lat": 23.9197,
+          "lon": 90.7202,
+          "summary": "নরসিংদী জেলা টেক্সটাইল শিল্প ও তাঁতশিল্পের জন্য বিখ্যাত জেলা।",
+          "upazilas": [
+            { "name_bn": "নরসিংদী সদর", "name_en": "Narsingdi Sadar", "name_banglish": "Narsingdi Sadar", "lat": 23.92, "lon": 90.72, "unions": ["মেহেরপাড়া", "চিনাদী", "নজরপুর", "আমদিয়া"] },
+            { "name_bn": "পলাশ", "name_en": "Palash", "name_banglish": "Palash", "lat": 23.95, "lon": 90.63, "unions": ["ঘোড়াশাল", "চরসিন্দুর", "ডাঙ্গা", "গজারিয়া"] },
+            { "name_bn": "শিবপুর", "name_en": "Shibpur", "name_banglish": "Shibpur", "lat": 24.04, "lon": 90.73, "unions": ["শিবপুর সদর", "জয়নগর", "মাঝেরচর", "সাধারচর"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "20",
+      "name_bn": "চট্টগ্রাম",
+      "name_en": "Chattogram",
+      "name_banglish": "Chittagong",
+      "lat": 22.3569,
+      "lon": 91.7832,
+      "summary": "চট্টগ্রাম বিভাগ বাংলাদেশের দক্ষিণ-পূর্বাঞ্চলে অবস্থিত প্রধান বাণিজ্যিক ও বন্দর বিভাগ।",
+      "districts": [
+        {
+          "code": "2015",
+          "name_bn": "চট্টগ্রাম",
+          "name_en": "Chattogram",
+          "name_banglish": "Chittagong",
+          "lat": 22.3569,
+          "lon": 91.7832,
+          "summary": "চট্টগ্রাম জেলা দেশের বন্দর নগরী ও প্রধান অর্থনৈতিক চালিকাশক্তি।",
+          "upazilas": [
+            { "name_bn": "পটিয়া", "name_en": "Patiya", "name_banglish": "Patiya", "lat": 22.29, "lon": 91.98, "unions": ["পটিয়া সদর", "কোলাগাঁও", "জিরি", "কুসুমপুরা", "হাইদগাঁও"] },
+            { "name_bn": "হাটহাজারী", "name_en": "Hathazari", "name_banglish": "Hathazari", "lat": 22.50, "lon": 91.80, "unions": ["হাটহাজারী সদর", "ফতেপুর", "মির্জাপুর", "চিকনদণ্ডী"] },
+            { "name_bn": "সীতাকুণ্ড", "name_en": "Sitakunda", "name_banglish": "Sitakunda", "lat": 22.62, "lon": 91.66, "unions": ["সীতাকুণ্ড সদর", "কুমিরা", "বাঁশবাড়িয়া", "বারবকুণ্ড"] },
+            { "name_bn": "রাউজান", "name_en": "Raozan", "name_banglish": "Raozan", "lat": 22.53, "lon": 91.91, "unions": ["রাউজান সদর", "পাহাড়তলী", "গহিরা", "বিনাজুরী"] }
+          ]
+        },
+        {
+          "code": "2022",
+          "name_bn": "কক্সবাজার",
+          "name_en": "Cox's Bazar",
+          "name_banglish": "Coxs Bazar",
+          "lat": 21.4272,
+          "lon": 92.0058,
+          "summary": "কক্সবাজার বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকতের জন্য বিশ্বখ্যাত পর্যটন জেলা।",
+          "upazilas": [
+            { "name_bn": "কক্সবাজার সদর", "name_en": "Cox's Bazar Sadar", "name_banglish": "Coxs Bazar Sadar", "lat": 21.43, "lon": 92.01, "unions": ["ঝিলংজা", "পিএমখালী", "ভারুয়াখালী", "খুরুশকুল"] },
+            { "name_bn": "টেকনাফ", "name_en": "Teknaf", "name_banglish": "Teknaf", "lat": 20.86, "lon": 92.30, "unions": ["টেকনাফ সদর", "সেন্টমার্টিন", "সাবরাং", "হুইকং"] },
+            { "name_bn": "উখিয়া", "name_en": "Ukhiya", "name_banglish": "Ukhiya", "lat": 21.23, "lon": 92.13, "unions": ["রাজাপালং", "জালিয়াপালং", "রত্নাপালং", "হলদিয়াপালং"] }
+          ]
+        },
+        {
+          "code": "2019",
+          "name_bn": "কুমিল্লা",
+          "name_en": "Comilla",
+          "name_banglish": "Cumilla",
+          "lat": 23.4607,
+          "lon": 91.1809,
+          "summary": "কুমিল্লা জেলা ঐতিহাসিক ময়নামতি শালবন বিহার এবং রসমালাইয়ের জন্য পরিচিত।",
+          "upazilas": [
+            { "name_bn": "কুমিল্লা আদর্শ সদর", "name_en": "Comilla Adarsha Sadar", "name_banglish": "Cumilla Sadar", "lat": 23.46, "lon": 91.18, "unions": ["কালিরবাজার", "আমড়াতলী", "জগন্নাথপুর", "পাঁচথুবী"] },
+            { "name_bn": "লাকসাম", "name_en": "Laksam", "name_banglish": "Laksam", "lat": 23.24, "lon": 91.12, "unions": ["লাকসাম সদর", "মুদাফফরগঞ্জ", "বাকই", "কান্দিরপাড়"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "50",
+      "name_bn": "রাজশাহী",
+      "name_en": "Rajshahi",
+      "name_banglish": "Rajshahi",
+      "lat": 24.3745,
+      "lon": 88.6042,
+      "summary": "রাজশাহী বিভাগ আম ও রেশম শিল্পের জন্য পরিচিত শিক্ষানগরী কেন্দ্রিক বিভাগ।",
+      "districts": [
+        {
+          "code": "5081",
+          "name_bn": "রাজশাহী",
+          "name_en": "Rajshahi",
+          "name_banglish": "Rajshahi",
+          "lat": 24.3745,
+          "lon": 88.6042,
+          "summary": "রাজশাহী জেলা পদ্মার তীরে অবস্থিত শিক্ষানগরী ও সবুজ নগরী।",
+          "upazilas": [
+            { "name_bn": "পবা", "name_en": "Paba", "name_banglish": "Paba", "lat": 24.43, "lon": 88.64, "unions": ["হরিপুর", "দামকুড়া", "দর্শনপাড়া", "হরিয়ান"] },
+            { "name_bn": "বাগমারা", "name_en": "Bagmara", "name_banglish": "Bagmara", "lat": 24.56, "lon": 88.80, "unions": ["ভবানীগঞ্জ", "গোবিন্দপাড়া", "আউচপাড়া", "শ্রীপুর"] }
+          ]
+        },
+        {
+          "code": "5010",
+          "name_bn": "বগুড়া",
+          "name_en": "Bogura", "name_banglish": "Bogra",
+          "lat": 24.8481,
+          "lon": 89.3730,
+          "summary": "বগুড়া জেলা উত্তরবঙ্গের প্রবেশদ্বার ও দইয়ের জন্য সুপরিচিত ঐতিহাসিক অঞ্চল।",
+          "upazilas": [
+            { "name_bn": "বগুড়া সদর", "name_en": "Bogura Sadar", "name_banglish": "Bogra Sadar", "lat": 24.85, "lon": 89.37, "unions": ["ফাঁপোর", "এরুলিয়া", "সাবগ্রাম", "নিশিন্দারা"] },
+            { "name_bn": "মহাস্থানগড় / শিবগঞ্জ", "name_en": "Shibganj", "name_banglish": "Shibganj", "lat": 24.98, "lon": 89.33, "unions": ["রায়নগর", "মহাস্থান", "দেউলী", "ময়দানহাট্টা"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "40",
+      "name_bn": "খুলনা",
+      "name_en": "Khulna",
+      "name_banglish": "Khulna",
+      "lat": 22.8456,
+      "lon": 89.5403,
+      "summary": "খুলনা বিভাগ সুন্দরবন ও রূপসা নদীর কোলঘেঁষে অবস্থিত দক্ষিণ-পশ্চিমাঞ্চলীয় বিভাগ।",
+      "districts": [
+        {
+          "code": "4047",
+          "name_bn": "খুলনা",
+          "name_en": "Khulna",
+          "name_banglish": "Khulna",
+          "lat": 22.8456,
+          "lon": 89.5403,
+          "summary": "খুলনা জেলা বিশ্ব ঐতিহ্য সুন্দরবনের মূল প্রবেশদ্বার ও শিল্প নগরী।",
+          "upazilas": [
+            { "name_bn": "রূপসা", "name_en": "Rupsha", "name_banglish": "Rupsha", "lat": 22.82, "lon": 89.58, "unions": ["আইচগাতী", "শ্রীফলতলা", "নৈহাটী", "টিএসবি"] },
+            { "name_bn": "বটিয়াঘাটা", "name_en": "Batiaghata", "name_banglish": "Batiaghata", "lat": 22.74, "lon": 89.53, "unions": ["বটিয়াঘাটা সদর", "জলমা", "সুরখালী", "গঙ্গারামপুর"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "60",
+      "name_bn": "সিলেট",
+      "name_en": "Sylhet",
+      "name_banglish": "Sylhet",
+      "lat": 24.8949,
+      "lon": 91.8687,
+      "summary": "সিলেট বিভাগ দুটি পাতার একটি কুঁড়ির দেশ হিসেবে পরিচিত চা বাগান ও আধ্যাত্মিক পর্যটন কেন্দ্র।",
+      "districts": [
+        {
+          "code": "6091",
+          "name_bn": "সিলেট",
+          "name_en": "Sylhet",
+          "name_banglish": "Sylhet",
+          "lat": 24.8949,
+          "lon": 91.8687,
+          "summary": "সিলেট জেলা হযরত শাহজালাল (রঃ) ও শাহ পরান (রঃ) এর স্মৃতিবিজড়িত পুণ্যভূমি।",
+          "upazilas": [
+            { "name_bn": "সিলেট সদর", "name_en": "Sylhet Sadar", "name_banglish": "Sylhet Sadar", "lat": 24.90, "lon": 91.87, "unions": ["হাটখোলা", "খাদিমনগর", "টুকাবাজার", "মোগলগাঁও"] },
+            { "name_bn": "গোয়াইনঘাট", "name_en": "Gowainghat", "name_banglish": "Gowainghat", "lat": 25.13, "lon": 91.97, "unions": ["জাফলং", "ডাউকি", "নন্দীরগাঁও", "ফতেহপুর"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "10",
+      "name_bn": "বরিশাল",
+      "name_en": "Barishal",
+      "name_banglish": "Barisal",
+      "lat": 22.7010,
+      "lon": 90.3535,
+      "summary": "বরিশাল বিভাগ শস্যভাণ্ডার খ্যাত এবং অসংখ্য নদী-খাল ঘেরা দক্ষিণাঞ্চলীয় বিভাগ।",
+      "districts": [
+        {
+          "code": "1006",
+          "name_bn": "বরিশাল",
+          "name_en": "Barishal",
+          "name_banglish": "Barisal",
+          "lat": 22.7010,
+          "lon": 90.3535,
+          "summary": "বরিশাল জেলা কীর্তনখোলা নদীর তীরে অবস্থিত নদীভিত্তিক ঐতিহাসিক অঞ্চল।",
+          "upazilas": [
+            { "name_bn": "বরিশাল সদর", "name_en": "Barishal Sadar", "name_banglish": "Barisal Sadar", "lat": 22.70, "lon": 90.35, "unions": ["চরবাড়িয়া", "চন্দ্রমোহন", "টুঙ্গীবাড়িয়া", "জাগুয়া"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "55",
+      "name_bn": "রংপুর",
+      "name_en": "Rangpur",
+      "name_banglish": "Rangpur",
+      "lat": 25.7439,
+      "lon": 89.2752,
+      "summary": "রংপুর বিভাগ উত্তরবঙ্গের ঐতিহাসিক কৃষি ও তামাক শিল্প কেন্দ্রিক বিভাগ।",
+      "districts": [
+        {
+          "code": "5585",
+          "name_bn": "রংপুর",
+          "name_en": "Rangpur",
+          "name_banglish": "Rangpur",
+          "lat": 25.7439,
+          "lon": 89.2752,
+          "summary": "রংপুর জেলা তাজহাট রাজবাড়ী ও বেগম রোকেয়া স্মৃতির জন্য পরিচিত।",
+          "upazilas": [
+            { "name_bn": "রংপুর সদর", "name_en": "Rangpur Sadar", "name_banglish": "Rangpur Sadar", "lat": 25.75, "lon": 89.28, "unions": ["মমিনপুর", "হরিদেবপুর", "চন্দনপাট", "সদ্যপুষ্করিণী"] }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "45",
+      "name_bn": "ময়মনসিংহ",
+      "name_en": "Mymensingh",
+      "name_banglish": "Mymensingh",
+      "lat": 24.7471,
+      "lon": 90.4203,
+      "summary": "ময়মনসিংহ বিভাগ ব্রহ্মপুত্র নদের তীরে অবস্থিত লোকসংস্কৃতি ও শিক্ষা কেন্দ্রিক বিভাগ।",
+      "districts": [
+        {
+          "code": "4561",
+          "name_bn": "ময়মনসিংহ",
+          "name_en": "Mymensingh",
+          "name_banglish": "Mymensingh",
+          "lat": 24.7471,
+          "lon": 90.4203,
+          "summary": "ময়মনসিংহ জেলা ময়মনসিংহ গীতিকা ও কৃষি বিশ্ববিদ্যালয়ের জন্য বিখ্যাত।",
+          "upazilas": [
+            { "name_bn": "ময়মনসিংহ সদর", "name_en": "Mymensingh Sadar", "name_banglish": "Mymensingh Sadar", "lat": 24.75, "lon": 90.42, "unions": ["চর ইশ্বরদিয়া", "বোরোরচর", "পরাানপুর", "সিরতা"] }
+          ]
+        }
+      ]
+    }
+  ]
+}
