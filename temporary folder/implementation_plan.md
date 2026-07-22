@@ -84,14 +84,16 @@ What was done (in order):
 
 ---
 
-## ✅ Phase B.3 — KhujoBot v1 Crawler (`crawler/`) — COMPLETE
+## ✅ Phase B.3 — KhujoBot v1 Crawler & Admin Verification Engine — COMPLETE
 
-**Result: Phase 1 Site Scout and Phase 2 Content Crawler built, verified, and integrated with entity tagging.**
+**Result: Phase 0, Phase 1, Phase 2, Admin Curation Vault, and Composite Ranking Engine built & verified.**
 
 What was built & verified:
-1. `crawler/site_scout.py` (Phase 1) — checks `robots.txt`, fetches R2 favicons, discovers internal article links, and queues them into `crawl.frontier_url`
-2. `crawler/content_crawler.py` (Phase 2) — fetches article pages, cleans HTML body using BeautifulSoup4, extracts canonical URL and title, uploads `og:image` to R2 (storing CDN URL string only), tags entity mentions against permanent core entities, and stages candidate documents in `content.document`
-3. Tested live against news seed URLs (Prothom Alo, Daily Star, Dhaka Tribune) → **13 fresh candidate documents staged in Admin Verification Queue**
+1. `crawler/seed_geography.py`, `seed_sources.py`, `seed_platform_aliases.py` (Phase 0) — 253 core entities, 224 places, 373 names, 13 Base Platform Bangla & English aliases
+2. `crawler/seed_base_documents.py` & `site_scout.py` (Phase 1) — scouts base URLs, checks `robots.txt`, uploads R2 favicons, discovers internal links, and stages Base Homepages (Google, Facebook, YouTube, Wikipedia, Prothom Alo, etc.) into `content.document`
+3. `crawler/content_crawler.py` (Phase 2) — fetches article pages, cleans HTML body using BeautifulSoup4, extracts canonical URL and `<meta description>` summaries, uploads `og:image` to R2 (storing CDN URL string only), tags entity mentions against permanent core entities, and stages candidate documents in `content.document`
+4. `public/admin.html` (Admin Gate & Curation Vault) — eye-soothing light mode, multi-tab queue (Pending / Approved / Rejected), clean URL decoding (`decodeURIComponent`), and **Inline Edit & Curate** form allowing admins to edit titles, snippets, and categories before approving live
+5. `backend/main.py` (Composite Ranking Engine) — multi-signal scoring algorithm combining Domain Match (+100.0), Title Match (+80.0), Title Similarity (+20.0), Body Similarity (+5.0), and Homepage Listing Boost (+15.0)
 
 ---
 

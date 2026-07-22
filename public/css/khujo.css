@@ -399,12 +399,16 @@ input, button, select { font-family: inherit; }
 
 .hero-title {
   margin-top: 12px;
-  font-size: clamp(32px, 6vw, 56px);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.04em;
-  line-height: 1.15;
+  font-size: clamp(56px, 10vw, 96px);
+  font-weight: 700;
+  background: linear-gradient(135deg, #006a4e 0%, #059669 50%, #0284c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  filter: drop-shadow(0 4px 12px rgba(0, 106, 78, 0.15));
 }
+
 
 .hero-sub {
   margin-top: 16px;
