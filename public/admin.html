@@ -10,38 +10,56 @@
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --green: #10b981;
-      --green-bg: rgba(16, 185, 129, 0.15);
-      --red: #ef4444;
-      --red-bg: rgba(239, 68, 68, 0.15);
-      --yellow: #f59e0b;
-      --yellow-bg: rgba(245, 158, 11, 0.15);
-      --blue: #3b82f6;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      
+      --brand-green: #006a4e;
+      --green-text: #059669;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+      
+      --red-text: #dc2626;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+      
+      --yellow-text: #d97706;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #fde68a;
+      
+      --blue-text: #2563eb;
+      --blue-bg: #eff6ff;
+      --blue-border: #bfdbfe;
+      
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', 'Hind Siliguri', sans-serif;
+      font-family: 'Inter', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
       background-color: var(--bg);
       color: var(--text-main);
-      padding: 24px;
+      padding: 20px 16px;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .container { max-width: 1100px; margin: 0 auto; }
+    .container { max-width: 1040px; margin: 0 auto; }
 
+    /* Header */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--card-border);
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .brand {
@@ -50,103 +68,113 @@
       gap: 12px;
     }
     .brand-logo {
-      width: 36px; height: 36px;
-      background: #006a4e;
-      border-radius: 8px;
+      width: 40px; height: 40px;
+      background: var(--brand-green);
+      border-radius: 10px;
       display: grid; place-items: center;
-      font-weight: 700; color: white; font-size: 18px;
+      font-weight: 700; color: white; font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0, 106, 78, 0.25);
+      flex-shrink: 0;
     }
-    h1 { font-size: 20px; font-weight: 600; }
-    .subtitle { font-size: 13px; color: var(--text-muted); }
+    h1 { font-size: 19px; font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; }
+    .subtitle { font-size: 13px; color: var(--text-muted); font-weight: 400; }
 
     .btn-refresh {
-      background: var(--card-border);
-      color: var(--text-main);
-      border: none;
+      background: var(--card-bg);
+      color: var(--text-secondary);
+      border: 1px solid var(--card-border);
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 500;
       font-size: 13px;
-      transition: background 0.2s;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
-    .btn-refresh:hover { background: #475569; }
+    .btn-refresh:hover { background: #f1f5f9; color: var(--text-main); border-color: #cbd5e1; }
 
     /* Stats Grid */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
     }
     .stat-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 16px;
+      box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
     }
-    .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-    .stat-val { font-size: 24px; font-weight: 700; margin-top: 4px; }
-    .stat-pending { color: var(--yellow); }
-    .stat-verified { color: var(--green); }
-    .stat-rejected { color: var(--red); }
-    .stat-db { color: var(--blue); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .stat-val { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.1; }
+    .stat-pending { color: var(--yellow-text); }
+    .stat-verified { color: var(--green-text); }
+    .stat-rejected { color: var(--red-text); }
+    .stat-db { color: var(--blue-text); }
 
     /* Toolbar */
     .toolbar {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
       flex-wrap: wrap;
       gap: 12px;
     }
-    .batch-actions { display: flex; gap: 8px; align-items: center; }
+    .batch-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     
     button {
       padding: 8px 14px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: none;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: all 0.2s ease;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
     
-    .btn-approve { background: #006a4e; color: white; }
-    .btn-approve:hover:not(:disabled) { opacity: 0.9; }
+    .btn-approve { background: var(--brand-green); color: white; box-shadow: 0 1px 2px rgba(0, 106, 78, 0.2); }
+    .btn-approve:hover:not(:disabled) { background: #00523d; }
     
-    .btn-reject { background: #dc2626; color: white; }
-    .btn-reject:hover:not(:disabled) { opacity: 0.9; }
+    .btn-reject { background: var(--red-text); color: white; box-shadow: 0 1px 2px rgba(220, 38, 38, 0.2); }
+    .btn-reject:hover:not(:disabled) { background: #b91c1c; }
 
     .checkbox-label {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
       user-select: none;
+      font-weight: 500;
     }
 
     .search-filter {
       background: var(--bg);
       border: 1px solid var(--card-border);
       color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
       font-size: 13px;
-      width: 220px;
+      width: 240px;
       outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .search-filter:focus { border-color: var(--blue); }
+    .search-filter:focus { border-color: var(--brand-green); box-shadow: 0 0 0 3px rgba(0, 106, 78, 0.12); }
 
     /* Candidate Cards */
     .queue-list { display: flex; flex-direction: column; gap: 14px; }
@@ -154,28 +182,31 @@
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 18px;
-      transition: border-color 0.2s;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .card.selected { border-color: var(--blue); }
+    .card:hover { border-color: #cbd5e1; box-shadow: var(--shadow-md); }
+    .card.selected { border-color: var(--brand-green); background: var(--green-bg); }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
-    .title-area { display: flex; align-items: center; gap: 10px; flex: 1; }
-    .card-checkbox { width: 16px; height: 16px; cursor: pointer; }
+    .title-area { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .card-checkbox { width: 17px; height: 17px; cursor: pointer; accent-color: var(--brand-green); flex-shrink: 0; }
     
     .favicon-icon {
       width: 18px; height: 18px;
       border-radius: 4px;
       object-fit: contain;
-      background: #334155;
+      background: #f1f5f9;
+      flex-shrink: 0;
     }
 
     .doc-title {
@@ -183,60 +214,96 @@
       font-weight: 600;
       color: var(--text-main);
       text-decoration: none;
-      line-height: 1.3;
+      line-height: 1.35;
+      word-break: break-word;
     }
-    .doc-title:hover { text-decoration: underline; color: #60a5fa; }
+    .doc-title:hover { text-decoration: underline; color: var(--brand-green); }
 
     .badge {
       font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
     }
-    .badge-kind { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-kind { background: var(--blue-bg); color: var(--blue-text); border: 1px solid var(--blue-border); }
 
     .url-link {
       font-size: 12px;
-      color: #38bdf8;
+      color: #0284c7;
       text-decoration: none;
       word-break: break-all;
       display: inline-block;
       margin-bottom: 10px;
     }
+    .url-link:hover { text-decoration: underline; }
 
     .doc-body {
       font-size: 13px;
-      color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.6);
-      padding: 10px 12px;
-      border-radius: 6px;
-      margin-bottom: 12px;
+      color: var(--text-secondary);
+      background: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
       white-space: pre-wrap;
       word-break: break-word;
-      max-height: 120px;
+      max-height: 130px;
       overflow-y: auto;
-      border: 1px solid #1e293b;
+      border: 1px solid #e2e8f0;
+      font-family: inherit;
+      line-height: 1.6;
     }
 
     .card-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    .meta-time { font-size: 11px; color: #64748b; }
+    .meta-time { font-size: 12px; color: var(--text-muted); }
 
     .card-actions { display: flex; gap: 8px; }
 
     .empty-state {
       text-align: center;
-      padding: 60px 20px;
+      padding: 50px 20px;
       background: var(--card-bg);
       border: 1px dashed var(--card-border);
-      border-radius: 10px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
     }
-    .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--green); }
+    .empty-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: var(--green-text); }
     .empty-desc { font-size: 13px; color: var(--text-muted); }
+
+    /* Responsive Mobile Rules */
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-filter { width: 100%; }
+      .batch-actions {
+        justify-content: space-between;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px 10px; }
+      header { flex-direction: column; align-items: flex-start; }
+      .btn-refresh { width: 100%; justify-content: center; }
+      .card { padding: 14px; }
+      .card-footer { flex-direction: column; align-items: stretch; gap: 10px; }
+      .card-actions { width: 100%; }
+      .card-actions button { flex: 1; text-align: center; justify-content: center; }
+    }
   </style>
 </head>
 <body>
@@ -245,17 +312,20 @@
       <div class="brand">
         <div class="brand-logo">K</div>
         <div>
-          <h1>Khujo Data Verification Vault</h1>
+          <h1>Khujo Verification Vault</h1>
           <div class="subtitle">Human-in-the-Loop Content Gatekeeper</div>
         </div>
       </div>
-      <button class="btn-refresh" onclick="loadAll()">↻ Refresh Queue</button>
+      <button class="btn-refresh" onclick="loadAll()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.13 15.57a10 10 0 1 0 3.8-10.45l-5.43 5.43"/></svg>
+        Refresh Queue
+      </button>
     </header>
 
     <!-- Stats Grid -->
     <div class="stats-grid">
       <div class="stat-card">
-        <span class="stat-label">Pending Verification</span>
+        <span class="stat-label">Pending Review</span>
         <span class="stat-val stat-pending" id="statPending">-</span>
       </div>
       <div class="stat-card">
@@ -263,11 +333,11 @@
         <span class="stat-val stat-verified" id="statVerified">-</span>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Rejected Documents</span>
+        <span class="stat-label">Rejected</span>
         <span class="stat-val stat-rejected" id="statRejected">-</span>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Neon DB Size</span>
+        <span class="stat-label">Neon DB Storage</span>
         <span class="stat-val stat-db" id="statDbSize">-</span>
       </div>
     </div>
@@ -282,7 +352,7 @@
         <button class="btn-approve" id="btnBatchApprove" disabled onclick="batchAction('verify')">✓ Approve Selected</button>
         <button class="btn-reject" id="btnBatchReject" disabled onclick="batchAction('reject')">✕ Reject Selected</button>
       </div>
-      <input type="text" class="search-filter" id="filterInput" placeholder="Filter candidates..." oninput="filterQueue()">
+      <input type="text" class="search-filter" id="filterInput" placeholder="Search candidates..." oninput="filterQueue()">
     </div>
 
     <!-- Candidates List -->
@@ -327,7 +397,7 @@
 
         renderCandidates(candidatesData);
       } catch (e) {
-        q.innerHTML = `<div class="empty-state"><div class="empty-title" style="color:var(--red);">Error Connection Failed</div><div class="empty-desc">${e.message}. Is the backend running?</div></div>`;
+        q.innerHTML = `<div class="empty-state"><div class="empty-title" style="color:var(--red-text);">Connection Failed</div><div class="empty-desc">${e.message}. Is backend running on port 8000?</div></div>`;
       }
     }
 
@@ -336,7 +406,7 @@
       q.innerHTML = list.map(doc => {
         const isSelected = selectedIds.has(doc.id);
         const faviconUrl = doc.domain ? `https://www.google.com/s2/favicons?domain=${doc.domain}&sz=32` : '';
-        const previewText = doc.body ? doc.body.substring(0, 400) : '(No text extracted)';
+        const previewText = doc.body ? doc.body.substring(0, 450) : '(No text extracted)';
 
         return `
           <div class="card ${isSelected ? 'selected' : ''}" id="doc-${doc.id}">
@@ -351,7 +421,7 @@
             <a class="url-link" href="${doc.url}" target="_blank">${escapeHtml(doc.url)}</a>
             <div class="doc-body">${escapeHtml(previewText)}</div>
             <div class="card-footer">
-              <span class="meta-time">Source: ${escapeHtml(doc.source_name)} | Discovered: ${doc.discovered_at ? doc.discovered_at.substring(0, 19) : 'Recently'}</span>
+              <span class="meta-time">Source: <strong>${escapeHtml(doc.source_name)}</strong> | Discovered: ${doc.discovered_at ? doc.discovered_at.substring(0, 19) : 'Recently'}</span>
               <div class="card-actions">
                 <button class="btn-approve" onclick="verifyDoc('${doc.id}')">✓ Approve</button>
                 <button class="btn-reject" onclick="rejectDoc('${doc.id}')">✕ Reject</button>
@@ -384,8 +454,8 @@
     function toggleSelectAll(checked) {
       const filterVal = document.getElementById('filterInput').value.toLowerCase();
       const visible = candidatesData.filter(d => 
-        d.title.toLowerCase().includes(filterVal) || 
-        d.url.toLowerCase().includes(filterVal)
+        (d.title && d.title.toLowerCase().includes(filterVal)) || 
+        (d.url && d.url.toLowerCase().includes(filterVal))
       );
 
       visible.forEach(d => {
