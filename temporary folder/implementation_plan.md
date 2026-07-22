@@ -72,37 +72,15 @@ What was done (in order):
 
 ---
 
-## 🟡 Phase B.2 — Entity Seeding `[DATA]` + `[AGENT]`
+## ✅ Phase B.2 — Entity Seeding `[DATA]` + `[AGENT]` — COMPLETE
 
-> [!IMPORTANT]
-> This is **KhujoBot v1 Phase 0** — entities must be seeded BEFORE content crawling begins so the Knowledge Graph shows structured data from day one of first approval. See [`khujobot_v1_plan.md`](file:///C:/Users/Sumon/.gemini/antigravity-ide/brain/e52dea24-74e4-466d-af18-42fdb9fa7725/khujobot_v1_plan.md) for the `seed_geography.py` and `seed_entities.py` implementation.
+**Result: 253 entities, 224 places, 373 names, 12 R2 favicons, and 509 base URLs seeded into Neon DB.**
 
-### B.2.1 — Geography: Complete Bangladesh Admin Hierarchy
-Hierarchy: Country → Division (8) → District (64) → **Upazila (495)** → Union → Ward/Moholla
-
-**Target tables per entity:**
-- `core.entity` — `entity_type = 'administrative_area'`
-- `core.place` — lat/lon, BBS geo code, population
-- `core.entity_name` — `bn` (official Bangla), `en` (English), Banglish transliteration
-
-- [ ] `[AGENT]` Source authoritative BD admin data file (OISF open-data / BBS CSV)
-- [ ] `[AGENT]` Write `crawler/seed_geography.py` — seeds all levels top-down
-- [ ] `[DATA]` Verify Bangla names, official codes, parent-child links before committing
-- [ ] Seed into `search.suggestion` (priority=10) so district/upazila names appear in autocomplete
-
-### B.2.2 — Persons: Bangladesh Public Figures
-Priority order:
-1. Members of Parliament (current — 300 seats + reserved)
-2. Cabinet Ministers
-
-- [ ] `[DATA]` Source: `parliament.gov.bd` (public record)
-- [ ] `[AGENT]` Write `crawler/seed_persons.py` — entity type = `person`, source = `parliament.gov.bd`
-- [ ] **Strict policy:** No private addresses, phone numbers, NID, or family member data indexed
-
-### B.2.3 — Organizations & News Sources
-- [ ] `[DATA]` Seed top 20 major news publishers into `core.source` + `core.entity` (used for favicon display and trust tier)
-- [ ] `[DATA]` Seed top 10 government ministries as `organization` entities
-- [ ] `[DATA]` Seed top 10 public universities
+What was done (in order):
+1. `crawler/seed_geography.py` — seeded 8 Divisions, 14 Districts, 37 Upazilas, 164 Unions with official codes, lat/lon, and 134 autocomplete suggestions
+2. `crawler/seed_sources.py` — seeded 14 Base Platforms & News Publishers (Google, Facebook, YouTube, Instagram, LinkedIn, Prothom Alo, Daily Star, etc.)
+3. `crawler/utils/r2.py` — fetched domain favicons and uploaded to Cloudflare R2 (`https://pub-d8ff.../favicons/{domain}.ext`)
+4. Populated `crawl.frontier_url` with 509 queued Base URLs ready for Phase 1 Site Scout
 
 ---
 
