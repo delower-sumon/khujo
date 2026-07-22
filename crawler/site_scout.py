@@ -99,13 +99,63 @@ def scout_base_urls():
                 except Exception as e:
                     log.warning("  Favicon upload failed: %s", e)
 
-            # 3. Fetch homepage HTML to discover internal article links
+            # 3. Fetch homepage HTML to extract base metadata & discover internal article links
             discovered_links = set()
             try:
                 resp = requests.get(base_url, headers=HEADERS, timeout=12, allow_redirects=True)
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.content, "html.parser")
                     
+                    # Extract Base Homepage Title & Description for Admin Vault Staging
+                    page_title = domain
+                    title_tag = soup.find("meta", property="og:title") or soup.find("title")
+                    if title_tag:
+                        t_text = title_tag.get("content") or title_tag.get_text()
+                        if t_text and len(t_text.strip()) > 2:
+                            page_title = t_text.strip().replace("\n", " ")
+
+                    page_desc = f"{domain} base website homepage"
+                    desc_tag = soup.find("meta", property="og:description") or soup.find("meta", attrs={"name": "description"})
+                    if desc_tag and desc_tag.get("content"):
+                        page_desc = desc_tag.get("content").strip()
+
+                    # Stage Base Homepage in content.document as candidate if not exists
+                    if source_id:
+                        with engine.begin() as base_doc_conn:
+                            srid = base_doc_conn.execute(text("""
+                                SELECT source_record_id FROM core.source_record WHERE canonical_url = :url LIMIT 1
+                            """), {"url": base_url}).scalar()
+
+                            if not srid:
+                                srid = base_doc_conn.execute(text("""
+                                    INSERT INTO core.source_record (source_id, canonical_url, title, state)
+                                    VALUES (:sid, :url, :title, 'candidate')
+                                    RETURNING source_record_id
+                                """), {"sid": source_id, "url": base_url, "title": page_title[:250]}).scalar()
+
+                            doc_exists = base_doc_conn.execute(text("""
+                                SELECT 1 FROM content.document WHERE canonical_url = :url OR source_record_id = :srid LIMIT 1
+                            """), {"url": base_url, "srid": srid}).scalar()
+
+                            if not doc_exists:
+                                content_hash = hashlib.sha256(f"{domain} base homepage {base_url}".encode("utf-8")).hexdigest()
+                                base_doc_conn.execute(text("""
+                                    INSERT INTO content.document (
+                                        source_record_id, canonical_url, title, title_normalised, summary,
+                                        body_text, body_normalised, language_code, content_hash, state, document_kind
+                                    )
+                                    VALUES (
+                                        :srid, :url, :title, lower(:title), :desc,
+                                        :body, lower(:body), 'bn', :hash, 'candidate', 'listing'
+                                    )
+                                """), {
+                                    "srid": srid, "url": base_url, "title": page_title[:250],
+                                    "desc": page_desc[:500], "body": f"{page_title} - {page_desc} {base_url}",
+                                    "hash": content_hash
+                                })
+                                log.info("  ✓ Staged Base Homepage Candidate in Admin Queue: %s", base_url)
+
+                    # Discover internal links
                     for a_tag in soup.find_all("a", href=True):
                         full_url = urljoin(base_url, a_tag["href"]).split("#")[0].strip()
                         if is_valid_article_url(full_url, domain):
@@ -114,6 +164,7 @@ def scout_base_urls():
                     log.info("  Discovered %d internal candidate article links on homepage.", len(discovered_links))
             except Exception as e:
                 log.error("  Homepage fetch failed for %s: %s", base_url, e)
+
 
 
             # 4. Queue discovered links into crawl.frontier_url (priority=5, state='queued')
