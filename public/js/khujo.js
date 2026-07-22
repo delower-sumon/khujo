@@ -5,12 +5,16 @@
  */
 
 /* ── 1. CONFIG ──────────────────────────────────────────── */
-const API_BASE = (() => {
+function getApiBase() {
   const meta = document.querySelector('meta[name="khujo-api"]');
-  return meta ? meta.content.replace(/\/$/, '') : 'http://localhost:8000';
-})();
+  if (meta && meta.content) return meta.content.replace(/\/$/, '');
+  if (window.location.port === '8080') return 'http://localhost:8000';
+  return window.location.origin;
+}
+const API_BASE = getApiBase();
 
 /* ── 2. ICON HELPERS (inline SVG strings) ───────────────── */
+
 const icon = {
   search: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`,
   x: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
@@ -79,14 +83,6 @@ class SearchBar {
       if (this.input.value.trim().length >= 1) this._debounceFetch();
     });
 
-    this.input.addEventListener('blur', () => {
-      setTimeout(() => {
-        this.focused = false;
-        this._hideSuggestions();
-      }, 300);
-    });
-
-
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { this._hideSuggestions(); return; }
       if (!this.dropdownEl || this.suggestions.length === 0) {
@@ -111,10 +107,15 @@ class SearchBar {
       }
     });
 
+    // Hide ONLY when clicking outside the search wrapper
     document.addEventListener('mousedown', (e) => {
-      if (!this.wrap.contains(e.target)) this._hideSuggestions();
+      if (!this.wrap.contains(e.target)) {
+        this.focused = false;
+        this._hideSuggestions();
+      }
     });
   }
+
 
   _debounceFetch() {
     clearTimeout(this.debounceTimer);
@@ -125,7 +126,9 @@ class SearchBar {
 
   async _fetchSuggestions(q) {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/suggestions?q=${encodeURIComponent(q)}&limit=8`);
+      const baseUrl = getApiBase();
+      const url = `${baseUrl}/api/v1/suggestions?q=${encodeURIComponent(q)}&limit=8`;
+      const res = await fetch(url);
       if (!res.ok) return;
       const data = await res.json();
       this.suggestions = Array.isArray(data) ? data : [];
@@ -140,9 +143,9 @@ class SearchBar {
     }
   }
 
+
   _renderSuggestions(query) {
     this._removeSuggestions();
-    this.inputRow.classList.add('has-suggestions');
 
     const dropdown = document.createElement('div');
     dropdown.className = 'suggestions-list';
@@ -155,7 +158,7 @@ class SearchBar {
       item.setAttribute('data-index', String(i));
 
       let formattedText = esc(s);
-      const qLower = query.toLowerCase();
+      const qLower = query ? query.toLowerCase() : '';
       const sLower = s.toLowerCase();
 
       if (qLower && sLower.startsWith(qLower)) {
@@ -188,8 +191,21 @@ class SearchBar {
       dropdown.appendChild(item);
     });
 
+    // Append to body and position via getBoundingClientRect to escape any overflow:hidden parent
     this.dropdownEl = dropdown;
-    this.wrap.appendChild(dropdown);
+    document.body.appendChild(dropdown);
+    this._positionDropdown();
+  }
+
+  _positionDropdown() {
+    if (!this.dropdownEl) return;
+    const rect = this.inputRow.getBoundingClientRect();
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    this.dropdownEl.style.position = 'fixed';
+    this.dropdownEl.style.top = (rect.bottom + 6) + 'px';
+    this.dropdownEl.style.left = rect.left + 'px';
+    this.dropdownEl.style.width = rect.width + 'px';
+    this.dropdownEl.style.zIndex = '999999';
   }
 
 
