@@ -10,12 +10,15 @@ import os
 import hashlib
 import logging
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import text
+import time
 from utils.db import get_engine
 from utils.r2 import upload_favicon
+from utils.links import compute_url_hash, is_valid_article_url
+from utils.robots import is_url_allowed
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("content_crawler")
@@ -28,8 +31,8 @@ def clean_body_text(soup: BeautifulSoup) -> str:
     # Clone soup so original isn't mutated
     body_soup = BeautifulSoup(str(soup), "html.parser")
 
-    # Remove non-content elements
-    for tag in body_soup(["script", "style", "nav", "header", "footer", "aside", "form", "iframe", "noscript"]):
+    # Remove non-content elements and garbage tags
+    for tag in body_soup(["script", "style", "nav", "header", "footer", "aside", "form", "iframe", "noscript", "figure", "figcaption"]):
         tag.decompose()
 
     for class_or_id in ["sidebar", "ads", "advertisement", "comment", "social-share", "related-posts", "footer"]:
@@ -46,6 +49,12 @@ def clean_body_text(soup: BeautifulSoup) -> str:
 
 def extract_article_data(html: str, url: str) -> dict:
     soup = BeautifulSoup(html, "html.parser")
+    
+    # Discover internal links for the deep recursive spider
+    discovered_links = set()
+    for a_tag in soup.find_all("a", href=True):
+        full_url = urljoin(url, a_tag["href"]).split("#")[0].strip()
+        discovered_links.add(full_url)
 
     # Canonical URL
     canonical_link = soup.find("link", rel="canonical") or soup.find("meta", property="og:url")
@@ -77,7 +86,8 @@ def extract_article_data(html: str, url: str) -> dict:
         "description": description[:500] if description else "",
         "body_text": body_text[:10000] if body_text else "",  # Up to 10k chars
         "og_image_url": og_image_url,
-        "published_at": published_at
+        "published_at": published_at,
+        "links": discovered_links
     }
 
 def crawl_content_urls(batch_limit: int = 10):
@@ -123,7 +133,15 @@ def crawl_content_urls(batch_limit: int = 10):
             log.info("\n--- Crawling Article: %s ---", article_url)
 
             try:
+                # Polite rate limiting (2 seconds between requests)
+                time.sleep(2)
+                
                 resp = requests.get(article_url, headers=HEADERS, timeout=12, allow_redirects=True)
+                
+                # Fix Bengali Mojibake: explicitly detect encoding if server omits it
+                if resp.encoding is None or resp.encoding.lower() == 'iso-8859-1':
+                    resp.encoding = resp.apparent_encoding or 'utf-8'
+
                 if resp.status_code != 200:
                     log.warning("  HTTP %d for %s. Marking failed.", resp.status_code, article_url)
                     with engine.begin() as err_conn:
@@ -232,6 +250,26 @@ def crawl_content_urls(batch_limit: int = 10):
                         SET state = 'fetched', last_fetch_at = now(), last_status_code = 200
                         WHERE frontier_url_id = :fid
                     """), {"fid": frontier_id})
+
+                    # Queue newly discovered internal links (Recursive Spider)
+                    queued_links = 0
+                    for link in list(data["links"]):
+                        if is_valid_article_url(link, host) and is_url_allowed(link, KHUJO_UA):
+                            link_hash = compute_url_hash(link)
+                            exists = write_conn.execute(text("""
+                                SELECT 1 FROM crawl.frontier_url WHERE canonical_url = :url OR url_hash = :hash LIMIT 1
+                            """), {"url": link, "hash": link_hash}).scalar()
+                            
+                            if not exists:
+                                write_conn.execute(text("""
+                                    INSERT INTO crawl.frontier_url (source_id, canonical_url, original_url, host, url_hash, priority, state)
+                                    VALUES (:sid, :url, :url, :domain, :hash, 5, 'queued')
+                                """), {"sid": source_id, "url": link, "domain": host, "hash": link_hash})
+                                queued_links += 1
+                                if queued_links >= 20: # Max 20 new links per article to prevent explosion
+                                    break
+                    
+                    log.info("  Deep Spider queued %d new internal links.", queued_links)
 
                 crawled_count += 1
                 log.info("  Successfully processed %s", article_url)

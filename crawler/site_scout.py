@@ -8,6 +8,7 @@ from sqlalchemy import text
 from utils.db import get_engine
 from utils.r2 import fetch_and_upload_favicon
 from utils.robots import is_url_allowed
+from utils.links import compute_url_hash, is_valid_article_url
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -15,31 +16,6 @@ log = logging.getLogger("site_scout")
 
 KHUJO_UA = "KhujoBot/1.0 (+https://khujo.com.bd/bot)"
 HEADERS = {"User-Agent": KHUJO_UA}
-
-def compute_url_hash(url: str) -> str:
-    return hashlib.md5(url.strip().lower().encode("utf-8")).hexdigest()[:32]
-
-def is_valid_article_url(url: str, target_domain: str) -> bool:
-    """Filter out media files, login pages, and off-domain links."""
-    parsed = urlparse(url)
-    if not parsed.scheme or not parsed.netloc:
-        return False
-    
-    clean_netloc = parsed.netloc.replace("www.", "")
-    target_clean = target_domain.replace("www.", "")
-    if target_clean not in clean_netloc:
-        return False
-
-    path = parsed.path.lower()
-    ignored_exts = ('.jpg', '.jpeg', '.png', '.gif', '.pdf', '.css', '.js', '.ico', '.svg', '.mp4', '.mp3')
-    if path.endswith(ignored_exts):
-        return False
-
-    ignored_paths = ('/login', '/signup', '/register', '/cart', '/account', '/search', '/tag/', '/category/')
-    if any(p in path for p in ignored_paths) and len(path) < 15:
-        return False
-
-    return len(path) > 3
 
 
 def scout_base_urls():
