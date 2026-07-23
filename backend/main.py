@@ -208,15 +208,43 @@ async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
 
         # 3. Enrich from content.document titles if needed
         if len(suggestions_set) < limit:
+            # Note: Fetching more to allow for filtering
             doc_rows = db.execute(text("""
                 SELECT title 
                 FROM content.document 
-                WHERE state = 'verified' AND (title_normalised ILIKE :prefix OR title_normalised ILIKE :any)
-                LIMIT :limit
-            """), {"prefix": prefix_like, "any": any_like, "limit": limit}).fetchall()
+                WHERE state = 'verified' AND title ILIKE :any
+                LIMIT :large_limit
+            """), {"any": any_like, "large_limit": limit * 10}).fetchall()
+            
+            import re
+            doc_suggestions = []
+            seen_lower = {s.lower() for s in suggestions_set}
+            
             for r in doc_rows:
-                if r[0] and r[0] not in suggestions_set:
-                    suggestions_set.append(r[0])
+                title = r[0]
+                if not title:
+                    continue
+                
+                # Clean title: split by common separators (|, -, :, etc.)
+                parts = re.split(r'[\|\-\:\—\–\•\‧\/\\\]\[]', title)
+                for part in parts:
+                    cleaned = part.strip()
+                    if not cleaned or cleaned.lower() in seen_lower:
+                        continue
+                    
+                    if clean_q.lower() in cleaned.lower() and len(cleaned) < 60:
+                        doc_suggestions.append(cleaned)
+                        break
+
+            # Sort document-derived suggestions by length (shortest first)
+            doc_suggestions.sort(key=len)
+            
+            for s in doc_suggestions:
+                if s.lower() not in seen_lower:
+                    suggestions_set.append(s)
+                    seen_lower.add(s.lower())
+                if len(suggestions_set) >= limit:
+                    break
 
         return suggestions_set[:limit]
 
