@@ -281,7 +281,7 @@ input, button, select { font-family: inherit; }
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(100% + 6px);
+  top: calc(100% - 1px);
   z-index: 999999 !important;
   background: #ffffff !important;
   border: 1px solid var(--surface-3) !important;

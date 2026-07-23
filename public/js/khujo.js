@@ -198,21 +198,9 @@ class SearchBar {
       dropdown.appendChild(item);
     });
 
-    // Append to body and position via getBoundingClientRect to escape any overflow:hidden parent
+    // Append to native wrapper so width/left/right align natively via CSS
     this.dropdownEl = dropdown;
-    document.body.appendChild(dropdown);
-    this._positionDropdown();
-  }
-
-  _positionDropdown() {
-    if (!this.dropdownEl) return;
-    const rect = this.inputRow.getBoundingClientRect();
-    this.dropdownEl.style.setProperty('position', 'fixed', 'important');
-    // Overlap the border slightly to merge input and dropdown visually
-    this.dropdownEl.style.setProperty('top', (rect.bottom - 1) + 'px', 'important');
-    this.dropdownEl.style.setProperty('left', rect.left + 'px', 'important');
-    this.dropdownEl.style.setProperty('width', rect.width + 'px', 'important');
-    this.dropdownEl.style.setProperty('z-index', '999999', 'important');
+    this.wrap.appendChild(dropdown);
   }
 
 
