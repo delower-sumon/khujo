@@ -146,10 +146,17 @@ class SearchBar {
 
   _renderSuggestions(query) {
     this._removeSuggestions();
+    this.inputRow.classList.add('has-suggestions');
 
     const dropdown = document.createElement('div');
     dropdown.className = 'suggestions-list';
     dropdown.setAttribute('role', 'listbox');
+
+    const separator = document.createElement('div');
+    separator.style.height = '1px';
+    separator.style.background = 'var(--surface-3)';
+    separator.style.margin = '0 16px 8px 16px';
+    dropdown.appendChild(separator);
 
     this.suggestions.forEach((s, i) => {
       const item = document.createElement('div');
@@ -200,12 +207,12 @@ class SearchBar {
   _positionDropdown() {
     if (!this.dropdownEl) return;
     const rect = this.inputRow.getBoundingClientRect();
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-    this.dropdownEl.style.position = 'fixed';
-    this.dropdownEl.style.top = (rect.bottom + 6) + 'px';
-    this.dropdownEl.style.left = rect.left + 'px';
-    this.dropdownEl.style.width = rect.width + 'px';
-    this.dropdownEl.style.zIndex = '999999';
+    this.dropdownEl.style.setProperty('position', 'fixed', 'important');
+    // Overlap the border slightly to merge input and dropdown visually
+    this.dropdownEl.style.setProperty('top', (rect.bottom - 1) + 'px', 'important');
+    this.dropdownEl.style.setProperty('left', rect.left + 'px', 'important');
+    this.dropdownEl.style.setProperty('width', rect.width + 'px', 'important');
+    this.dropdownEl.style.setProperty('z-index', '999999', 'important');
   }
 
 
