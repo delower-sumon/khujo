@@ -237,8 +237,6 @@ class SearchBar {
       this.dropdownEl.remove();
       this.dropdownEl = null;
     }
-    this.suggestions = [];
-    this.activeIndex = -1;
   }
 
   _submit(q) {
