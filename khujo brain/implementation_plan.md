@@ -28,6 +28,7 @@ This master plan tracks the fundamental architectural shift of the Khujo search 
 - [x] **Entity Promotion**: Built logic so that when an admin approves a document, its associated Entity Mentions are promoted to the live Knowledge Graph.
 
 ## 5. Upcoming Major Epics
-- [ ] **KhujoBot Crawler Maturation**: Evolve the crawler to scrape entities directly (people, businesses, sports). *(See crawler_plan.md for details)*
+- [ ] **KhujoBot Crawler Maturation**: Evolve the crawler to scrape entities directly (people, businesses, sports). *(See khujobot_v1_plan.md for details)*
+- [ ] **Native Bangla Stemming (Post-VPS)**: Integrate a custom Bengali stemming dictionary into PostgreSQL or transition the ranking core to Semantic Vector Embeddings (AI-based search) to achieve true grammatical understanding (e.g., treating "বাংলাদেশের" and "বাংলাদেশে" as the root "বাংলাদেশ").
 - [ ] **SERP Enhancements**: Add image results and rich snippets.
 - [ ] **Analytics Dashboard**: Build an interface to visualize popular searches and user behavior.
