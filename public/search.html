@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="google" content="notranslate" />
   <meta name="description" content="খোঁজো — বাংলাদেশের স্থানীয় অনুসন্ধান ফলাফল" />
-  <meta name="khujo-api" content="http://localhost:8000" />
   <title>খোঁজো — অনুসন্ধান</title>
 
   <link rel="icon" type="image/png" href="favicon.png" />
@@ -15,7 +14,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600&family=Inter:opsz,wght@14..32,300..600&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/khujo.css" />
+  <link rel="stylesheet" href="css/khujo.css?v=11" />
 </head>
 
 <body>
@@ -58,6 +57,7 @@
                     </span>
                     <input id="serpSearchInput" name="q" type="search" autocomplete="off" spellcheck="false"
                       placeholder="বাংলা, Banglish বা English-এ খুঁজুন" class="search-input" aria-label="খোঁজো সার্চ" />
+                    <button type="button" class="lang-toggle" id="langToggle" title="Toggle Bengali (Avro) Typing" aria-label="Toggle Bangla">বাংলা (Avro)</button>
                   </div>
                 </div>
               </div>
@@ -74,9 +74,9 @@
       <div class="content-container">
         <div class="serp-tabs-inner">
           <button class="tab-btn active" aria-current="page">সব ফলাফল</button>
+          <span class="tab-btn" data-tab="images">ছবি</span>
           <span class="tab-btn coming-soon" title="শীঘ্রই আসছে">খবর</span>
           <span class="tab-btn coming-soon" title="শীঘ্রই আসছে">সরকারি তথ্য</span>
-          <span class="tab-btn coming-soon" title="শীঘ্রই আসছে">ছবি</span>
         </div>
       </div>
     </nav>
@@ -94,40 +94,6 @@
 
           <!-- Sidebar -->
           <aside class="serp-sidebar" aria-label="অতিরিক্ত তথ্য">
-
-            <!-- Knowledge Graph card -->
-            <div id="kgCard" class="kg-card hidden">
-              <div class="kg-header" id="kgHeader">
-                <div>
-                  <p class="kg-label">Knowledge graph</p>
-                  <h2 class="kg-title" id="kgTitle">খোঁজার সংযোগ</h2>
-                  <p class="kg-subtitle" id="kgSubtitle">বর্তমান ফলাফলের উৎস-মানচিত্র</p>
-                </div>
-                <svg class="kg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  aria-hidden="true">
-                  <rect x="16" y="16" width="6" height="6" rx="1" />
-                  <rect x="2" y="16" width="6" height="6" rx="1" />
-                  <rect x="9" y="2" width="6" height="6" rx="1" />
-                  <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
-                  <path d="M12 12V8" />
-                </svg>
-              </div>
-
-              <!-- Graph area — JS renders SVG here -->
-              <div class="kg-graph-area" id="kgGraphArea"></div>
-
-              <div class="kg-footer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  class="lucide lucide-info">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 16v-4" />
-                  <path d="M12 8h.01" />
-                </svg>
-                <span>বর্তমান ফলাফলের উৎস। যাচাইকৃত তথ্য এলে এখানে সত্তা ও প্রমাণও দেখা যাবে।</span>
-              </div>
-            </div>
 
             <!-- Top Sources card -->
             <section id="sourcesCard" class="sources-card hidden" aria-label="শীর্ষ উৎস">
@@ -172,7 +138,8 @@
 
   </div>
 
-  <script type="module" src="/js/khujo.js?v=3"></script>
+  <script src="/js/avro-lib.min.js"></script>
+  <script type="module" src="/js/khujo.js?v=11"></script>
 </body>
 
 </html>

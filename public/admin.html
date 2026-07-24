@@ -394,10 +394,15 @@
           <div class="subtitle">Human-in-the-Loop Content Gatekeeper & Editor</div>
         </div>
       </div>
-      <button class="btn-refresh" onclick="loadAll()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.13 15.57a10 10 0 1 0 3.8-10.45l-5.43 5.43"/></svg>
-        Refresh Queue
-      </button>
+      <div style="display: flex; gap: 10px;">
+        <a href="/entities.html" class="btn-refresh" style="text-decoration:none; background: var(--green-bg); color: var(--green-text);">
+          👤 Switch to Entities
+        </a>
+        <button class="btn-refresh" onclick="loadAll()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.13 15.57a10 10 0 1 0 3.8-10.45l-5.43 5.43"/></svg>
+          Refresh Queue
+        </button>
+      </div>
     </header>
 
     <!-- Stats Grid -->

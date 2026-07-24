@@ -7,8 +7,12 @@
 /* ── 1. CONFIG ──────────────────────────────────────────── */
 function getApiBase() {
   const meta = document.querySelector('meta[name="khujo-api"]');
-  if (meta && meta.content) return meta.content.replace(/\/$/, '');
-  if (window.location.port === '8080') return 'http://localhost:8000';
+  if (meta && meta.content && !meta.content.includes('localhost')) {
+    return meta.content.replace(/\/$/, '');
+  }
+  if (window.location.port === '8080' || window.location.hostname !== 'localhost') {
+    return `${window.location.protocol}//${window.location.hostname}:8000`;
+  }
   return window.location.origin;
 }
 const API_BASE = getApiBase();
@@ -42,7 +46,19 @@ class SearchBar {
     // Build DOM elements
     this.inputRow = wrapEl.querySelector('.search-input-row');
     this.clearBtn = this._createClearBtn();
-    this.dropdownEl = null;
+    // Avro Phonetic State
+    this.avroEnabled = true;
+    this.rawBuffer = this.input.value; // Store the raw typed english
+
+    this.langToggleBtn = wrapEl.querySelector('.lang-toggle');
+    if (this.langToggleBtn) {
+      this.langToggleBtn.addEventListener('click', () => {
+        this.avroEnabled = !this.avroEnabled;
+        this.langToggleBtn.textContent = this.avroEnabled ? 'বাংলা (Avro)' : 'English';
+        this.langToggleBtn.classList.toggle('en-mode', !this.avroEnabled);
+        this.input.focus();
+      });
+    }
 
     this._bind();
   }
@@ -68,7 +84,7 @@ class SearchBar {
   }
 
   _bind() {
-    this.input.addEventListener('input', () => {
+    this.input.addEventListener('input', (e) => {
       this._updateClearBtn();
       this._debounceFetch();
     });
@@ -84,6 +100,39 @@ class SearchBar {
     });
 
     this.input.addEventListener('keydown', (e) => {
+      if (this.avroEnabled && window.OmicronLab && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        // Simple English to Bangla on space/enter, or continuous if we use a buffer.
+        // The most robust way without breaking cursor is to let jsAvroPhonetic logic run on keydown
+        // We will implement the standard space/enter replacement.
+        if (e.key === ' ' || e.key === 'Enter') {
+          const cur = this.input.selectionStart;
+          let last = cur - 1;
+          while (last >= 0) {
+            const c = this.input.value.charAt(last);
+            if (!c || c.trim() === "") {
+              last++;
+              break;
+            }
+            last--;
+          }
+          if (last < 0) last = 0;
+          const word = this.input.value.substring(last, cur);
+          
+          // Only transliterate if it contains english characters
+          if (/[a-zA-Z]/.test(word)) {
+            const bangla = OmicronLab.Avro.Phonetic.parse(word);
+            this.input.value = this.input.value.substring(0, last) + bangla + this.input.value.substring(cur);
+            const newCursor = last + bangla.length;
+            this.input.setSelectionRange(newCursor, newCursor);
+            
+            // If it was enter, let the default behavior (submit) happen on the new value
+            if (e.key === 'Enter') {
+              // The form will submit with the transliterated value
+            }
+          }
+        }
+      }
+
       if (e.key === 'Escape') { this._hideSuggestions(); return; }
       if (!this.dropdownEl || this.suggestions.length === 0) {
         if (e.key === 'Enter') this._submit();
@@ -119,9 +168,25 @@ class SearchBar {
 
   _debounceFetch() {
     clearTimeout(this.debounceTimer);
-    const q = this.input.value.trim();
-    if (q.length < 1) { this._hideSuggestions(); return; }
-    this.debounceTimer = setTimeout(() => this._fetchSuggestions(q), 100);
+    this.debounceTimer = setTimeout(() => {
+      let q = this.input.value.trim();
+      
+      // If Avro is enabled and there are english characters at the end, parse the last word for the query
+      if (this.avroEnabled && window.OmicronLab && /[a-zA-Z]/.test(q)) {
+          const words = q.split(' ');
+          const lastWord = words[words.length - 1];
+          if (/[a-zA-Z]/.test(lastWord)) {
+              words[words.length - 1] = OmicronLab.Avro.Phonetic.parse(lastWord);
+              q = words.join(' ');
+          }
+      }
+      
+      if (!q) {
+        this._hideSuggestions();
+        return;
+      }
+      this._fetchSuggestions(q);
+    }, 150);
   }
 
   async _fetchSuggestions(q) {
@@ -228,12 +293,14 @@ class SearchBar {
   }
 
   _submit(q) {
-    const query = (q || this.input.value).trim();
-    if (!query) return;
+    this._hideSuggestions();
+    let val = (q || this.input.value).trim();
+    if (!val) return;
+    
     if (this.onSearch) {
-      this.onSearch(query);
+      this.onSearch(val);
     } else {
-      window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
+      window.location.href = `/search.html?q=${encodeURIComponent(val)}`;
     }
   }
 
@@ -408,6 +475,23 @@ function getPerspectives(query) {
 async function loadSERP() {
   const params = new URLSearchParams(window.location.search);
   const query = params.get('q') || '';
+  const tab = params.get('tab') || 'all';
+
+  // Handle Tab UI
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+    const bTab = btn.getAttribute('data-tab') || 'all';
+    if (bTab === tab) btn.classList.add('active');
+
+    // Remove old listeners and add new one to avoid duplicates if loadSERP called multiple times
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', (e) => {
+      if (newBtn.classList.contains('coming-soon')) return;
+      const t = newBtn.getAttribute('data-tab') || 'all';
+      window.location.href = `/search.html?q=${encodeURIComponent(query)}${t !== 'all' ? '&tab='+t : ''}`;
+    });
+  });
 
   // Sync search input
   const serpInput = document.getElementById('serpSearchInput');
@@ -441,6 +525,45 @@ async function loadSERP() {
   if (perspectivesCard) perspectivesCard.classList.add('hidden');
 
   try {
+    if (tab === 'images') {
+      const res = await fetch(`${API_BASE}/api/v1/search/images?q=${encodeURIComponent(query)}&limit=20`);
+      if (!res.ok) throw new Error('Image Search failed');
+      const data = await res.json();
+      
+      if (resultMeta) {
+        resultMeta.innerHTML = data.results.length > 0
+          ? `${data.results.length}টি ছবি পাওয়া গেছে <strong>"${esc(query)}"</strong>`
+          : '';
+      }
+
+      if (data.results.length === 0) {
+        resultsList.innerHTML = renderEmpty();
+        return;
+      }
+
+      const gridHtml = `
+        <div class="image-grid">
+          ${data.results.map(r => {
+            let domain = '';
+            try { domain = new URL(r.source_url).hostname.replace(/^www\./, ''); } catch(e){}
+            return `
+            <a href="${esc(r.source_url)}" target="_blank" rel="noopener noreferrer" class="image-result-card">
+              <div class="image-result-img-wrapper">
+                <img src="${esc(r.thumbnail_url)}" alt="${esc(r.title)}" class="image-result-img" loading="lazy">
+              </div>
+              <div class="image-result-info">
+                <div class="image-result-title">${esc(r.title)}</div>
+                <div class="image-result-domain">${esc(domain)}</div>
+              </div>
+            </a>
+            `;
+          }).join('')}
+        </div>
+      `;
+      resultsList.innerHTML = gridHtml;
+      return;
+    }
+
     const res = await fetch(
       `${API_BASE}/api/v1/search?q=${encodeURIComponent(query)}&limit=10&offset=0`
     );
@@ -453,16 +576,100 @@ async function loadSERP() {
     // Result meta
     if (resultMeta) {
       resultMeta.innerHTML = results.length > 0
-        ? `${results.length}টি উৎসে ফলাফল <strong>"${esc(query)}"</strong>`
+        ? `<strong>"${esc(query)}"</strong> এর জন্য ফলাফল`
         : '';
     }
 
+    // ── Build Inline Knowledge Graph (Google Style)
+    let inlineKgHtml = '';
+    const kg = data.knowledge_graph;
+    if (kg) {
+      let factsHtml = '';
+      if (kg.facts && Object.keys(kg.facts).length > 0) {
+        const skipKeys = ['UN/LOCODE', 'ওয়েবসাইট', 'পৌর এলাকা', 'প্রতিষ্ঠিত', 'স্থানাঙ্ক'];
+        let validFacts = Object.entries(kg.facts).filter(([k, v]) => !skipKeys.includes(k)).slice(0, 5);
+        if (validFacts.length > 0) {
+          factsHtml = '<div class="kg-facts-box">';
+          for (const [key, val] of validFacts) {
+            factsHtml += `<div class="kg-fact-row"><span class="kg-fact-key">${esc(key)}</span><span class="kg-fact-val">${esc(val)}</span></div>`;
+          }
+          factsHtml += '</div>';
+        }
+      }
+      
+      let relatedHtml = '';
+      if (kg.related_entities && kg.related_entities.length > 0) {
+        relatedHtml = `
+          <div class="kg-related-sq">
+            <h4 class="kg-related-title">লোকজন এগুলিও সার্চ করেছে</h4>
+            <div class="kg-related-slider-sq">
+              ${kg.related_entities.map(re => `
+                <a href="/?q=${encodeURIComponent(re.title)}" class="kg-related-item-sq">
+                  <img src="${esc(re.image_url)}" alt="${esc(re.title)}" class="kg-related-img-sq" loading="lazy">
+                  <span class="kg-related-name-sq">${esc(re.title)}</span>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      let imageHtml = '';
+      let cardClass = 'kg-inline-card';
+      const imgs = (kg.images && kg.images.length > 0) ? kg.images.slice(0, 3) : (kg.image_url ? [kg.image_url] : []);
+      
+      if (imgs.length === 1) {
+        cardClass += ' has-single-hero';
+        imageHtml = `<img src="${esc(imgs[0])}" alt="${esc(kg.title)}" class="kg-inline-hero">`;
+      } else if (imgs.length > 1) {
+        cardClass += ' has-multi-collage';
+        const count = imgs.length;
+        imageHtml = `<div class="kg-collage kg-collage-${count}">`;
+        imgs.forEach((img) => {
+          imageHtml += `<div class="kg-collage-img-wrap"><img src="${esc(img)}" alt="${esc(kg.title)}" class="kg-collage-img" onerror="this.closest('.kg-collage-img-wrap')?.remove();"></div>`;
+        });
+        imageHtml += `</div>`;
+      }
+
+      let aboutHtml = '';
+      const isFallbackDesc = kg.description && kg.description.includes('সম্পর্কিত তথ্য');
+      if (kg.description && kg.description.trim() !== '' && !isFallbackDesc) {
+        aboutHtml = `
+          <div class="kg-about-section">
+            <div class="kg-inline-overview">
+              <p>${esc(kg.description)}</p>
+              ${kg.title ? `<a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener" class="kg-wiki-link">উইকিপিডিয়া</a>` : ''}
+            </div>
+          </div>
+        `;
+      } else if (kg.title) {
+        // Just provide the wiki link if no proper description
+        aboutHtml = `
+          <div class="kg-about-section" style="padding-top:0; border:none;">
+            <a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener" class="kg-wiki-link">উইকিপিডিয়া</a>
+          </div>
+        `;
+      }
+
+      inlineKgHtml = `
+        <div class="${cardClass}">
+          ${imageHtml}
+          <div class="kg-inline-content">
+            <h2 class="kg-inline-title">${esc(kg.title)}</h2>
+            ${aboutHtml}
+            ${factsHtml}
+          </div>
+          ${relatedHtml}
+        </div>
+      `;
+    }
+
     if (results.length === 0) {
-      resultsList.innerHTML = renderEmpty();
+      resultsList.innerHTML = inlineKgHtml + renderEmpty();
       return;
     }
 
-    // Collect unique sources for KG and top-sources
+    // Collect unique sources for top-sources
     const sourceMap = new Map();
     results.forEach((r) => {
       if (!r.url) return;
@@ -473,22 +680,13 @@ async function loadSERP() {
     const sources = Array.from(sourceMap.values());
 
     // ── Render results
-    resultsList.innerHTML = '';
+    resultsList.innerHTML = inlineKgHtml; // Prepend KG inline card
     resultsList.insertAdjacentHTML('beforeend', renderContextCard(sources.length, query));
+    
     const list = document.createElement('div');
     list.className = 'result-list';
     results.forEach((r) => list.insertAdjacentHTML('beforeend', renderResultCard(r)));
     resultsList.appendChild(list);
-
-    // ── KG sidebar
-    if (sources.length > 0 && kgCard && kgGraphArea) {
-      kgCard.classList.remove('hidden');
-      const titleEl = document.getElementById('kgTitle');
-      const subtitleEl = document.getElementById('kgSubtitle');
-      if (titleEl) titleEl.style.display = 'none';
-      if (subtitleEl) subtitleEl.textContent = `${query} উৎস-মানচিত্র`;
-      drawKnowledgeGraph(query, sources, kgGraphArea);
-    }
 
 
     // ── Top sources sidebar

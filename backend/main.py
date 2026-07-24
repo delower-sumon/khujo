@@ -35,29 +35,64 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
         if not clean_q:
             return {"query": q, "results": [], "total": 0}
 
+        norm_q = clean_q.lower().replace(" ", "")
         # 1. Lookup knowledge graph entity & all associated transliteration aliases
         entity_res = db.execute(text("""
-            SELECT e.entity_id, e.display_name, e.summary
+            SELECT e.entity_id, e.display_name, e.summary, e.metadata, e.entity_type_id
             FROM core.entity_name n
             JOIN core.entity e ON n.entity_id = e.entity_id
-            WHERE lower(n.name) = lower(:q) 
+            WHERE e.state = 'verified'
+               AND (lower(n.name) = lower(:q) 
+               OR lower(n.normalised_name) = lower(:norm_q)
                OR n.normalised_name ILIKE :q_like 
-               OR e.display_name ILIKE :q_like
-            ORDER BY (CASE WHEN lower(n.name) = lower(:q) THEN 1 ELSE 2 END), n.entity_name_id
+               OR e.display_name ILIKE :q_like)
+            ORDER BY 
+               (CASE WHEN lower(n.name) = lower(:q) THEN 1 
+                     WHEN lower(n.normalised_name) = lower(:norm_q) THEN 2 
+                     ELSE 3 END),
+               (CASE WHEN e.metadata->>'images' IS NOT NULL OR e.metadata->>'image_url' IS NOT NULL THEN 0 ELSE 1 END),
+               n.entity_name_id
             LIMIT 1
-        """), {"q": clean_q, "q_like": f"%{clean_q}%"}).fetchone()
+        """), {"q": clean_q, "norm_q": norm_q, "q_like": f"%{clean_q}%"}).fetchone()
 
         knowledge_graph = None
         search_terms = [clean_q]
 
         if entity_res:
-            entity_id, display_name, summary = entity_res
+            entity_id, display_name, summary, metadata_json, entity_type_id = entity_res
+            image_url = metadata_json.get("image_url") if isinstance(metadata_json, dict) else None
+            facts = metadata_json.get("facts", {}) if isinstance(metadata_json, dict) else {}
+            images = metadata_json.get("images", []) if isinstance(metadata_json, dict) else []
+            
             knowledge_graph = {
                 "id": str(entity_id),
                 "title": display_name,
                 "description": summary or f"{display_name} সম্পর্কিত তথ্য",
-                "sources": []
+                "image_url": image_url,
+                "images": images,
+                "facts": facts,
+                "sources": [],
+                "related_entities": []
             }
+            
+            # Fetch related entities
+            related_res = db.execute(text("""
+                SELECT entity_id, display_name, metadata
+                FROM core.entity
+                WHERE entity_type_id = :type_id AND entity_id != :eid AND state = 'verified'
+                ORDER BY created_at DESC
+                LIMIT 6
+            """), {"type_id": entity_type_id, "eid": entity_id}).fetchall()
+            
+            for r in related_res:
+                r_meta = r[2] if isinstance(r[2], dict) else {}
+                r_img = r_meta.get("image_url")
+                if r_img: # Only include if they have an image for a nice UI
+                    knowledge_graph["related_entities"].append({
+                        "id": str(r[0]),
+                        "title": r[1],
+                        "image_url": r_img
+                    })
             # Fetch all linked names (Bangla, English, Banglish) for this entity
             aliases = db.execute(text("""
                 SELECT normalised_name FROM core.entity_name WHERE entity_id = :eid
@@ -166,6 +201,59 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
         logging.error("Search error: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/api/v1/search/images")
+async def search_images(q: str, limit: int = 20, db: Session = Depends(get_db)):
+    try:
+        clean_q = q.strip()
+        if not clean_q:
+            return {"query": q, "results": []}
+
+        # Search verified entities with images
+        # We can also extend this later to search documents, but for now we rely on the high-quality entity images
+        docs = db.execute(text("""
+            SELECT e.entity_id, e.display_name, e.summary, e.metadata
+            FROM core.entity e
+            WHERE e.state = 'verified'
+              AND (e.metadata->>'image_url' IS NOT NULL OR e.metadata->>'images' IS NOT NULL)
+              AND (
+                  lower(e.display_name) ILIKE '%' || lower(:q) || '%'
+                  OR lower(e.summary) ILIKE '%' || lower(:q) || '%'
+              )
+            LIMIT :limit
+        """), {"q": clean_q, "limit": limit}).fetchall()
+
+        results = []
+        seen_urls = set()
+        for d in docs:
+            meta = d[3] if isinstance(d[3], dict) else {}
+            images = meta.get("images", [])
+            if not images and meta.get("image_url"):
+                images = [meta.get("image_url")]
+            
+            source_url = meta.get("wikipedia_url")
+            
+            for img in images:
+                if img not in seen_urls:
+                    seen_urls.add(img)
+                    results.append({
+                        "id": str(d[0]),
+                        "title": d[1] or "Untitled",
+                        "snippet": (d[2][:100] + "...") if d[2] else "",
+                        "thumbnail_url": img,
+                        "source_url": source_url or img,
+                        "type": "image"
+                    })
+
+        return {
+            "query": q,
+            "results": results,
+            "total": len(results)
+        }
+    except Exception as e:
+        import logging
+        logging.error("Image search error: %s", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/suggestions")
 async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
@@ -399,6 +487,67 @@ async def batch_reject(document_ids: List[str], db: Session = Depends(get_db)):
             db.execute(text("UPDATE content.document SET state = 'rejected' WHERE document_id = ANY(:ids)"), {"ids": document_ids})
             db.commit()
         return {"success": True, "count": len(document_ids)}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+class EntityFactsUpdate(BaseModel):
+    facts: dict
+
+@app.get("/api/v1/admin/entities")
+async def get_admin_entities(status: str = "candidate", db: Session = Depends(get_db)):
+    try:
+        rows = db.execute(text("""
+            SELECT entity_id, display_name, summary, metadata, state, created_at 
+            FROM core.entity 
+            WHERE state = :s
+            ORDER BY created_at DESC LIMIT 50
+        """), {"s": status}).fetchall()
+        
+        results = []
+        import json
+        for r in rows:
+            meta = r[3] if isinstance(r[3], dict) else {}
+            results.append({
+                "id": str(r[0]),
+                "name": r[1],
+                "summary": r[2],
+                "image_url": meta.get("image_url"),
+                "facts": meta.get("facts", {}),
+                "state": r[4],
+                "created_at": str(r[5])
+            })
+        return results
+    except Exception as e:
+        import logging
+        logging.error("Admin error: %s", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/v1/admin/entities/{entity_id}/facts")
+async def update_entity_facts(entity_id: str, update: EntityFactsUpdate, db: Session = Depends(get_db)):
+    try:
+        import json
+        row = db.execute(text("SELECT metadata FROM core.entity WHERE entity_id = :eid"), {"eid": entity_id}).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Not found")
+        meta = row[0] if isinstance(row[0], dict) else {}
+        meta["facts"] = update.facts
+        db.execute(text("UPDATE core.entity SET metadata = :m WHERE entity_id = :eid"), 
+                   {"m": json.dumps(meta), "eid": entity_id})
+        db.commit()
+        return {"status": "updated"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/entities/{entity_id}/action")
+async def action_entity(entity_id: str, action: str, db: Session = Depends(get_db)):
+    try:
+        state = 'verified' if action == 'verify' else 'rejected'
+        db.execute(text("UPDATE core.entity SET state = :s WHERE entity_id = :eid"), {"s": state, "eid": entity_id})
+        # If rejected, we might also want to set entity_name state, but let's keep it simple
+        db.commit()
+        return {"status": state}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
