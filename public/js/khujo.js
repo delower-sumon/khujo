@@ -46,19 +46,6 @@ class SearchBar {
     // Build DOM elements
     this.inputRow = wrapEl.querySelector('.search-input-row');
     this.clearBtn = this._createClearBtn();
-    // Avro Phonetic State
-    this.avroEnabled = true;
-    this.rawBuffer = this.input.value; // Store the raw typed english
-
-    this.langToggleBtn = wrapEl.querySelector('.lang-toggle');
-    if (this.langToggleBtn) {
-      this.langToggleBtn.addEventListener('click', () => {
-        this.avroEnabled = !this.avroEnabled;
-        this.langToggleBtn.textContent = this.avroEnabled ? 'বাংলা (Avro)' : 'English';
-        this.langToggleBtn.classList.toggle('en-mode', !this.avroEnabled);
-        this.input.focus();
-      });
-    }
 
     this._bind();
   }
@@ -534,7 +521,7 @@ async function loadSERP() {
       if (data.correction && data.correction.target_name) {
         const orig = esc(data.correction.original_query);
         const target = esc(data.correction.target_name);
-        resultMeta.innerHTML = `<strong>"${target}"</strong> এর ফলাফল দেখানো হচ্ছে (মূল শব্দ: <em>${orig}</em>)`;
+        resultMeta.innerHTML = `<div class="kg-did-you-mean" style="font-size:15px;margin-bottom:8px;">আপনি কি বুঝাতে চেয়েছেন: <a href="/search.html?q=${encodeURIComponent(target)}" style="color:var(--primary-color);font-weight:600;text-decoration:underline;">${target}</a></div>`;
       } else {
         resultMeta.innerHTML = results.length > 0
           ? `<strong>"${esc(query)}"</strong> এর জন্য ফলাফল`

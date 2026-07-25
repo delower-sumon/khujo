@@ -56,6 +56,7 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
         """), {"q": clean_q, "norm_q": norm_q, "q_like": f"%{clean_q}%"}).fetchone()
 
         knowledge_graph = None
+        correction = None
         search_terms = [clean_q]
 
         if entity_res:
@@ -75,12 +76,11 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 "related_entities": []
             }
 
-        correction = None
-        if entity_res and clean_q.lower() != display_name.lower():
-            correction = {
-                "original_query": clean_q,
-                "target_name": display_name
-            }
+            if clean_q.lower() != display_name.lower():
+                correction = {
+                    "original_query": clean_q,
+                    "target_name": display_name
+                }
             
             # Fetch related entities
             related_res = db.execute(text("""
