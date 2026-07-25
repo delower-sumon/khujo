@@ -128,7 +128,7 @@ def update_geo_entity(engine, entity_id, data: dict):
                 conn.execute(text("""
                     INSERT INTO core.entity_name 
                     (entity_name_id, entity_id, name, normalised_name, language_code, script, name_kind, is_primary, state)
-                    VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'verified')
+                    VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'candidate')
                 """), {
                     "id": str(uuid.uuid4()),
                     "eid": entity_id,

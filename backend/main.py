@@ -549,11 +549,99 @@ async def update_entity_facts(entity_id: str, update: EntityFactsUpdate, db: Ses
 @app.post("/api/v1/admin/entities/{entity_id}/action")
 async def action_entity(entity_id: str, action: str, db: Session = Depends(get_db)):
     try:
-        state = 'verified' if action == 'verify' else 'rejected'
-        db.execute(text("UPDATE core.entity SET state = :s WHERE entity_id = :eid"), {"s": state, "eid": entity_id})
-        # If rejected, we might also want to set entity_name state, but let's keep it simple
+        if action not in ["approve", "reject"]:
+            raise HTTPException(status_code=400, detail="Invalid action")
+        target_state = "verified" if action == "approve" else "rejected"
+        db.execute(text("UPDATE core.entity SET state = :s WHERE entity_id = :eid"), 
+                   {"s": target_state, "eid": entity_id})
         db.commit()
-        return {"status": state}
+        return {"status": "success", "new_state": target_state}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+class AliasVerifyPayload(BaseModel):
+    entity_name_id: str
+    action: str # "approve", "reject", "update"
+    name: Optional[str] = None
+
+class AliasCreatePayload(BaseModel):
+    entity_id: str
+    name: str
+    language_code: Optional[str] = "en"
+
+@app.get("/api/v1/admin/aliases")
+async def get_admin_aliases(status: str = "candidate", db: Session = Depends(get_db)):
+    try:
+        rows = db.execute(text("""
+            SELECT n.entity_name_id, n.entity_id, n.name, n.normalised_name, n.language_code, n.script, n.name_kind, n.state, e.display_name
+            FROM core.entity_name n
+            JOIN core.entity e ON n.entity_id = e.entity_id
+            WHERE n.state = :s
+            ORDER BY n.created_at DESC LIMIT 100
+        """), {"s": status}).fetchall()
+        
+        results = []
+        for r in rows:
+            results.append({
+                "entity_name_id": str(r[0]),
+                "entity_id": str(r[1]),
+                "name": r[2],
+                "normalised_name": r[3],
+                "language_code": r[4],
+                "script": str(r[5]),
+                "name_kind": str(r[6]),
+                "state": str(r[7]),
+                "entity_display_name": r[8]
+            })
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/aliases/verify")
+async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(get_db)):
+    try:
+        if payload.action == "approve":
+            db.execute(text("UPDATE core.entity_name SET state = 'verified' WHERE entity_name_id = :id"), {"id": payload.entity_name_id})
+        elif payload.action == "reject":
+            db.execute(text("DELETE FROM core.entity_name WHERE entity_name_id = :id"), {"id": payload.entity_name_id})
+        elif payload.action == "update":
+            if payload.name:
+                norm = payload.name.lower().replace(' ', '')
+                db.execute(text("""
+                    UPDATE core.entity_name 
+                    SET name = :name, normalised_name = :norm, state = 'verified' 
+                    WHERE entity_name_id = :id
+                """), {"name": payload.name, "norm": norm, "id": payload.entity_name_id})
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/admin/aliases/create")
+async def create_admin_alias(payload: AliasCreatePayload, db: Session = Depends(get_db)):
+    try:
+        import uuid
+        norm = payload.name.lower().replace(' ', '')
+        is_bn = any('\u0980' <= c <= '\u09FF' for c in payload.name)
+        lang = 'bn' if is_bn else (payload.language_code or 'en')
+        script_val = 'bangla' if is_bn else 'latin'
+        
+        db.execute(text("""
+            INSERT INTO core.entity_name 
+            (entity_name_id, entity_id, name, normalised_name, language_code, script, name_kind, is_primary, state)
+            VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'verified')
+        """), {
+            "id": str(uuid.uuid4()),
+            "eid": payload.entity_id,
+            "name": payload.name,
+            "norm": norm,
+            "lang": lang,
+            "script": script_val
+        })
+        db.commit()
+        return {"success": True}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

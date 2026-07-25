@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khujo Admin — Entity Verification</title>
+  <title>Khujo Admin — Entity & Alias Curation</title>
   <link rel="icon" type="image/png" href="favicon.png" />
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -39,6 +39,7 @@
     .edit-form { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin: 14px 0; display: flex; flex-direction: column; gap: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    .form-input { font-size: 13px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border); outline: none; }
     .form-textarea { font-family: monospace; font-size: 13px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border); min-height: 120px; resize: vertical; }
     .card-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .meta-time { font-size: 12px; color: var(--text-muted); }
@@ -54,36 +55,55 @@
       <div class="brand">
         <div class="brand-logo">K</div>
         <div>
-          <h1>Khujo Entity Curation</h1>
-          <div class="subtitle">Human-in-the-Loop Knowledge Graph Editor</div>
+          <h1>Khujo Curation Engine</h1>
+          <div class="subtitle">Human-in-the-Loop Entities & Aliases Verification</div>
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="/admin.html" class="btn-refresh" style="text-decoration:none; background: var(--green-bg); color: var(--green-text);">📄 Switch to Documents</a>
-        <button class="btn-refresh" onclick="loadEntities()">↻ Refresh</button>
+        <a href="/admin.html" class="btn-refresh" style="text-decoration:none; background: var(--green-bg); color: var(--green-text);">📄 Documents Admin</a>
+        <button class="btn-refresh" onclick="refreshCurrentTab()">↻ Refresh</button>
       </div>
     </header>
 
     <div class="nav-tabs">
-      <button class="tab-btn active" id="tab-candidate" onclick="switchTab('candidate')">🟡 Pending Review</button>
-      <button class="tab-btn" id="tab-verified" onclick="switchTab('verified')">🟢 Approved & Live</button>
-      <button class="tab-btn" id="tab-rejected" onclick="switchTab('rejected')">🔴 Rejected</button>
+      <button class="tab-btn active" id="tab-candidate" onclick="switchTab('candidate')">🟡 Pending Entities</button>
+      <button class="tab-btn" id="tab-verified" onclick="switchTab('verified')">🟢 Approved Entities</button>
+      <button class="tab-btn" id="tab-alias-candidate" onclick="switchTab('alias-candidate')">🏷️ Pending Aliases</button>
+      <button class="tab-btn" id="tab-alias-verified" onclick="switchTab('alias-verified')">🏷️ Active Aliases Listing</button>
     </div>
 
     <div class="toolbar">
-      <input type="text" class="search-filter" id="filterInput" placeholder="Search entities..." oninput="renderQueue()">
+      <input type="text" class="search-filter" id="filterInput" placeholder="Search entities or aliases..." oninput="renderCurrent()">
     </div>
 
-    <div id="queue" class="queue-list">Loading entities...</div>
+    <div id="queue" class="queue-list">Loading data...</div>
   </div>
 
   <script>
     let currentTab = 'candidate';
     let entities = [];
+    let aliases = [];
 
     function esc(str) {
       if (!str) return '';
       return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`tab-${tab}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (tab.startsWith('alias-')) {
+        loadAliases();
+      } else {
+        loadEntities();
+      }
+    }
+
+    function refreshCurrentTab() {
+      switchTab(currentTab);
     }
 
     async function loadEntities() {
@@ -94,13 +114,36 @@
         const res = await fetch(`http://localhost:8000/api/v1/admin/entities?status=${currentTab}`);
         if (!res.ok) throw new Error('Failed to load');
         entities = await res.json();
-        renderQueue();
+        renderEntities();
       } catch (err) {
         queueEl.innerHTML = `<div class="empty-state" style="color:var(--red-text)">Error loading entities: ${err.message}</div>`;
       }
     }
 
-    function renderQueue() {
+    async function loadAliases() {
+      const queueEl = document.getElementById('queue');
+      queueEl.innerHTML = '<div class="empty-state">Loading aliases...</div>';
+      const status = currentTab === 'alias-candidate' ? 'candidate' : 'verified';
+      
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/admin/aliases?status=${status}`);
+        if (!res.ok) throw new Error('Failed to load aliases');
+        aliases = await res.json();
+        renderAliases();
+      } catch (err) {
+        queueEl.innerHTML = `<div class="empty-state" style="color:var(--red-text)">Error loading aliases: ${err.message}</div>`;
+      }
+    }
+
+    function renderCurrent() {
+      if (currentTab.startsWith('alias-')) {
+        renderAliases();
+      } else {
+        renderEntities();
+      }
+    }
+
+    function renderEntities() {
       const queueEl = document.getElementById('queue');
       const filter = document.getElementById('filterInput').value.toLowerCase();
       
@@ -110,7 +153,7 @@
       );
 
       if (filtered.length === 0) {
-        queueEl.innerHTML = `<div class="empty-state">Queue is empty</div>`;
+        queueEl.innerHTML = `<div class="empty-state">No entities found</div>`;
         return;
       }
 
@@ -139,55 +182,117 @@
           </div>
 
           <div class="card-footer">
-            <span class="meta-time">Created: ${new Date(d.created_at).toLocaleString()}</span>
+            <div class="meta-time">Created: ${d.created_at}</div>
             <div class="card-actions">
-              ${currentTab === 'candidate' || currentTab === 'rejected' ? `<button class="btn-approve" onclick="actionEntity('${d.id}', 'verify')">✓ Approve</button>` : ''}
-              ${currentTab === 'candidate' || currentTab === 'verified' ? `<button class="btn-reject" onclick="actionEntity('${d.id}', 'reject')">✕ Reject</button>` : ''}
+              ${d.state !== 'verified' ? `<button class="btn-approve" onclick="actionEntity('${d.id}', 'approve')">✓ Approve Entity</button>` : ''}
+              ${d.state !== 'rejected' ? `<button class="btn-reject" onclick="actionEntity('${d.id}', 'reject')">✕ Reject Entity</button>` : ''}
             </div>
           </div>
         </div>
       `).join('');
     }
 
-    async function saveFacts(id) {
-      const textarea = document.getElementById(`facts-${id}`);
-      let factsObj;
-      try {
-        factsObj = JSON.parse(textarea.value);
-      } catch (e) {
-        alert("Invalid JSON format!");
+    function renderAliases() {
+      const queueEl = document.getElementById('queue');
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+      
+      const filtered = aliases.filter(a => 
+        (a.name || '').toLowerCase().includes(filter) || 
+        (a.entity_display_name || '').toLowerCase().includes(filter)
+      );
+
+      if (filtered.length === 0) {
+        queueEl.innerHTML = `<div class="empty-state">No aliases found</div>`;
         return;
       }
-      
-      try {
-        const res = await fetch(`http://localhost:8000/api/v1/admin/entities/${id}/facts`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ facts: factsObj })
-        });
-        if (res.ok) alert('Facts updated!');
-        else alert('Error updating facts');
-      } catch (err) {
-        alert(err.message);
-      }
+
+      queueEl.innerHTML = filtered.map(a => `
+        <div class="card" id="alias-card-${a.entity_name_id}">
+          <div class="card-header">
+            <div>
+              <span class="status-badge status-${a.state}">${a.state}</span>
+              <span style="font-size:12px; color:var(--text-muted); margin-left:8px;">Kind: ${a.name_kind} | Script: ${a.script}</span>
+            </div>
+            <div style="font-size:13px; font-weight:600; color:var(--brand-green);">
+              Entity: ${esc(a.entity_display_name)}
+            </div>
+          </div>
+          
+          <div class="edit-form" style="margin: 8px 0;">
+            <div class="form-group">
+              <label class="form-label">Alias String (English / Banglish / Transliteration)</label>
+              <input type="text" class="form-input" id="alias-input-${a.entity_name_id}" value="${esc(a.name)}">
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="meta-time">ID: ${a.entity_name_id.slice(0, 8)}...</div>
+            <div class="card-actions">
+              <button class="btn-refresh" onclick="updateAlias('${a.entity_name_id}')">💾 Save Edit</button>
+              ${a.state !== 'verified' ? `<button class="btn-approve" onclick="verifyAlias('${a.entity_name_id}', 'approve')">✓ Approve Alias</button>` : ''}
+              <button class="btn-reject" onclick="verifyAlias('${a.entity_name_id}', 'reject')">✕ Delete Alias</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
     }
 
     async function actionEntity(id, action) {
       try {
         const res = await fetch(`http://localhost:8000/api/v1/admin/entities/${id}/action?action=${action}`, { method: 'POST' });
-        if (res.ok) {
-          document.getElementById(`card-${id}`).style.display = 'none';
-        }
+        if (!res.ok) throw new Error('Action failed');
+        loadEntities();
       } catch (err) {
         alert(err.message);
       }
     }
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(`tab-${tab}`).classList.add('active');
-      currentTab = tab;
-      loadEntities();
+    async function saveFacts(id) {
+      const textarea = document.getElementById(`facts-${id}`);
+      try {
+        const json = JSON.parse(textarea.value);
+        const res = await fetch(`http://localhost:8000/api/v1/admin/entities/${id}/facts`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ facts: json })
+        });
+        if (!res.ok) throw new Error('Failed to update facts');
+        alert('Facts updated successfully!');
+      } catch (err) {
+        alert('Invalid JSON: ' + err.message);
+      }
+    }
+
+    async function verifyAlias(id, action) {
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/admin/aliases/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_name_id: id, action: action })
+        });
+        if (!res.ok) throw new Error('Action failed');
+        loadAliases();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function updateAlias(id) {
+      const input = document.getElementById(`alias-input-${id}`);
+      const val = input ? input.value.trim() : '';
+      if (!val) return alert('Alias name cannot be empty');
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/admin/aliases/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_name_id: id, action: 'update', name: val })
+        });
+        if (!res.ok) throw new Error('Update failed');
+        alert('Alias updated and verified successfully!');
+        loadAliases();
+      } catch (err) {
+        alert(err.message);
+      }
     }
 
     loadEntities();
