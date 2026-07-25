@@ -170,7 +170,7 @@ input, button, select { font-family: inherit; }
   margin-bottom: 12px;
 }
 .hero-logo-img {
-  height: 96px;
+  height: 64px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 4px 14px rgba(37, 99, 235, 0.25));
