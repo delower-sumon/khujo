@@ -74,6 +74,13 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 "sources": [],
                 "related_entities": []
             }
+
+        correction = None
+        if entity_res and clean_q.lower() != display_name.lower():
+            correction = {
+                "original_query": clean_q,
+                "target_name": display_name
+            }
             
             # Fetch related entities
             related_res = db.execute(text("""
@@ -188,13 +195,12 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             db.rollback()
             pass
 
-
-
         return {
             "query": q,
+            "correction": correction,
             "results": results,
-            "total": len(results),
-            "knowledge_graph": knowledge_graph
+            "knowledge_graph": knowledge_graph,
+            "total": len(results)
         }
     except Exception as e:
         import logging

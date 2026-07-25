@@ -100,39 +100,6 @@ class SearchBar {
     });
 
     this.input.addEventListener('keydown', (e) => {
-      if (this.avroEnabled && window.OmicronLab && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        // Simple English to Bangla on space/enter, or continuous if we use a buffer.
-        // The most robust way without breaking cursor is to let jsAvroPhonetic logic run on keydown
-        // We will implement the standard space/enter replacement.
-        if (e.key === ' ' || e.key === 'Enter') {
-          const cur = this.input.selectionStart;
-          let last = cur - 1;
-          while (last >= 0) {
-            const c = this.input.value.charAt(last);
-            if (!c || c.trim() === "") {
-              last++;
-              break;
-            }
-            last--;
-          }
-          if (last < 0) last = 0;
-          const word = this.input.value.substring(last, cur);
-          
-          // Only transliterate if it contains english characters
-          if (/[a-zA-Z]/.test(word)) {
-            const bangla = OmicronLab.Avro.Phonetic.parse(word);
-            this.input.value = this.input.value.substring(0, last) + bangla + this.input.value.substring(cur);
-            const newCursor = last + bangla.length;
-            this.input.setSelectionRange(newCursor, newCursor);
-            
-            // If it was enter, let the default behavior (submit) happen on the new value
-            if (e.key === 'Enter') {
-              // The form will submit with the transliterated value
-            }
-          }
-        }
-      }
-
       if (e.key === 'Escape') { this._hideSuggestions(); return; }
       if (!this.dropdownEl || this.suggestions.length === 0) {
         if (e.key === 'Enter') this._submit();
@@ -170,17 +137,6 @@ class SearchBar {
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
       let q = this.input.value.trim();
-      
-      // If Avro is enabled and there are english characters at the end, parse the last word for the query
-      if (this.avroEnabled && window.OmicronLab && /[a-zA-Z]/.test(q)) {
-          const words = q.split(' ');
-          const lastWord = words[words.length - 1];
-          if (/[a-zA-Z]/.test(lastWord)) {
-              words[words.length - 1] = OmicronLab.Avro.Phonetic.parse(lastWord);
-              q = words.join(' ');
-          }
-      }
-      
       if (!q) {
         this._hideSuggestions();
         return;
@@ -573,11 +529,17 @@ async function loadSERP() {
     // Filter crawl_queue type
     const results = (data.results || []).filter((r) => r.type !== 'crawl_queue');
 
-    // Result meta
+    // Result meta & correction notice
     if (resultMeta) {
-      resultMeta.innerHTML = results.length > 0
-        ? `<strong>"${esc(query)}"</strong> এর জন্য ফলাফল`
-        : '';
+      if (data.correction && data.correction.target_name) {
+        const orig = esc(data.correction.original_query);
+        const target = esc(data.correction.target_name);
+        resultMeta.innerHTML = `<strong>"${target}"</strong> এর ফলাফল দেখানো হচ্ছে (মূল শব্দ: <em>${orig}</em>)`;
+      } else {
+        resultMeta.innerHTML = results.length > 0
+          ? `<strong>"${esc(query)}"</strong> এর জন্য ফলাফল`
+          : '';
+      }
     }
 
     // ── Build Inline Knowledge Graph (Google Style)

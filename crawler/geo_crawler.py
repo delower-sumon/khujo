@@ -17,6 +17,8 @@ HEADERS = {
     'User-Agent': 'KhujoBot/1.0 (Crawler for local BD search engine)'
 }
 
+import uuid
+
 def fetch_wiki_geo(title):
     encoded_title = quote(title.replace(' ', '_'))
     url = f"https://bn.wikipedia.org/wiki/{encoded_title}"
@@ -72,13 +74,20 @@ def fetch_wiki_geo(title):
                 if src not in images:
                     images.append(src)
         
-        images = images[:3]
-        
+        aliases = []
+        en_link = soup.find('li', class_='interlanguage-link interwiki-en')
+        if en_link and en_link.find('a'):
+            en_title = en_link.find('a').get('title', '').replace(' – English', '').strip()
+            if en_title:
+                aliases.append(en_title)
+                aliases.append(en_title.lower())
+
         return {
             "title": title,
             "summary": summary,
             "images": images,
             "facts": facts,
+            "aliases": aliases,
             "wikipedia_url": url
         }
     except Exception as e:
@@ -105,7 +114,31 @@ def update_geo_entity(engine, entity_id, data: dict):
             "metadata": json.dumps(metadata, ensure_ascii=False),
             "eid": entity_id
         })
-        log.info(f"Updated entity {entity_id} with {len(data['images'])} images.")
+
+        for alias in data.get("aliases", []):
+            exists = conn.execute(text("""
+                SELECT 1 FROM core.entity_name WHERE entity_id = :eid AND lower(name) = lower(:alias)
+            """), {"eid": entity_id, "alias": alias}).fetchone()
+            
+            if not exists:
+                normalised = alias.lower().replace(' ', '')
+                is_bn = any('\u0980' <= c <= '\u09FF' for c in alias)
+                lang = 'bn' if is_bn else 'en'
+                script_val = 'bangla' if is_bn else 'latin'
+                conn.execute(text("""
+                    INSERT INTO core.entity_name 
+                    (entity_name_id, entity_id, name, normalised_name, language_code, script, name_kind, is_primary, state)
+                    VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'verified')
+                """), {
+                    "id": str(uuid.uuid4()),
+                    "eid": entity_id,
+                    "name": alias,
+                    "norm": normalised,
+                    "lang": lang,
+                    "script": script_val
+                })
+
+        log.info(f"Updated entity {entity_id} with {len(data['images'])} images and {len(data.get('aliases', []))} aliases.")
 
 def run():
     engine = get_engine()
