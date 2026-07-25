@@ -1,0 +1,127 @@
+<svg width="320" height="220" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Base Chevron path centered at origin (0,0) -->
+    <g id="chevron">
+      <path d="M-12,-20 L8,0 L-12,20" 
+            fill="none" 
+            stroke="#3B82F6" 
+            stroke-width="5" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" />
+    </g>
+
+    <!-- Linear gradient for the absorption glow/pinch effect -->
+    <radialGradient id="absorptionGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ABSORPTION GLOW AT THE ENTRY OF THE SOLID CHEVRON -->
+  <circle cx="178" cy="110" r="15" fill="url(#absorptionGlow)">
+    <animate attributeName="opacity" values="0.3;0.9;0.3" dur="0.6s" repeatCount="indefinite" />
+  </circle>
+
+  <!-- BIG FILLED CHEVRON WITH ROUNDED CORNERS (RIGHT) -->
+  <path fill="#2563EB" d="
+    M 175 40 
+    C 178 37, 185 37, 190 42 
+    L 245 103 
+    C 249 107, 249 113, 245 117 
+    L 190 178 
+    C 185 183, 178 183, 175 180 
+    L 165 170 
+    C 161 166, 162 160, 166 155 
+    L 207 110 
+    L 166 65 
+    C 162 60, 161 54, 165 50 
+    Z" />
+
+  <!-- ANIMATED STROKED CHEVRONS LOOP -->
+  <!-- Chevron 1 -->
+  <g>
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="100 110; 125 110; 150 110; 175 110; 100 110"
+      keyTimes="0; 0.33; 0.66; 0.95; 1"
+      dur="1.8s"
+      repeatCount="indefinite" />
+    <g>
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="0.5 0.5; 0.8 0.8; 1.2 1.2; 0.05 0.8; 0.5 0.5"
+        keyTimes="0; 0.33; 0.66; 0.95; 1"
+        dur="1.8s"
+        repeatCount="indefinite" />
+      <animate
+        attributeName="opacity"
+        values="0.4; 0.8; 1; 0; 0.4"
+        keyTimes="0; 0.33; 0.66; 0.95; 1"
+        dur="1.8s"
+        repeatCount="indefinite" />
+      <use href="#chevron" />
+    </g>
+  </g>
+
+  <!-- Chevron 2 -->
+  <g>
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      begin="-0.6s"
+      values="100 110; 125 110; 150 110; 175 110; 100 110"
+      keyTimes="0; 0.33; 0.66; 0.95; 1"
+      dur="1.8s"
+      repeatCount="indefinite" />
+    <g>
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        begin="-0.6s"
+        values="0.5 0.5; 0.8 0.8; 1.2 1.2; 0.05 0.8; 0.5 0.5"
+        keyTimes="0; 0.33; 0.66; 0.95; 1"
+        dur="1.8s"
+        repeatCount="indefinite" />
+      <animate
+        attributeName="opacity"
+        begin="-0.6s"
+        values="0.4; 0.8; 1; 0; 0.4"
+        keyTimes="0; 0.33; 0.66; 0.95; 1"
+        dur="1.8s"
+        repeatCount="indefinite" />
+      <use href="#chevron" />
+    </g>
+  </g>
+
+  <!-- Chevron 3 -->
+  <g>
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      begin="-1.2s"
+      values="100 110; 125 110; 150 110; 175 110; 100 110"
+      keyTimes="0; 0.33; 0.66; 0.95; 1"
+      dur="1.8s"
+      repeatCount="indefinite" />
+    <g>
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        begin="-1.2s"
+        values="0.5 0.5; 0.8 0.8; 1.2 1.2; 0.05 0.8; 0.5 0.5"
+        keyTimes="0; 0.33; 0.66; 0.95; 1"
+        dur="1.8s"
+        repeatCount="indefinite" />
+      <animate
+        attributeName="opacity"
+        begin="-1.2s"
+        values="0.4; 0.8; 1; 0; 0.4"
+        keyTimes="0; 0.33; 0.66; 0.95; 1"
+        dur="1.8s"
+        repeatCount="indefinite" />
+      <use href="#chevron" />
+    </g>
+  </g>
+</svg>

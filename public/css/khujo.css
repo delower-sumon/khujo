@@ -147,26 +147,37 @@ input, button, select { font-family: inherit; }
 
 .brand-icon {
   position: relative;
-  width: 36px; height: 36px;
-  border-radius: var(--radius-md);
-  background: var(--green);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 2px 8px rgba(0, 106, 78, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
-.brand-icon-ring {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  border: 3px solid #ffffff;
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  transition: transform var(--duration) var(--ease-out);
 }
-.brand-icon-dot {
-  position: absolute;
-  bottom: -2px; right: -2px;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  background: var(--red);
-  border: 2px solid var(--surface-0);
+.brand-mark:hover .brand-logo-img {
+  transform: scale(1.05);
+}
+
+.hero-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.hero-logo-img {
+  height: 96px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba(37, 99, 235, 0.25));
+  transition: transform 0.3s ease;
+}
+.hero-logo-img:hover {
+  transform: scale(1.03);
 }
 
 .brand-text {
@@ -191,7 +202,7 @@ input, button, select { font-family: inherit; }
 
 /* Compact brand (SERP header) */
 .brand-mark.compact .brand-text { display: none; }
-.brand-mark.compact .brand-icon { width: 32px; height: 32px; }
+.brand-mark.compact .brand-logo-img { height: 32px; }
 
 /* ── 5. SEARCH BAR ──────────────────────────────────────── */
 .search-wrap {
