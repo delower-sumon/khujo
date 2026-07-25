@@ -256,6 +256,19 @@ input, button, select { font-family: inherit; }
   color: var(--green);
 }
 
+.search-icon.homepage-logo-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-icon.homepage-logo-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
 .search-input {
   flex: 1;
   min-width: 0;
