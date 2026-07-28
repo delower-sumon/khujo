@@ -285,7 +285,7 @@ async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
 
         suggestions_set = []
         for r in sug_rows:
-            if r[0] and r[0] not in suggestions_set:
+            if r[0] and ',' not in r[0] and r[0] not in suggestions_set:
                 suggestions_set.append(r[0])
 
         # 2. Enrich from core.entity_name if needed
@@ -297,7 +297,7 @@ async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
                 LIMIT :limit
             """), {"prefix": prefix_like, "any": any_like, "limit": limit}).fetchall()
             for r in entity_rows:
-                if r[0] and r[0] not in suggestions_set:
+                if r[0] and ',' not in r[0] and r[0] not in suggestions_set:
                     suggestions_set.append(r[0])
 
         # 3. Enrich from content.document titles if needed
@@ -601,18 +601,48 @@ async def get_admin_aliases(status: str = "candidate", db: Session = Depends(get
 @app.post("/api/v1/admin/aliases/verify")
 async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(get_db)):
     try:
+        import uuid
         if payload.action == "approve":
             db.execute(text("UPDATE core.entity_name SET state = 'verified' WHERE entity_name_id = :id"), {"id": payload.entity_name_id})
         elif payload.action == "reject":
             db.execute(text("DELETE FROM core.entity_name WHERE entity_name_id = :id"), {"id": payload.entity_name_id})
         elif payload.action == "update":
             if payload.name:
-                norm = payload.name.lower().replace(' ', '')
-                db.execute(text("""
-                    UPDATE core.entity_name 
-                    SET name = :name, normalised_name = :norm, state = 'verified' 
-                    WHERE entity_name_id = :id
-                """), {"name": payload.name, "norm": norm, "id": payload.entity_name_id})
+                parts = [p.strip() for p in payload.name.split(',') if p.strip()]
+                if parts:
+                    # Update first item into existing row
+                    first_part = parts[0]
+                    norm = first_part.lower().replace(' ', '')
+                    db.execute(text("""
+                        UPDATE core.entity_name 
+                        SET name = :name, normalised_name = :norm, state = 'verified' 
+                        WHERE entity_name_id = :id
+                    """), {"name": first_part, "norm": norm, "id": payload.entity_name_id})
+                    
+                    # If multiple parts exist, fetch entity_id and insert remaining as separate clean rows
+                    if len(parts) > 1:
+                        row = db.execute(text("SELECT entity_id FROM core.entity_name WHERE entity_name_id = :id"), {"id": payload.entity_name_id}).fetchone()
+                        if row:
+                            eid = row[0]
+                            for part in parts[1:]:
+                                part_norm = part.lower().replace(' ', '')
+                                exists = db.execute(text("SELECT 1 FROM core.entity_name WHERE entity_id = :eid AND lower(name) = lower(:part)"), {"eid": eid, "part": part}).fetchone()
+                                if not exists:
+                                    is_bn = any('\u0980' <= c <= '\u09FF' for c in part)
+                                    lang = 'bn' if is_bn else 'en'
+                                    script_val = 'bangla' if is_bn else 'latin'
+                                    db.execute(text("""
+                                        INSERT INTO core.entity_name 
+                                        (entity_name_id, entity_id, name, normalised_name, language_code, script, name_kind, is_primary, state)
+                                        VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'verified')
+                                    """), {
+                                        "id": str(uuid.uuid4()),
+                                        "eid": eid,
+                                        "name": part,
+                                        "norm": part_norm,
+                                        "lang": lang,
+                                        "script": script_val
+                                    })
         db.commit()
         return {"success": True}
     except Exception as e:
@@ -623,23 +653,27 @@ async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(
 async def create_admin_alias(payload: AliasCreatePayload, db: Session = Depends(get_db)):
     try:
         import uuid
-        norm = payload.name.lower().replace(' ', '')
-        is_bn = any('\u0980' <= c <= '\u09FF' for c in payload.name)
-        lang = 'bn' if is_bn else (payload.language_code or 'en')
-        script_val = 'bangla' if is_bn else 'latin'
-        
-        db.execute(text("""
-            INSERT INTO core.entity_name 
-            (entity_name_id, entity_id, name, normalised_name, language_code, script, name_kind, is_primary, state)
-            VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'verified')
-        """), {
-            "id": str(uuid.uuid4()),
-            "eid": payload.entity_id,
-            "name": payload.name,
-            "norm": norm,
-            "lang": lang,
-            "script": script_val
-        })
+        parts = [p.strip() for p in payload.name.split(',') if p.strip()]
+        for part in parts:
+            part_norm = part.lower().replace(' ', '')
+            exists = db.execute(text("SELECT 1 FROM core.entity_name WHERE entity_id = :eid AND lower(name) = lower(:part)"), {"eid": payload.entity_id, "part": part}).fetchone()
+            if not exists:
+                is_bn = any('\u0980' <= c <= '\u09FF' for c in part)
+                lang = 'bn' if is_bn else (payload.language_code or 'en')
+                script_val = 'bangla' if is_bn else 'latin'
+                
+                db.execute(text("""
+                    INSERT INTO core.entity_name 
+                    (entity_name_id, entity_id, name, normalised_name, language_code, script, name_kind, is_primary, state)
+                    VALUES (:id, :eid, :name, :norm, :lang, :script, 'transliteration', false, 'verified')
+                """), {
+                    "id": str(uuid.uuid4()),
+                    "eid": payload.entity_id,
+                    "name": part,
+                    "norm": part_norm,
+                    "lang": lang,
+                    "script": script_val
+                })
         db.commit()
         return {"success": True}
     except Exception as e:
