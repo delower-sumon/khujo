@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -24,9 +26,23 @@ class DocumentUpdate(BaseModel):
     kind: Optional[str] = None
     state: Optional[str] = None
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "Welcome to Khujo API - Bangladesh's Own Search Engine"}
+
+@app.get("/graph")
+async def serve_graph():
+    graph_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "khujo_graph.html"))
+    if os.path.exists(graph_path):
+        return FileResponse(graph_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Graph visualization not found")
+
+@app.get("/")
+async def serve_index():
+    index_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public", "index.html"))
+    if os.path.exists(index_path):
+        return FileResponse(index_path, media_type="text/html")
+    return {"message": "Welcome to Khujo API"}
 
 @app.get("/api/v1/search")
 async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
@@ -679,6 +695,10 @@ async def create_admin_alias(payload: AliasCreatePayload, db: Session = Depends(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+public_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public"))
+if os.path.isdir(public_dir):
+    app.mount("/", StaticFiles(directory=public_dir, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
