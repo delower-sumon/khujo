@@ -16,6 +16,11 @@ try:
 except ImportError:
     from backend.app.database import get_db, SessionLocal
 
+try:
+    from app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems
+except ImportError:
+    from backend.app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("khujo_api")
 
@@ -140,8 +145,18 @@ async def search(
             return {"query": q, "results": [], "total": 0}
 
         norm_q = clean_q.lower().replace(" ", "")
+        stemmed_root = strip_bangla_suffix(clean_q)
+        stemmed_norm = stemmed_root.lower().replace(" ", "")
+
+        # Expand search terms with morphological roots (Fixes D5)
+        expanded_stems = expand_bangla_stems(clean_q)
+        search_terms = list(dict.fromkeys([clean_q] + expanded_stems))
         
-        # 1. Lookup knowledge graph entity & all associated transliteration aliases
+        # 1. Lookup knowledge graph entity & all associated transliteration aliases (Fixes D3 & D5)
+        # Tiered precision: Exact name -> Exact normalised -> Stemmed root -> Stemmed normalised -> Substring (min 4 chars)
+        allow_substring = len(clean_q) >= 4
+        q_like = f"%{clean_q}%" if allow_substring else "___NO_SUBSTRING_MATCH___"
+
         entity_res = db.execute(text("""
             SELECT e.entity_id, e.display_name, e.summary, e.metadata, e.entity_type_id
             FROM core.entity_name n
@@ -149,20 +164,29 @@ async def search(
             WHERE e.state = 'verified'
                AND (lower(n.name) = lower(:q) 
                OR lower(n.normalised_name) = lower(:norm_q)
-               OR n.normalised_name ILIKE :q_like 
-               OR e.display_name ILIKE :q_like)
+               OR lower(n.name) = lower(:stemmed_q)
+               OR lower(n.normalised_name) = lower(:stemmed_norm)
+               OR (:allow_sub = TRUE AND (n.normalised_name ILIKE :q_like OR e.display_name ILIKE :q_like)))
             ORDER BY 
                (CASE WHEN lower(n.name) = lower(:q) THEN 1 
                      WHEN lower(n.normalised_name) = lower(:norm_q) THEN 2 
-                     ELSE 3 END),
+                     WHEN lower(n.name) = lower(:stemmed_q) THEN 3
+                     WHEN lower(n.normalised_name) = lower(:stemmed_norm) THEN 4
+                     ELSE 5 END),
                (CASE WHEN e.metadata->>'images' IS NOT NULL OR e.metadata->>'image_url' IS NOT NULL THEN 0 ELSE 1 END),
                n.entity_name_id
             LIMIT 1
-        """), {"q": clean_q, "norm_q": norm_q, "q_like": f"%{clean_q}%"}).fetchone()
+        """), {
+            "q": clean_q,
+            "norm_q": norm_q,
+            "stemmed_q": stemmed_root,
+            "stemmed_norm": stemmed_norm,
+            "allow_sub": allow_substring,
+            "q_like": q_like
+        }).fetchone()
 
         knowledge_graph = None
         correction = None
-        search_terms = [clean_q]
 
         if entity_res:
             entity_id, display_name, summary, metadata_json, entity_type_id = entity_res
