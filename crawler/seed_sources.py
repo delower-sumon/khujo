@@ -15,46 +15,46 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger("seed_sources")
 
 BASE_SOURCES = [
-    # Major Web Platforms
+    # National Government & Public Portals
     {
-        "name": "Google",
-        "domain": "google.com",
-        "url": "https://www.google.com/",
-        "kind": "business",
+        "name": "Bangladesh National Portal",
+        "domain": "bangladesh.gov.bd",
+        "url": "https://bangladesh.gov.bd/",
+        "kind": "government",
         "trust_tier": 5,
-        "summary": "গুগল বিশ্বের সর্ববৃহৎ মার্কিন প্রযুক্তি কোম্পানি ও ইন্টারনেট অনুসন্ধান ইঞ্জিন।"
+        "summary": "বাংলাদেশ জাতীয় তথ্য বাতায়ন — গণপ্রজাতন্ত্রী বাংলাদেশ সরকারের কেন্দ্রীয় ওয়েব পোর্টাল।"
     },
     {
-        "name": "Facebook",
-        "domain": "facebook.com",
-        "url": "https://www.facebook.com/",
-        "kind": "community",
+        "name": "University of Dhaka",
+        "domain": "du.ac.bd",
+        "url": "https://www.du.ac.bd/",
+        "kind": "institution",
+        "trust_tier": 5,
+        "summary": "ঢাকা বিশ্ববিদ্যালয় বাংলাদেশের প্রাচীনতম ও শীর্ষস্থানীয় পাবলিক বিশ্ববিদ্যালয়।"
+    },
+    {
+        "name": "BUET",
+        "domain": "buet.ac.bd",
+        "url": "https://www.buet.ac.bd/",
+        "kind": "institution",
+        "trust_tier": 5,
+        "summary": "বাংলাদেশ প্রকৌশল বিশ্ববিদ্যালয় (বুয়েট) বাংলাদেশের শীর্ষ প্রকৌশল ও প্রযুক্তি উচ্চশিক্ষা প্রতিষ্ঠান।"
+    },
+    {
+        "name": "bdnews24",
+        "domain": "bdnews24.com",
+        "url": "https://bdnews24.com/",
+        "kind": "publisher",
         "trust_tier": 4,
-        "summary": "ফেসবুক মেটা প্ল্যাটফর্মসের জনপ্রিয় সামাজিক যোগাযোগ মাধ্যম।"
+        "summary": "বিডিনিউজ টোয়েন্টিফোর ডটকম বাংলাদেশের প্রথম ইন্টারনেটভিত্তিক সার্বক্ষণিক সংবাদসংস্থা।"
     },
     {
-        "name": "YouTube",
-        "domain": "youtube.com",
-        "url": "https://www.youtube.com/",
-        "kind": "community",
+        "name": "Bangla Tribune",
+        "domain": "banglatribune.com",
+        "url": "https://www.banglatribune.com/",
+        "kind": "publisher",
         "trust_tier": 4,
-        "summary": "ইউটিউব অনলাইন ভিডিও শেয়ারিং প্ল্যাটফর্ম ও সার্চ সেবা।"
-    },
-    {
-        "name": "Instagram",
-        "domain": "instagram.com",
-        "url": "https://www.instagram.com/",
-        "kind": "community",
-        "trust_tier": 3,
-        "summary": "ইনস্টাগ্রাম ছবি ও ভিডিও শেয়ারিং সামাজিক নেটওয়ার্ক।"
-    },
-    {
-        "name": "LinkedIn",
-        "domain": "linkedin.com",
-        "url": "https://www.linkedin.com/",
-        "kind": "business",
-        "trust_tier": 4,
-        "summary": "লিঙ্কডইন পেশাদার ও ব্যবসা ভিত্তিক সংযোগ এবং জব প্ল্যাটফর্ম।"
+        "summary": "বাংলা ট্রিবিউন বাংলাদেশের অন্যতম জনপ্রিয় অনলাইন বাংলা সংবাদপত্র।"
     },
 
     # Major News & Knowledge Publishers

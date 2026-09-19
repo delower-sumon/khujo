@@ -37,13 +37,13 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 | **D7** | 🟠 HIGH | Frontend | `public/js/khujo.js` | Backend returns `knowledge_graph`, frontend never renders it | Implement entity card widget in search results UI | ✅ DONE (Phase 5) |
 | **D8** | 🟠 HIGH | Frontend | `public/js/khujo.js:259` | `drawKnowledgeGraph()` draws fake domain nodes | Replace with true entity-relationship graph visualization | ✅ DONE (Phase 5) |
 | **D9** | 🟠 HIGH | Security | `backend/main.py:17-18` | `allow_origins=["*"]` + `allow_credentials=True` is invalid/insecure | Specify allowed origins, restrict credentials | ✅ DONE (Phase 1) |
-| **D10** | 🟠 HIGH | Pipeline | `backend/ner_script.py:8-52` | Quadratic $O(N \times M)$ substring loop, non-idempotent assertions | Aho-Corasick or Trie string matcher + `ON CONFLICT` | ⏳ Planned Phase 6 |
+| **D10** | 🟠 HIGH | Pipeline | `backend/ner_script.py:8-52` | Quadratic $O(N \times M)$ substring loop, non-idempotent assertions | Fast token set lookup + idempotent checks | ✅ DONE (Phase 6) |
 | **D11** | 🟡 MEDIUM | Security | `backend/main.py:224, 364...` | `HTTPException(500, detail=str(e))` leaks internal SQL | Log traceback server-side, return clean generic JSON message | ✅ DONE (Phase 1) |
 | **D12** | 🟡 MEDIUM | Architecture | `backend/main.py:188-212` | `GET /search` executes write transaction & commits | Decouple telemetry to async background task or separate logging | ✅ DONE (Phase 1) |
 | **D13** | 🟡 MEDIUM | UX | `public/js/khujo.js:381` | Perspectives panel uses 3 hardcoded static strings | Wire dynamic category or semantic breakdown | ✅ DONE (Phase 5) |
 | **D14** | 🟡 MEDIUM | Build | `requirements.txt` | Root requirements mixes pip packages with npm dependencies | Clean `requirements.txt` to pure Python pip dependencies | ✅ DONE (Phase 0) |
-| **D15** | 🟡 MEDIUM | Crawler | `crawler/seed_sources.py:20-56` | Google, FB, YT, Insta, LinkedIn seeded as crawl targets | Remove uncrawlable giant platforms; focus on BD news/edu | ⏳ Planned Phase 6 |
-| **D16** | 🟡 MEDIUM | Data | `0001_khojo_core.sql:348` | Document expiration computed but never enforced | Align retention policy with corpus targets | ⏳ Planned Phase 6 |
+| **D15** | 🟡 MEDIUM | Crawler | `crawler/seed_sources.py:20-56` | Google, FB, YT, Insta, LinkedIn seeded as crawl targets | Remove uncrawlable giant platforms; focus on BD news/edu | ✅ DONE (Phase 6) |
+| **D16** | 🟡 MEDIUM | Data | `0001_khojo_core.sql:348` | Document expiration computed but never enforced | Filter expired documents and add retention utility | ✅ DONE (Phase 6) |
 | **D17** | 🟡 MEDIUM | Latency | `backend/main.py:322-350` | Autocomplete does unindexed document title regex splitting | Rely on pre-computed `search.suggestion` table | ✅ DONE (Phase 1) |
 | **D18** | 🟢 LOW | Hygiene | `backend/*.py` | 13 one-off emergency Neon cleanup scripts cluttering backend | Move to `backend/archive/scripts/` | ✅ DONE (Phase 0) |
 | **D19** | 🟢 LOW | Hygiene | `backend/crawler.py` | Outdated 149-line crawler exists alongside `crawler/` | Archive / remove `backend/crawler.py` | ✅ DONE (Phase 0) |
@@ -91,10 +91,10 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 - [x] **Task 5.2 (D8):** Replace dummy domain rectangles in `drawKnowledgeGraph()` with real interactive SVG entity connection nodes linking central entity to verified related entities.
 - [x] **Task 5.3 (D13):** Replace static perspectives with dynamic contextual query analysis and entity/source insights.
 
-### Phase 6: Crawler Hardening & Maintenance
-- [ ] **Task 6.1 (D15):** Remove uncrawlable platforms (Google, FB, YT, etc.) from `crawler/seed_sources.py`.
-- [ ] **Task 6.2 (D10):** Rewrite `backend/ner_script.py` using Aho-Corasick automaton with word boundaries and `ON CONFLICT DO NOTHING` for assertions.
-- [ ] **Task 6.3 (D16):** Update retention policy documentation and scheduling.
+### Phase 6: Crawler Hardening & Maintenance (COMPLETED ✅)
+- [x] **Task 6.1 (D15):** Remove uncrawlable platforms (Google, FB, YT, Insta, LinkedIn) from `crawler/seed_sources.py` and replace with high-value Bangladeshi public/news targets.
+- [x] **Task 6.2 (D10):** Rewrite `backend/ner_script.py` using $O(L)$ candidate token set lookup instead of quadratic $O(N \times M)$ scan, with idempotent `SELECT`/`ON CONFLICT` checks.
+- [x] **Task 6.3 (D16):** Filter out expired documents in search endpoint and create automated retention enforcement utility (`crawler/utils/retention.py`).
 
 ---
 

@@ -279,6 +279,7 @@ async def search(
             JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
             LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
             WHERE content.document.state = 'verified'
+              AND (content.document.expires_at IS NULL OR content.document.expires_at > now())
               AND (
                 content.document.title_normalised ILIKE ANY(CAST(:patterns AS text[]))
                 OR content.document.body_normalised ILIKE ANY(CAST(:patterns AS text[]))

@@ -23,30 +23,52 @@ def run_ner():
             
             # Relation type ID for 'about'
             relation_id = conn.execute(text("SELECT relation_type_id FROM core.relation_type WHERE slug = 'about'")).scalar()
-            
+            if not relation_id:
+                print("Warning: relation_type 'about' not found in database.")
+                return
+
+            total_mentions = 0
             for doc in docs:
                 doc_id, src_id, title, body = doc
-                text_to_scan = f"{title} {body}"
-                
-                for district_name, entity_id in district_map.items():
-                    if district_name in text_to_scan:
-                        # Create an assertion
-                        assertion_id = conn.execute(text("""
+                text_to_scan = f"{title or ''} {body or ''}".strip()
+                if not text_to_scan:
+                    continue
+
+                # O(L) token and bigram lookup instead of quadratic O(N*M) substring search
+                words = text_to_scan.split()
+                candidate_terms = set(words)
+                for i in range(len(words) - 1):
+                    candidate_terms.add(f"{words[i]} {words[i+1]}")
+
+                matched_names = candidate_terms.intersection(district_map.keys())
+
+                for district_name in matched_names:
+                    entity_id = district_map[district_name]
+                    
+                    # Idempotent assertion check (Fixes D10 duplicate assertion spam)
+                    existing_aid = conn.execute(text("""
+                        SELECT assertion_id FROM core.assertion 
+                        WHERE subject_entity_id = :entity AND relation_type_id = :rel
+                        LIMIT 1
+                    """), {"entity": entity_id, "rel": relation_id}).scalar()
+
+                    if not existing_aid:
+                        existing_aid = conn.execute(text("""
                             INSERT INTO core.assertion (subject_entity_id, relation_type_id, state)
                             VALUES (:entity, :rel, 'verified')
                             RETURNING assertion_id
                         """), {"entity": entity_id, "rel": relation_id}).scalar()
-                        
-                        # Add evidence
+                    
+                    # Add evidence linked to this source record
+                    if existing_aid and src_id:
                         conn.execute(text("""
                             INSERT INTO core.assertion_evidence (assertion_id, source_record_id, extraction_method)
                             VALUES (:aid, :sid, 'local_ner')
                             ON CONFLICT DO NOTHING
-                        """), {"aid": assertion_id, "sid": src_id})
+                        """), {"aid": existing_aid, "sid": src_id})
+                        total_mentions += 1
                         
-                        print(f"Found entity '{district_name}' in document {doc_id}")
-
-    print("NER script complete.")
+            print(f"NER script complete. Total mentions processed: {total_mentions}")
 
 if __name__ == "__main__":
     run_ner()
