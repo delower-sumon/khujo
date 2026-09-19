@@ -262,116 +262,128 @@ function sourceColour(index) {
 }
 
 /**
- * drawKnowledgeGraph(query, sources, containerEl)
- * sources: Array of { label: string, url: string }
- * Renders an SVG graph into containerEl.
+/**
+ * drawKnowledgeGraph(kg, containerEl)
+ * Renders an interactive SVG relationship graph linking the central entity
+ * to its verified related entities. (Fixes D8)
  */
-function drawKnowledgeGraph(query, sources, containerEl) {
-  if (!containerEl) return;
-  const nodes = sources.slice(0, 3);
+function drawKnowledgeGraph(kg, containerEl) {
+  if (!containerEl || !kg) return;
+  const related = (kg.related_entities || []).slice(0, 4);
+  if (related.length === 0) {
+    containerEl.innerHTML = '';
+    return;
+  }
 
   const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
-  svg.setAttribute('viewBox', '0 0 288 158');
+  svg.setAttribute('viewBox', '0 0 288 170');
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', `খোঁজো source graph for ${query}`);
+  svg.setAttribute('aria-label', `জ্ঞানকোষ সম্পর্ক: ${kg.title}`);
 
-  // Defs — gradient background
+  // Background defs
   const defs = document.createElementNS(svgNS, 'defs');
   const grad = document.createElementNS(svgNS, 'linearGradient');
-  grad.setAttribute('id', 'khujoGraphSurface');
+  grad.setAttribute('id', 'khujoEntityGraphSurface');
   grad.setAttribute('x1', '0'); grad.setAttribute('x2', '1');
   grad.setAttribute('y1', '0'); grad.setAttribute('y2', '1');
   const stop1 = document.createElementNS(svgNS, 'stop');
   stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', '#ecfdf5');
   const stop2 = document.createElementNS(svgNS, 'stop');
-  stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#eff6ff');
+  stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#f0fdf4');
   grad.appendChild(stop1); grad.appendChild(stop2);
   defs.appendChild(grad);
   svg.appendChild(defs);
 
-  // Background rect
   const rect = document.createElementNS(svgNS, 'rect');
-  rect.setAttribute('x', '0.5'); rect.setAttribute('y', '0.5');
-  rect.setAttribute('width', '287'); rect.setAttribute('height', '157');
-  rect.setAttribute('rx', '14');
-  rect.setAttribute('fill', 'url(#khujoGraphSurface)');
-  rect.setAttribute('stroke', '#dbe7e1');
-  rect.setAttribute('opacity', '0.35');
+  rect.setAttribute('x', '1'); rect.setAttribute('y', '1');
+  rect.setAttribute('width', '286'); rect.setAttribute('height', '168');
+  rect.setAttribute('rx', '12');
+  rect.setAttribute('fill', 'url(#khujoEntityGraphSurface)');
+  rect.setAttribute('stroke', '#d1fae5');
   svg.appendChild(rect);
 
-  // Spoke nodes
-  nodes.forEach((source, index) => {
-    const y = 35 + index * 45;
-    const colour = sourceColour(index);
+  const cx = 72, cy = 85;
 
-    // Path line from center to node
+  // Spoke Entity nodes
+  related.forEach((rel, index) => {
+    const total = related.length;
+    const y = 28 + index * (114 / Math.max(1, total - 1));
+    const nx = 195, ny = y;
+
+    // Connecting curve
     const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', `M93 79 C 135 79, 140 ${y}, 172 ${y}`);
+    path.setAttribute('d', `M${cx} ${cy} C ${cx + 50} ${cy}, ${nx - 40} ${ny}, ${nx} ${ny}`);
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', colour);
+    path.setAttribute('stroke', '#10b981');
     path.setAttribute('stroke-width', '1.5');
-    path.setAttribute('opacity', '0.58');
+    path.setAttribute('stroke-dasharray', '3 2');
+    path.setAttribute('opacity', '0.65');
     svg.appendChild(path);
 
-    // Circle
-    const circle = document.createElementNS(svgNS, 'circle');
-    circle.setAttribute('cx', '176'); circle.setAttribute('cy', String(y));
-    circle.setAttribute('r', '14');
-    circle.setAttribute('fill', colour);
-    circle.setAttribute('opacity', '0.95');
-    svg.appendChild(circle);
+    // Clickable spoke group
+    const g = document.createElementNS(svgNS, 'g');
+    g.style.cursor = 'pointer';
+    g.addEventListener('click', () => {
+      window.location.href = `/search.html?q=${encodeURIComponent(rel.title)}`;
+    });
 
-    // Number text
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', String(nx)); circle.setAttribute('cy', String(ny));
+    circle.setAttribute('r', '13');
+    circle.setAttribute('fill', '#059669');
+    g.appendChild(circle);
+
     const numText = document.createElementNS(svgNS, 'text');
-    numText.setAttribute('x', '176'); numText.setAttribute('y', String(y + 4));
+    numText.setAttribute('x', String(nx)); numText.setAttribute('y', String(ny + 4));
     numText.setAttribute('fill', 'white');
     numText.setAttribute('font-size', '10');
-    numText.setAttribute('font-weight', '600');
+    numText.setAttribute('font-weight', 'bold');
     numText.setAttribute('text-anchor', 'middle');
     numText.textContent = String(index + 1);
-    svg.appendChild(numText);
+    g.appendChild(numText);
 
-    // Label text
     const labelText = document.createElementNS(svgNS, 'text');
-    labelText.setAttribute('x', '196'); labelText.setAttribute('y', String(y + 4));
-    labelText.setAttribute('fill', '#334155');
-    labelText.setAttribute('font-size', '10.5');
-    labelText.textContent = source.label.slice(0, 12);
-    svg.appendChild(labelText);
+    labelText.setAttribute('x', String(nx + 16)); labelText.setAttribute('y', String(ny + 4));
+    labelText.setAttribute('fill', '#0f172a');
+    labelText.setAttribute('font-size', '11');
+    labelText.setAttribute('font-weight', '500');
+    labelText.textContent = (rel.title || '').slice(0, 10);
+    g.appendChild(labelText);
+
+    svg.appendChild(g);
   });
 
-  // Central node — outer circle
-  const outerCircle = document.createElementNS(svgNS, 'circle');
-  outerCircle.setAttribute('cx', '66'); outerCircle.setAttribute('cy', '79');
-  outerCircle.setAttribute('r', '31');
-  outerCircle.setAttribute('fill', '#006a4e');
-  svg.appendChild(outerCircle);
+  // Central root entity node
+  const rootG = document.createElementNS(svgNS, 'g');
+  const outer = document.createElementNS(svgNS, 'circle');
+  outer.setAttribute('cx', String(cx)); outer.setAttribute('cy', String(cy));
+  outer.setAttribute('r', '28');
+  outer.setAttribute('fill', '#006a4e');
+  rootG.appendChild(outer);
 
-  // Central node — inner ring
   const innerRing = document.createElementNS(svgNS, 'circle');
-  innerRing.setAttribute('cx', '66'); innerRing.setAttribute('cy', '79');
-  innerRing.setAttribute('r', '24');
+  innerRing.setAttribute('cx', String(cx)); innerRing.setAttribute('cy', String(cy));
+  innerRing.setAttribute('r', '22');
   innerRing.setAttribute('fill', 'none');
-  innerRing.setAttribute('stroke', 'white');
-  innerRing.setAttribute('stroke-opacity', '0.35');
-  svg.appendChild(innerRing);
+  innerRing.setAttribute('stroke', '#a7f3d0');
+  innerRing.setAttribute('stroke-width', '1.5');
+  rootG.appendChild(innerRing);
 
-  // Central label — display Query cleanly centered inside the green circle
   const centerLabel = document.createElementNS(svgNS, 'text');
-  centerLabel.setAttribute('x', '66'); centerLabel.setAttribute('y', '83');
+  centerLabel.setAttribute('x', String(cx)); centerLabel.setAttribute('y', String(cy + 4));
   centerLabel.setAttribute('fill', 'white');
   centerLabel.setAttribute('font-size', '11');
   centerLabel.setAttribute('font-weight', '600');
   centerLabel.setAttribute('text-anchor', 'middle');
-  centerLabel.textContent = (query || 'খোঁজ').slice(0, 14);
-  svg.appendChild(centerLabel);
+  centerLabel.textContent = (kg.title || 'সত্তা').slice(0, 8);
+  rootG.appendChild(centerLabel);
 
-  // Replace container contents
+  svg.appendChild(rootG);
+
   containerEl.innerHTML = '';
   containerEl.appendChild(svg);
 }
-
 
 /* ── 5. SERP LOADER ─────────────────────────────────────── */
 
@@ -387,32 +399,51 @@ function pushSession(query) {
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(history.slice(0, 8)));
 }
 
-// Contextual perspectives per query type (static until AI is wired)
-function getPerspectives(query) {
-  const bn = /[\u0980-\u09FF]/.test(query); // contains Bangla chars
-  return [
-    {
-      label: bn ? 'তথ্য খোঁজছেন?' : 'Looking for info?',
-      tone: 'General',
+// Dynamic contextual perspectives per query and retrieval state (Fixes D13)
+function getPerspectives(query, data) {
+  const bn = /[\u0980-\u09FF]/.test(query);
+  const kg = data?.knowledge_graph;
+  const results = data?.results || [];
+  const perspectives = [];
+
+  if (kg && kg.title) {
+    perspectives.push({
+      label: bn ? `সত্তা সন্ধান: ${kg.title}` : `Entity focus: ${kg.title}`,
+      tone: 'Verified Entity',
+      text: bn 
+        ? `"${kg.title}" একটি যাচাইকৃত বিষয়। এর সাথে সম্পর্কিত তথ্য ও অফিশিয়াল সূত্রগুলো পাশের জ্ঞানকোষ প্যানেলে দেখুন।`
+        : `"${kg.title}" is a verified knowledge entity. Check key facts and official sources in the sidebar.`
+    });
+  }
+
+  const hasGov = results.some(r => (r.url || '').includes('.gov.bd'));
+  if (hasGov) {
+    perspectives.push({
+      label: bn ? 'সরকারি তথ্য' : 'Official Portal',
+      tone: 'Government',
       text: bn
-        ? 'সরাসরি প্রশ্ন করুন — যেমন "ঢাকায় সেরা হাসপাতাল কোনটি?" — আরও নির্দিষ্ট ফলাফল পাবেন।'
-        : 'Try a specific question — e.g. "best hospitals in Dhaka" — for more focused results.',
-    },
-    {
-      label: bn ? 'স্থানীয় খোঁজ' : 'Local angle',
-      tone: 'Local',
+        ? 'এই অনুসন্ধানের ফলাফলে সরাসরি বাংলাদেশ সরকারের প্রাতিষ্ঠানিক বা দাপ্তরিক পোর্টালের তথ্য অন্তর্ভুক্ত রয়েছে।'
+        : 'Official Bangladesh government portal records were discovered for this query.'
+    });
+  } else {
+    perspectives.push({
+      label: bn ? 'স্থানীয় খোঁজ' : 'Local Context',
+      tone: 'Local Angle',
       text: bn
-        ? 'জেলা বা বিভাগের নাম যোগ করুন — স্থানীয় তথ্য আলাদাভাবে দেখাবে।'
-        : 'Add a district or division name to surface local results.',
-    },
-    {
-      label: bn ? 'উৎস যাচাই করুন' : 'Verify sources',
-      tone: 'Trust',
-      text: bn
-        ? 'ফলাফলের ডোমেইন নাম দেখুন। সরকারি সাইট (.gov.bd) ও প্রতিষ্ঠিত সংবাদমাধ্যম অগ্রাধিকার পায়।'
-        : 'Check result domains. Government (.gov.bd) and established media sources rank higher.',
-    },
-  ];
+        ? 'জেলা বা বিভাগের নাম যুক্ত করলে (যেমন "ঢাকায়", "সিলেটের") নির্দিষ্ট এলাকাভিত্তিক স্থানীয় ফলাফল পাবেন।'
+        : 'Add a district or division name for targeted regional results.'
+    });
+  }
+
+  perspectives.push({
+    label: bn ? 'উৎস ও বিশ্বাসযোগ্যতা' : 'Source Trust',
+    tone: 'Trust',
+    text: bn
+      ? 'খোঁজো রেজাল্টের ডোমেইন আইকন ও সোর্স দেখে নির্ভরযোগ্য ও যাচাইকৃত তথ্য বেছে নিন।'
+      : 'Review source domain icons on each result card to verify authoritative publisher provenance.'
+  });
+
+  return perspectives;
 }
 
 async function loadSERP() {
@@ -638,6 +669,29 @@ async function loadSERP() {
     resultsList.appendChild(list);
 
 
+    // ── Knowledge Card sidebar (Fixes D7 & D8)
+    if (kg && kgCard) {
+      const kgCardContent = document.getElementById('kgCardContent');
+      if (kgCardContent) {
+        let kgHtml = '';
+        if (kg.image_url) {
+          kgHtml += `<div style="margin-bottom:10px;"><img src="${esc(kg.image_url)}" alt="${esc(kg.title)}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;"></div>`;
+        }
+        kgHtml += `<h3 style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text-primary);">${esc(kg.title)}</h3>`;
+        if (kg.description) {
+          kgHtml += `<p style="font-size:13px;line-height:1.5;color:var(--text-secondary);margin-bottom:10px;">${esc(kg.description.slice(0, 180))}${kg.description.length > 180 ? '...' : ''}</p>`;
+        }
+        if (kg.title) {
+          kgHtml += `<div style="margin-bottom:8px;"><a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--primary);font-weight:500;">উইকিপিডিয়া নিবন্ধ ↗</a></div>`;
+        }
+        kgCardContent.innerHTML = kgHtml;
+      }
+      if (kgGraphArea) {
+        drawKnowledgeGraph(kg, kgGraphArea);
+      }
+      kgCard.classList.remove('hidden');
+    }
+
     // ── Top sources sidebar
     if (sources.length > 0 && sourcesCard && sourcesList) {
       sourcesCard.classList.remove('hidden');
@@ -651,9 +705,9 @@ async function loadSERP() {
       });
     }
 
-    // ── Perspectives sidebar
+    // ── Perspectives sidebar (Fixes D13)
     if (perspectivesCard && perspectivesList) {
-      const persp = getPerspectives(query);
+      const persp = getPerspectives(query, data);
       perspectivesList.innerHTML = persp.map((p) => `
         <div class="perspective-item">
           <div class="perspective-header">

@@ -34,13 +34,13 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 | **D4** | 🔴 CRITICAL | Performance | `backend/main.py:134-162` | Correlated `unnest()` subquery defeats GIN trgm index | Replace with pg_trgm similarity operator `%` or tsvector/BM25 | ✅ DONE (Phase 3) |
 | **D5** | 🔴 CRITICAL | Retrieval | `backend/main.py:155` | Bangla case inflections fail silently (`ঢাকায়` misses `ঢাকা`) | Implement suffix-stripping normalizer at index and query time | ✅ DONE (Phase 4) |
 | **D6** | 🟠 HIGH | Retrieval | `backend/main.py:133-149` | Arbitrary ranking formula; URL match = 100 dominates | BM25 scoring with title/body weights + authority boost | ✅ DONE (Phase 3) |
-| **D7** | 🟠 HIGH | Frontend | `public/js/khujo.js` | Backend returns `knowledge_graph`, frontend never renders it | Implement entity card widget in search results UI | ⏳ Planned Phase 5 |
-| **D8** | 🟠 HIGH | Frontend | `public/js/khujo.js:259` | `drawKnowledgeGraph()` draws fake domain nodes | Replace with true entity-relationship graph visualization | ⏳ Planned Phase 5 |
+| **D7** | 🟠 HIGH | Frontend | `public/js/khujo.js` | Backend returns `knowledge_graph`, frontend never renders it | Implement entity card widget in search results UI | ✅ DONE (Phase 5) |
+| **D8** | 🟠 HIGH | Frontend | `public/js/khujo.js:259` | `drawKnowledgeGraph()` draws fake domain nodes | Replace with true entity-relationship graph visualization | ✅ DONE (Phase 5) |
 | **D9** | 🟠 HIGH | Security | `backend/main.py:17-18` | `allow_origins=["*"]` + `allow_credentials=True` is invalid/insecure | Specify allowed origins, restrict credentials | ✅ DONE (Phase 1) |
 | **D10** | 🟠 HIGH | Pipeline | `backend/ner_script.py:8-52` | Quadratic $O(N \times M)$ substring loop, non-idempotent assertions | Aho-Corasick or Trie string matcher + `ON CONFLICT` | ⏳ Planned Phase 6 |
 | **D11** | 🟡 MEDIUM | Security | `backend/main.py:224, 364...` | `HTTPException(500, detail=str(e))` leaks internal SQL | Log traceback server-side, return clean generic JSON message | ✅ DONE (Phase 1) |
 | **D12** | 🟡 MEDIUM | Architecture | `backend/main.py:188-212` | `GET /search` executes write transaction & commits | Decouple telemetry to async background task or separate logging | ✅ DONE (Phase 1) |
-| **D13** | 🟡 MEDIUM | UX | `public/js/khujo.js:381` | Perspectives panel uses 3 hardcoded static strings | Wire dynamic category or semantic breakdown | ⏳ Planned Phase 5 |
+| **D13** | 🟡 MEDIUM | UX | `public/js/khujo.js:381` | Perspectives panel uses 3 hardcoded static strings | Wire dynamic category or semantic breakdown | ✅ DONE (Phase 5) |
 | **D14** | 🟡 MEDIUM | Build | `requirements.txt` | Root requirements mixes pip packages with npm dependencies | Clean `requirements.txt` to pure Python pip dependencies | ✅ DONE (Phase 0) |
 | **D15** | 🟡 MEDIUM | Crawler | `crawler/seed_sources.py:20-56` | Google, FB, YT, Insta, LinkedIn seeded as crawl targets | Remove uncrawlable giant platforms; focus on BD news/edu | ⏳ Planned Phase 6 |
 | **D16** | 🟡 MEDIUM | Data | `0001_khojo_core.sql:348` | Document expiration computed but never enforced | Align retention policy with corpus targets | ⏳ Planned Phase 6 |
@@ -86,10 +86,10 @@ The audit revealed that **search quality is not a data volume problem**; it is a
   - Safeguard words in protected stoplist/dictionary so valid roots are not truncated.
 - [x] **Task 4.2 (D3):** Refactor entity resolution: exact match -> stemmed match -> fuzzy candidate, requiring minimum length threshold to prevent eager term pollution.
 
-### Phase 5: Knowledge Card & Frontend Experience
-- [ ] **Task 5.1 (D7):** Update `public/js/khujo.js` and `public/search.html` to properly render the `knowledge_graph` entity card (title, image, summary, facts table, official links).
-- [ ] **Task 5.2 (D8):** Replace dummy domain rectangles in `drawKnowledgeGraph()` with real entity connection nodes.
-- [ ] **Task 5.3 (D13):** Replace static perspectives with context-aware query analysis or dynamic topic pills.
+### Phase 5: Knowledge Card & Frontend Experience (COMPLETED ✅)
+- [x] **Task 5.1 (D7):** Update `public/js/khujo.js` and `public/search.html` to properly render the `knowledge_graph` entity card in the sidebar (`#kgCard`, facts, image, summary, official wiki links).
+- [x] **Task 5.2 (D8):** Replace dummy domain rectangles in `drawKnowledgeGraph()` with real interactive SVG entity connection nodes linking central entity to verified related entities.
+- [x] **Task 5.3 (D13):** Replace static perspectives with dynamic contextual query analysis and entity/source insights.
 
 ### Phase 6: Crawler Hardening & Maintenance
 - [ ] **Task 6.1 (D15):** Remove uncrawlable platforms (Google, FB, YT, etc.) from `crawler/seed_sources.py`.
