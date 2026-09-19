@@ -15,6 +15,7 @@ env/
 logs/
 crawler/data/wiktionary_cache/
 crawler/data/raw_html/
+transcripts/
 
 # IDEs & Editors
 .vscode/
