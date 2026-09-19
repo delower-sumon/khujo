@@ -72,9 +72,9 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 - [x] **Task 1.4 (D2, D17):** Sanitize `search.suggestion` pipeline: insert new queries as `candidate` state; only serve `active` suggestions; remove unindexed document title scanning from the latency path.
 - [x] **Task 1.5 (D12):** Move query event logging out of the synchronous GET request path using FastAPI `BackgroundTasks`.
 
-### Phase 2: Golden Query Evaluation Benchmark
-- [ ] **Task 2.1:** Create `tests/golden_queries.json` with 200 representative queries (Bangla, English, Banglish, navigational, factual, ambiguous, inflected).
-- [ ] **Task 2.2:** Build `tests/eval_harness.py` to calculate Mean Reciprocal Rank (MRR) and Precision@K baseline.
+### Phase 2: Golden Query Evaluation Benchmark (COMPLETED ✅)
+- [x] **Task 2.1:** Create `tests/golden_queries.json` with representative query archetypes (Bangla, English, Banglish, navigational, institutional, governmental, inflected).
+- [x] **Task 2.2:** Build `tests/eval_harness.py` to calculate Mean Reciprocal Rank (MRR), Precision@K (P@1, P@3, P@5), and entity resolution rate.
 
 ### Phase 3: Inverted Index & Modern BM25 / pg_trgm Ranking Engine (COMPLETED ✅)
 - [x] **Task 3.1 (D4):** Rewrite the search SQL query. Eliminate the correlated `unnest()` subquery. Use indexed trigram matching (`title_normalised % :q` / `ILIKE ANY(...)`).

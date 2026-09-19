@@ -1,0 +1,202 @@
+[
+  {
+    "id": 1,
+    "query": "ঢাকা",
+    "category": "geographical",
+    "script": "bangla",
+    "intent": "entity_lookup",
+    "expected_keywords": ["ঢাকা", "dhaka", "রাজধানী"]
+  },
+  {
+    "id": 2,
+    "query": "ঢাকায়",
+    "category": "inflected",
+    "script": "bangla",
+    "intent": "entity_inflected",
+    "expected_keywords": ["ঢাকা", "dhaka"]
+  },
+  {
+    "id": 3,
+    "query": "ঢাকার",
+    "category": "inflected",
+    "script": "bangla",
+    "intent": "entity_inflected",
+    "expected_keywords": ["ঢাকা", "dhaka"]
+  },
+  {
+    "id": 4,
+    "query": "সিলেট",
+    "category": "geographical",
+    "script": "bangla",
+    "intent": "entity_lookup",
+    "expected_keywords": ["সিলেট", "sylhet"]
+  },
+  {
+    "id": 5,
+    "query": "সিলেটের",
+    "category": "inflected",
+    "script": "bangla",
+    "intent": "entity_inflected",
+    "expected_keywords": ["সিলেট", "sylhet"]
+  },
+  {
+    "id": 6,
+    "query": "চট্টগ্রাম",
+    "category": "geographical",
+    "script": "bangla",
+    "intent": "entity_lookup",
+    "expected_keywords": ["চট্টগ্রাম", "chittagong", "chattogram"]
+  },
+  {
+    "id": 7,
+    "query": "চট্টগ্রামের",
+    "category": "inflected",
+    "script": "bangla",
+    "intent": "entity_inflected",
+    "expected_keywords": ["চট্টগ্রাম", "chittagong"]
+  },
+  {
+    "id": 8,
+    "query": "প্রথম আলো",
+    "category": "navigational",
+    "script": "bangla",
+    "intent": "publisher",
+    "expected_keywords": ["প্রথম আলো", "prothomalo.com"]
+  },
+  {
+    "id": 9,
+    "query": "prothom alo",
+    "category": "navigational",
+    "script": "english",
+    "intent": "publisher",
+    "expected_keywords": ["prothomalo.com", "প্রথম আলো"]
+  },
+  {
+    "id": 10,
+    "query": "ঢাকা বিশ্ববিদ্যালয়",
+    "category": "institutional",
+    "script": "bangla",
+    "intent": "university",
+    "expected_keywords": ["ঢাকা বিশ্ববিদ্যালয়", "du.ac.bd"]
+  },
+  {
+    "id": 11,
+    "query": "dhaka university",
+    "category": "institutional",
+    "script": "english",
+    "intent": "university",
+    "expected_keywords": ["du.ac.bd", "ঢাকা বিশ্ববিদ্যালয়"]
+  },
+  {
+    "id": 12,
+    "query": "বুয়েট",
+    "category": "institutional",
+    "script": "bangla",
+    "intent": "university",
+    "expected_keywords": ["বুয়েট", "buet.ac.bd"]
+  },
+  {
+    "id": 13,
+    "query": "buet",
+    "category": "institutional",
+    "script": "english",
+    "intent": "university",
+    "expected_keywords": ["buet.ac.bd", "বুয়েট"]
+  },
+  {
+    "id": 14,
+    "query": "বাংলাদেশ জাতীয় তথ্য বাতায়ন",
+    "category": "governmental",
+    "script": "bangla",
+    "intent": "portal",
+    "expected_keywords": ["bangladesh.gov.bd", "জাতীয় তথ্য বাতায়ন"]
+  },
+  {
+    "id": 15,
+    "query": "bangladesh gov",
+    "category": "governmental",
+    "script": "english",
+    "intent": "portal",
+    "expected_keywords": ["bangladesh.gov.bd"]
+  },
+  {
+    "id": 16,
+    "query": "কক্সবাজার",
+    "category": "geographical",
+    "script": "bangla",
+    "intent": "tourism",
+    "expected_keywords": ["কক্সবাজার", "cox's bazar"]
+  },
+  {
+    "id": 17,
+    "query": "সুন্দরবন",
+    "category": "geographical",
+    "script": "bangla",
+    "intent": "heritage",
+    "expected_keywords": ["সুন্দরবন", "sundarbans"]
+  },
+  {
+    "id": 18,
+    "query": "পদ্মা সেতু",
+    "category": "infrastructure",
+    "script": "bangla",
+    "intent": "factual",
+    "expected_keywords": ["পদ্মা সেতু", "padma bridge"]
+  },
+  {
+    "id": 19,
+    "query": "মেট্রোরেল",
+    "category": "infrastructure",
+    "script": "bangla",
+    "intent": "factual",
+    "expected_keywords": ["মেট্রোরেল", "metro rail"]
+  },
+  {
+    "id": 20,
+    "query": "মানুষের অধিকার",
+    "category": "inflected",
+    "script": "bangla",
+    "intent": "legal",
+    "expected_keywords": ["মানুষ", "অধিকার"]
+  },
+  {
+    "id": 21,
+    "query": "বিশ্ববিদ্যালয়গুলো",
+    "category": "inflected",
+    "script": "bangla",
+    "intent": "plural_inflected",
+    "expected_keywords": ["বিশ্ববিদ্যালয়", "university"]
+  },
+  {
+    "id": 22,
+    "query": "বিডিনিউজ",
+    "category": "navigational",
+    "script": "bangla",
+    "intent": "news",
+    "expected_keywords": ["bdnews24.com", "বিডিনিউজ"]
+  },
+  {
+    "id": 23,
+    "query": "bdnews24",
+    "category": "navigational",
+    "script": "english",
+    "intent": "news",
+    "expected_keywords": ["bdnews24.com"]
+  },
+  {
+    "id": 24,
+    "query": "বাংলা উইকিপিডিয়া",
+    "category": "navigational",
+    "script": "bangla",
+    "intent": "encyclopedia",
+    "expected_keywords": ["bn.wikipedia.org", "উইকিপিডিয়া"]
+  },
+  {
+    "id": 25,
+    "query": "khujo",
+    "category": "banglish",
+    "script": "latin",
+    "intent": "brand",
+    "expected_keywords": ["খোঁজো", "khujo"]
+  }
+]
