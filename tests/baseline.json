@@ -1,0 +1,45 @@
+{
+  "total_queries": 25,
+  "mrr": 0.36,
+  "mean_p@1": 0.36,
+  "mean_p@3": 0.12,
+  "mean_p@5": 0.072,
+  "kg_resolution_rate": 0.32,
+  "category_breakdown": {
+    "geographical": {
+      "count": 5,
+      "mrr": 0.8,
+      "p@1": 0.8
+    },
+    "inflected": {
+      "count": 6,
+      "mrr": 0.6667,
+      "p@1": 0.6667
+    },
+    "navigational": {
+      "count": 5,
+      "mrr": 0.2,
+      "p@1": 0.2
+    },
+    "institutional": {
+      "count": 4,
+      "mrr": 0.0,
+      "p@1": 0.0
+    },
+    "governmental": {
+      "count": 2,
+      "mrr": 0.0,
+      "p@1": 0.0
+    },
+    "infrastructure": {
+      "count": 2,
+      "mrr": 0.0,
+      "p@1": 0.0
+    },
+    "banglish": {
+      "count": 1,
+      "mrr": 0.0,
+      "p@1": 0.0
+    }
+  }
+}
