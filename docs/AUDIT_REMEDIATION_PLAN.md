@@ -30,10 +30,10 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 |---|---|---|---|---|---|---|
 | **D1** | 🔴 CRITICAL | Security | `backend/main.py:367-450` | `/admin/*` endpoints have no authentication | Add API Key / Bearer Auth dependency (`ADMIN_API_KEY`) | ✅ DONE (Phase 1) |
 | **D2** | 🔴 CRITICAL | Data Integrity | `backend/main.py:197-208` | Every search query written directly to live suggestions | Set `state = 'candidate'`, serve only `active`, promote via cron | ✅ DONE (Phase 1) |
-| **D3** | 🔴 CRITICAL | Retrieval | `backend/main.py:56-72` | Entity resolved via `ILIKE '%q%' LIMIT 1` by ID | Exact match first, confidence threshold, avoid eager term pollution | ⏳ Planned Phase 4 |
-| **D4** | 🔴 CRITICAL | Performance | `backend/main.py:134-162` | Correlated `unnest()` subquery defeats GIN trgm index | Replace with pg_trgm similarity operator `%` or tsvector/BM25 | ⏳ Planned Phase 3 |
-| **D5** | 🔴 CRITICAL | Retrieval | `backend/main.py:155` | Bangla case inflections fail silently (`ঢাকায়` misses `ঢাকা`) | Implement suffix-stripping normalizer at index and query time | ✅ DONE (`backend/app/nlp/bangla_stemmer.py`) |
-| **D6** | 🟠 HIGH | Retrieval | `backend/main.py:133-149` | Arbitrary ranking formula; URL match = 100 dominates | BM25 scoring with title/body weights + authority boost | ⏳ Planned Phase 3 |
+| **D3** | 🔴 CRITICAL | Retrieval | `backend/main.py:56-72` | Entity resolved via `ILIKE '%q%' LIMIT 1` by ID | Exact match first, confidence threshold, avoid eager term pollution | ✅ DONE (Phase 4) |
+| **D4** | 🔴 CRITICAL | Performance | `backend/main.py:134-162` | Correlated `unnest()` subquery defeats GIN trgm index | Replace with pg_trgm similarity operator `%` or tsvector/BM25 | ✅ DONE (Phase 3) |
+| **D5** | 🔴 CRITICAL | Retrieval | `backend/main.py:155` | Bangla case inflections fail silently (`ঢাকায়` misses `ঢাকা`) | Implement suffix-stripping normalizer at index and query time | ✅ DONE (Phase 4) |
+| **D6** | 🟠 HIGH | Retrieval | `backend/main.py:133-149` | Arbitrary ranking formula; URL match = 100 dominates | BM25 scoring with title/body weights + authority boost | ✅ DONE (Phase 3) |
 | **D7** | 🟠 HIGH | Frontend | `public/js/khujo.js` | Backend returns `knowledge_graph`, frontend never renders it | Implement entity card widget in search results UI | ⏳ Planned Phase 5 |
 | **D8** | 🟠 HIGH | Frontend | `public/js/khujo.js:259` | `drawKnowledgeGraph()` draws fake domain nodes | Replace with true entity-relationship graph visualization | ⏳ Planned Phase 5 |
 | **D9** | 🟠 HIGH | Security | `backend/main.py:17-18` | `allow_origins=["*"]` + `allow_credentials=True` is invalid/insecure | Specify allowed origins, restrict credentials | ✅ DONE (Phase 1) |
@@ -76,15 +76,15 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 - [ ] **Task 2.1:** Create `tests/golden_queries.json` with 200 representative queries (Bangla, English, Banglish, navigational, factual, ambiguous, inflected).
 - [ ] **Task 2.2:** Build `tests/eval_harness.py` to calculate Mean Reciprocal Rank (MRR) and Precision@K baseline.
 
-### Phase 3: Inverted Index & Modern BM25 / pg_trgm Ranking Engine
-- [ ] **Task 3.1 (D4):** Rewrite the search SQL query. Eliminate the correlated `unnest()` subquery. Use indexed trigram matching (`title_normalised % :q`) or full-text tsvector search.
-- [ ] **Task 3.2 (D6):** Replace the static score formula (`100.0 * url_match + 80.0 * title_match`) with a normalized scoring algorithm incorporating term frequency and document authority.
+### Phase 3: Inverted Index & Modern BM25 / pg_trgm Ranking Engine (COMPLETED ✅)
+- [x] **Task 3.1 (D4):** Rewrite the search SQL query. Eliminate the correlated `unnest()` subquery. Use indexed trigram matching (`title_normalised % :q` / `ILIKE ANY(...)`).
+- [x] **Task 3.2 (D6):** Replace the static score formula (`100.0 * url_match + 80.0 * title_match`) with normalized relevance scoring: exact title bonus (+100), title trigram (* 50), body trigram (* 20), demoted URL boost (+10), authority (+15), and freshness decay boost.
 
-### Phase 4: Bangla Morphology & Query Understanding
-- [ ] **Task 4.1 (D5):** Implement a lightweight rule-based Bangla suffix stripper (`crawler/lexicon/bangla_stemmer.py`):
+### Phase 4: Bangla Morphology & Query Understanding (COMPLETED ✅)
+- [x] **Task 4.1 (D5):** Implement a lightweight rule-based Bangla suffix stripper (`backend/app/nlp/bangla_stemmer.py`):
   - Strip locative/possessive/plural suffixes: `-র`, `-এর`, `-তে`, `-য়ে`, `-য়`, `-গুলো`, `-গুলি`, `-দের`
   - Safeguard words in protected stoplist/dictionary so valid roots are not truncated.
-- [ ] **Task 4.2 (D3):** Refactor entity resolution: exact match -> stemmed match -> fuzzy candidate, requiring minimum similarity score before triggering entity alias expansions.
+- [x] **Task 4.2 (D3):** Refactor entity resolution: exact match -> stemmed match -> fuzzy candidate, requiring minimum length threshold to prevent eager term pollution.
 
 ### Phase 5: Knowledge Card & Frontend Experience
 - [ ] **Task 5.1 (D7):** Update `public/js/khujo.js` and `public/search.html` to properly render the `knowledge_graph` entity card (title, image, summary, facts table, official links).

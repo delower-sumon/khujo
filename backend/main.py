@@ -238,26 +238,41 @@ async def search(
                 if a[0] and a[0] not in search_terms:
                     search_terms.append(a[0])
 
-        # 2. Document Search
+        # 2. Document Search (Fixes D4 & D6)
+        # Prepare trigram/ILIKE patterns without correlated unnest subqueries
+        search_patterns = [f"%{t}%" for t in search_terms if len(t.strip()) >= 2]
+        if not search_patterns:
+            search_patterns = [f"%{clean_q}%"]
+
         docs = db.execute(text("""
             SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
                    content.document.summary, content.document.body_text, content.document.published_at, 
                    core.source.source_name as source,
                    (
-                       CASE WHEN EXISTS (
-                           SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
-                           WHERE content.document.canonical_url ILIKE '%' || term || '%'
-                       ) THEN 100.0 ELSE 0.0 END +
+                       -- 1. Exact or title token match gets highest priority
+                       (CASE WHEN lower(content.document.title) = lower(:q) THEN 100.0
+                             WHEN content.document.title_normalised ILIKE ANY(CAST(:patterns AS text[])) THEN 40.0
+                             ELSE 0.0 END) +
 
-                       CASE WHEN EXISTS (
-                           SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
-                           WHERE lower(content.document.title) ILIKE '%' || lower(term) || '%'
-                       ) THEN 80.0 ELSE 0.0 END +
+                       -- 2. Trigram similarity on normalized title (heavy weight)
+                       (COALESCE(similarity(content.document.title_normalised, :q), 0.0) * 50.0) +
 
-                       (similarity(content.document.title_normalised, :q) * 20.0) +
-                       (similarity(content.document.body_normalised, :q) * 5.0) +
+                       -- 3. Trigram similarity on normalized body (medium weight)
+                       (COALESCE(similarity(content.document.body_normalised, :q), 0.0) * 20.0) +
 
-                       CASE WHEN CAST(content.document.document_kind AS text) IN ('listing', 'official') THEN 15.0 ELSE 0.0 END
+                       -- 4. Substring presence in body
+                       (CASE WHEN content.document.body_normalised ILIKE ANY(CAST(:patterns AS text[])) THEN 15.0 ELSE 0.0 END) +
+
+                       -- 5. URL matching (demoted from 100 to 10 so it never dominates over title)
+                       (CASE WHEN content.document.canonical_url ILIKE ANY(CAST(:patterns AS text[])) THEN 10.0 ELSE 0.0 END) +
+
+                       -- 6. Official / authoritative source boost
+                       (CASE WHEN CAST(content.document.document_kind AS text) IN ('official', 'government', 'listing') THEN 15.0 ELSE 0.0 END) +
+
+                       -- 7. Freshness decay boost
+                       (CASE WHEN content.document.published_at > now() - interval '7 days' THEN 10.0
+                             WHEN content.document.published_at > now() - interval '30 days' THEN 5.0
+                             ELSE 0.0 END)
 
                    ) as final_score
             FROM content.document
@@ -265,16 +280,14 @@ async def search(
             LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
             WHERE content.document.state = 'verified'
               AND (
-                EXISTS (
-                    SELECT 1 FROM unnest(CAST(:terms AS text[])) term 
-                    WHERE content.document.title_normalised ILIKE '%' || term || '%'
-                       OR content.document.canonical_url ILIKE '%' || term || '%'
-                       OR content.document.body_normalised ILIKE '%' || term || '%'
-                )
+                content.document.title_normalised ILIKE ANY(CAST(:patterns AS text[]))
+                OR content.document.body_normalised ILIKE ANY(CAST(:patterns AS text[]))
+                OR content.document.canonical_url ILIKE ANY(CAST(:patterns AS text[]))
+                OR content.document.title_normalised % :q
               )
             ORDER BY final_score DESC, content.document.published_at DESC NULLS LAST
             LIMIT :limit OFFSET :offset
-        """), {"q": clean_q, "terms": search_terms, "limit": limit, "offset": offset}).fetchall()
+        """), {"q": clean_q, "patterns": search_patterns, "limit": limit, "offset": offset}).fetchall()
 
         results = []
         for d in docs:
