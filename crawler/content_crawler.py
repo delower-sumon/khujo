@@ -19,6 +19,14 @@ from utils.db import get_engine
 from utils.r2 import upload_favicon
 from utils.links import compute_url_hash, is_valid_article_url
 from utils.robots import is_url_allowed
+try:
+    from backend.app.nlp.bangla_stemmer import stem_and_normalize_bangla
+except ImportError:
+    try:
+        from app.nlp.bangla_stemmer import stem_and_normalize_bangla
+    except ImportError:
+        def stem_and_normalize_bangla(t):
+            return t.lower() if t else ""
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("content_crawler")
@@ -198,6 +206,9 @@ def crawl_content_urls(batch_limit: int = 10):
                         """), {"sid": source_id, "url": data["canonical_url"], "title": data["title"]}).scalar()
 
 
+                    norm_title = stem_and_normalize_bangla(data["title"])
+                    norm_body = stem_and_normalize_bangla(body_text[:5000])
+
                     # Insert document into content.document (state = 'candidate' for Admin Gate!)
                     doc_id = write_conn.execute(text("""
                         INSERT INTO content.document (
@@ -205,16 +216,18 @@ def crawl_content_urls(batch_limit: int = 10):
                             body_text, body_normalised, language_code, content_hash, state, document_kind
                         )
                         VALUES (
-                            :srid, :url, :title, lower(:title), :desc,
-                            :body, lower(:body), 'bn', :hash, 'candidate', 'news'
+                            :srid, :url, :title, :norm_title, :desc,
+                            :body, :norm_body, 'bn', :hash, 'candidate', 'news'
                         )
                         RETURNING document_id
                     """), {
                         "srid": source_record_id,
                         "url": data["canonical_url"],
                         "title": data["title"],
+                        "norm_title": norm_title,
                         "desc": data["description"],
                         "body": body_text,
+                        "norm_body": norm_body,
                         "hash": content_hash
                     }).scalar()
 

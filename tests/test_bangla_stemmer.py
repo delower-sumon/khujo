@@ -37,5 +37,20 @@ class TestBanglaStemmer(unittest.TestCase):
         self.assertIn("বিশ্ববিদ্যালয়", expanded)
         self.assertIn("ঢাকা বিশ্ববিদ্যালয়", expanded)
 
+    def test_audit_remediation_inflections(self):
+        """
+        Target inflection cases specified in prompt 1 item 4:
+        ঘরের → ঘর (not ঘ), রংপুরের → রংপুর, জামালপুরে → জামালপুর,
+        কিশোরগঞ্জের → কিশোরগঞ্জ, সাগরে → সাগর, বরিশালের → বরিশাল.
+        """
+        self.assertEqual(strip_bangla_suffix("ঘরের"), "ঘর")
+        self.assertEqual(strip_bangla_suffix("ঘর"), "ঘর")  # Never reduced to ঘ
+        self.assertEqual(strip_bangla_suffix("রংপুরের"), "রংপুর")
+        self.assertEqual(strip_bangla_suffix("জামালপুরে"), "জামালপুর")
+        self.assertEqual(strip_bangla_suffix("কিশোরগঞ্জের"), "কিশোরগঞ্জ")
+        self.assertEqual(strip_bangla_suffix("সাগরে"), "সাগর")
+        self.assertEqual(strip_bangla_suffix("বরিশালের"), "বরিশাল")
+
 if __name__ == "__main__":
     unittest.main()
+

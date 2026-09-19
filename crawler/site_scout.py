@@ -9,6 +9,14 @@ from utils.db import get_engine
 from utils.r2 import fetch_and_upload_favicon
 from utils.robots import is_url_allowed
 from utils.links import compute_url_hash, is_valid_article_url
+try:
+    from backend.app.nlp.bangla_stemmer import stem_and_normalize_bangla
+except ImportError:
+    try:
+        from app.nlp.bangla_stemmer import stem_and_normalize_bangla
+    except ImportError:
+        def stem_and_normalize_bangla(t):
+            return t.lower() if t else ""
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -115,18 +123,22 @@ def scout_base_urls():
 
                             if not doc_exists:
                                 content_hash = hashlib.sha256(f"{domain} base homepage {base_url}".encode("utf-8")).hexdigest()
+                                norm_title = stem_and_normalize_bangla(page_title[:250])
+                                norm_body = stem_and_normalize_bangla(f"{page_title} - {page_desc} {base_url}")
                                 base_doc_conn.execute(text("""
                                     INSERT INTO content.document (
                                         source_record_id, canonical_url, title, title_normalised, summary,
                                         body_text, body_normalised, language_code, content_hash, state, document_kind
                                     )
                                     VALUES (
-                                        :srid, :url, :title, lower(:title), :desc,
-                                        :body, lower(:body), 'bn', :hash, 'candidate', 'listing'
+                                        :srid, :url, :title, :norm_title, :desc,
+                                        :body, :norm_body, 'bn', :hash, 'candidate', 'listing'
                                     )
                                 """), {
                                     "srid": srid, "url": base_url, "title": page_title[:250],
+                                    "norm_title": norm_title,
                                     "desc": page_desc[:500], "body": f"{page_title} - {page_desc} {base_url}",
+                                    "norm_body": norm_body,
                                     "hash": content_hash
                                 })
                                 log.info("  ✓ Staged Base Homepage Candidate in Admin Queue: %s", base_url)

@@ -17,9 +17,9 @@ except ImportError:
     from backend.app.database import get_db, SessionLocal
 
 try:
-    from app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems
+    from app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems, stem_and_normalize_bangla
 except ImportError:
-    from backend.app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems
+    from backend.app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems, stem_and_normalize_bangla
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("khujo_api")
@@ -88,6 +88,16 @@ def record_search_telemetry(clean_q: str, results_count: int):
             SET popularity_score = popularity_score + 1 
             WHERE phrase_normalised = lower(:q)
         """), {"q": clean_q}).rowcount
+
+        # Promotion rule (Fixes D2): promote candidate -> active when popularity_score >= 3 and results exist
+        if results_count > 0:
+            session.execute(text("""
+                UPDATE search.suggestion 
+                SET state = 'active' 
+                WHERE phrase_normalised = lower(:q) 
+                  AND state = 'candidate' 
+                  AND popularity_score >= 3
+            """), {"q": clean_q})
 
         # Gated suggestion: new user queries enter as 'candidate' state, never 'active' immediately
         if updated_sug == 0 and 2 <= len(clean_q) <= 80:
@@ -239,37 +249,32 @@ async def search(
                     search_terms.append(a[0])
 
         # 2. Document Search (Fixes D4 & D6)
-        # Prepare trigram/ILIKE patterns without correlated unnest subqueries
-        search_patterns = [f"%{t}%" for t in search_terms if len(t.strip()) >= 2]
-        if not search_patterns:
-            search_patterns = [f"%{clean_q}%"]
+        # Drop ILIKE ANY from WHERE predicate; use GIN % operator to ensure Bitmap Index Scan
+        q_url_pattern = f"%{clean_q}%"
 
         docs = db.execute(text("""
             SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
                    content.document.summary, content.document.body_text, content.document.published_at, 
                    core.source.source_name as source,
                    (
-                       -- 1. Exact or title token match gets highest priority
+                       -- 1. Exact or title root match gets highest priority
                        (CASE WHEN lower(content.document.title) = lower(:q) THEN 100.0
-                             WHEN content.document.title_normalised ILIKE ANY(CAST(:patterns AS text[])) THEN 40.0
+                             WHEN lower(content.document.title) = lower(:stemmed_q) THEN 80.0
                              ELSE 0.0 END) +
 
                        -- 2. Trigram similarity on normalized title (heavy weight)
                        (COALESCE(similarity(content.document.title_normalised, :q), 0.0) * 50.0) +
 
-                       -- 3. Trigram similarity on normalized body (medium weight)
-                       (COALESCE(similarity(content.document.body_normalised, :q), 0.0) * 20.0) +
+                       -- 3. Body trigram presence (Fixes D6: eliminated expensive body float similarity)
+                       (CASE WHEN content.document.body_normalised % :q THEN 15.0 ELSE 0.0 END) +
 
-                       -- 4. Substring presence in body
-                       (CASE WHEN content.document.body_normalised ILIKE ANY(CAST(:patterns AS text[])) THEN 15.0 ELSE 0.0 END) +
+                       -- 4. URL matching (demoted to +10 so it never dominates over title)
+                       (CASE WHEN content.document.canonical_url ILIKE :url_pattern THEN 10.0 ELSE 0.0 END) +
 
-                       -- 5. URL matching (demoted from 100 to 10 so it never dominates over title)
-                       (CASE WHEN content.document.canonical_url ILIKE ANY(CAST(:patterns AS text[])) THEN 10.0 ELSE 0.0 END) +
-
-                       -- 6. Official / authoritative source boost
+                       -- 5. Official / authoritative source boost
                        (CASE WHEN CAST(content.document.document_kind AS text) IN ('official', 'government', 'listing') THEN 15.0 ELSE 0.0 END) +
 
-                       -- 7. Freshness decay boost
+                       -- 6. Freshness decay boost
                        (CASE WHEN content.document.published_at > now() - interval '7 days' THEN 10.0
                              WHEN content.document.published_at > now() - interval '30 days' THEN 5.0
                              ELSE 0.0 END)
@@ -281,14 +286,19 @@ async def search(
             WHERE content.document.state = 'verified'
               AND (content.document.expires_at IS NULL OR content.document.expires_at > now())
               AND (
-                content.document.title_normalised ILIKE ANY(CAST(:patterns AS text[]))
-                OR content.document.body_normalised ILIKE ANY(CAST(:patterns AS text[]))
-                OR content.document.canonical_url ILIKE ANY(CAST(:patterns AS text[]))
-                OR content.document.title_normalised % :q
+                content.document.title_normalised % :q
+                OR content.document.title_normalised % :stemmed_q
+                OR content.document.body_normalised % :q
               )
             ORDER BY final_score DESC, content.document.published_at DESC NULLS LAST
             LIMIT :limit OFFSET :offset
-        """), {"q": clean_q, "patterns": search_patterns, "limit": limit, "offset": offset}).fetchall()
+        """), {
+            "q": clean_q,
+            "stemmed_q": stemmed_root,
+            "url_pattern": q_url_pattern,
+            "limit": limit,
+            "offset": offset
+        }).fetchall()
 
         results = []
         for d in docs:
@@ -498,8 +508,10 @@ async def update_document(document_id: str, update_data: DocumentUpdate, db: Ses
         params = {"id": document_id}
 
         if update_data.title is not None:
-            updates.append("title = :title, title_normalised = lower(:title)")
+            norm_title = stem_and_normalize_bangla(update_data.title)
+            updates.append("title = :title, title_normalised = :norm_title")
             params["title"] = update_data.title
+            params["norm_title"] = norm_title
 
         if update_data.description is not None:
             updates.append("summary = :description")
