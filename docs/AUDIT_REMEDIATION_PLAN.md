@@ -49,7 +49,7 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 | **D19** | 🟢 LOW | Hygiene | `backend/crawler.py` | Outdated 149-line crawler exists alongside `crawler/` | Archive / remove `backend/crawler.py` | ✅ DONE (Phase 0) |
 | **D20** | 🟢 LOW | Hygiene | `backend/app/models/` | Dead ORM models for dropped tables | Clean out unused model files | ✅ DONE (Phase 0) |
 | **D21** | 🟢 LOW | Hygiene | `backend/app/models/search.py` | Hardcoded dummy `DATABASE_URL` placeholder | Remove dead file or route to config | ✅ DONE (Phase 0) |
-| **D22** | 🟢 LOW | Documentation | `README.md` | References nonexistent React/Vite frontend files | Update README to reflect current vanilla JS architecture | ⏳ Planned Phase 0 |
+| **D22** | 🟢 LOW | Documentation | `README.md` | References nonexistent React/Vite frontend files | Update README to reflect current vanilla JS architecture | ✅ DONE (Phase 0) |
 | **D23** | 🟢 LOW | Tooling | Repository root | No test suite, no CI, no `.env.example` | Create `.env.example`, `pytest` configuration, basic CI test | ✅ DONE (Phase 0) |
 | **D24** | 🟢 LOW | Frontend | `public/css/khujo.css:99` | Font stack ends at `sans-serif` without Bangla system fallbacks | Add `Kalpurush`, `Siyam Rupali`, `SolaimanLipi`, `Vrinda` fallback | ✅ DONE (Phase 0) |
 
