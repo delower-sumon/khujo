@@ -32,7 +32,7 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 | **D2** | 🔴 CRITICAL | Data Integrity | `backend/main.py:197-208` | Every search query written directly to live suggestions | Set `state = 'candidate'`, serve only `active`, promote via cron | ✅ DONE (Phase 1) |
 | **D3** | 🔴 CRITICAL | Retrieval | `backend/main.py:56-72` | Entity resolved via `ILIKE '%q%' LIMIT 1` by ID | Exact match first, confidence threshold, avoid eager term pollution | ⏳ Planned Phase 4 |
 | **D4** | 🔴 CRITICAL | Performance | `backend/main.py:134-162` | Correlated `unnest()` subquery defeats GIN trgm index | Replace with pg_trgm similarity operator `%` or tsvector/BM25 | ⏳ Planned Phase 3 |
-| **D5** | 🔴 CRITICAL | Retrieval | `backend/main.py:155` | Bangla case inflections fail silently (`ঢাকায়` misses `ঢাকা`) | Implement suffix-stripping normalizer at index and query time | ⏳ Planned Phase 4 |
+| **D5** | 🔴 CRITICAL | Retrieval | `backend/main.py:155` | Bangla case inflections fail silently (`ঢাকায়` misses `ঢাকা`) | Implement suffix-stripping normalizer at index and query time | ✅ DONE (`backend/app/nlp/bangla_stemmer.py`) |
 | **D6** | 🟠 HIGH | Retrieval | `backend/main.py:133-149` | Arbitrary ranking formula; URL match = 100 dominates | BM25 scoring with title/body weights + authority boost | ⏳ Planned Phase 3 |
 | **D7** | 🟠 HIGH | Frontend | `public/js/khujo.js` | Backend returns `knowledge_graph`, frontend never renders it | Implement entity card widget in search results UI | ⏳ Planned Phase 5 |
 | **D8** | 🟠 HIGH | Frontend | `public/js/khujo.js:259` | `drawKnowledgeGraph()` draws fake domain nodes | Replace with true entity-relationship graph visualization | ⏳ Planned Phase 5 |
@@ -41,29 +41,29 @@ The audit revealed that **search quality is not a data volume problem**; it is a
 | **D11** | 🟡 MEDIUM | Security | `backend/main.py:224, 364...` | `HTTPException(500, detail=str(e))` leaks internal SQL | Log traceback server-side, return clean generic JSON message | ✅ DONE (Phase 1) |
 | **D12** | 🟡 MEDIUM | Architecture | `backend/main.py:188-212` | `GET /search` executes write transaction & commits | Decouple telemetry to async background task or separate logging | ✅ DONE (Phase 1) |
 | **D13** | 🟡 MEDIUM | UX | `public/js/khujo.js:381` | Perspectives panel uses 3 hardcoded static strings | Wire dynamic category or semantic breakdown | ⏳ Planned Phase 5 |
-| **D14** | 🟡 MEDIUM | Build | `requirements.txt` | Root requirements mixes pip packages with npm dependencies | Clean `requirements.txt` to pure Python pip dependencies | ⏳ Planned Phase 0 |
+| **D14** | 🟡 MEDIUM | Build | `requirements.txt` | Root requirements mixes pip packages with npm dependencies | Clean `requirements.txt` to pure Python pip dependencies | ✅ DONE (Phase 0) |
 | **D15** | 🟡 MEDIUM | Crawler | `crawler/seed_sources.py:20-56` | Google, FB, YT, Insta, LinkedIn seeded as crawl targets | Remove uncrawlable giant platforms; focus on BD news/edu | ⏳ Planned Phase 6 |
 | **D16** | 🟡 MEDIUM | Data | `0001_khojo_core.sql:348` | Document expiration computed but never enforced | Align retention policy with corpus targets | ⏳ Planned Phase 6 |
 | **D17** | 🟡 MEDIUM | Latency | `backend/main.py:322-350` | Autocomplete does unindexed document title regex splitting | Rely on pre-computed `search.suggestion` table | ✅ DONE (Phase 1) |
-| **D18** | 🟢 LOW | Hygiene | `backend/*.py` | 13 one-off emergency Neon cleanup scripts cluttering backend | Move to `backend/archive/scripts/` | ⏳ Planned Phase 0 |
-| **D19** | 🟢 LOW | Hygiene | `backend/crawler.py` | Outdated 149-line crawler exists alongside `crawler/` | Archive / remove `backend/crawler.py` | ⏳ Planned Phase 0 |
-| **D20** | 🟢 LOW | Hygiene | `backend/app/models/` | Dead ORM models for dropped tables | Clean out unused model files | ⏳ Planned Phase 0 |
-| **D21** | 🟢 LOW | Hygiene | `backend/app/models/search.py` | Hardcoded dummy `DATABASE_URL` placeholder | Remove dead file or route to config | ⏳ Planned Phase 0 |
+| **D18** | 🟢 LOW | Hygiene | `backend/*.py` | 13 one-off emergency Neon cleanup scripts cluttering backend | Move to `backend/archive/scripts/` | ✅ DONE (Phase 0) |
+| **D19** | 🟢 LOW | Hygiene | `backend/crawler.py` | Outdated 149-line crawler exists alongside `crawler/` | Archive / remove `backend/crawler.py` | ✅ DONE (Phase 0) |
+| **D20** | 🟢 LOW | Hygiene | `backend/app/models/` | Dead ORM models for dropped tables | Clean out unused model files | ✅ DONE (Phase 0) |
+| **D21** | 🟢 LOW | Hygiene | `backend/app/models/search.py` | Hardcoded dummy `DATABASE_URL` placeholder | Remove dead file or route to config | ✅ DONE (Phase 0) |
 | **D22** | 🟢 LOW | Documentation | `README.md` | References nonexistent React/Vite frontend files | Update README to reflect current vanilla JS architecture | ⏳ Planned Phase 0 |
-| **D23** | 🟢 LOW | Tooling | Repository root | No test suite, no CI, no `.env.example` | Create `.env.example`, `pytest` configuration, basic CI test | ⏳ Planned Phase 0 |
-| **D24** | 🟢 LOW | Frontend | `public/css/khujo.css:99` | Font stack ends at `sans-serif` without Bangla system fallbacks | Add `Kalpurush`, `Siyam Rupali`, `SolaimanLipi`, `Vrinda` fallback | ⏳ Planned Phase 0 |
+| **D23** | 🟢 LOW | Tooling | Repository root | No test suite, no CI, no `.env.example` | Create `.env.example`, `pytest` configuration, basic CI test | ✅ DONE (Phase 0) |
+| **D24** | 🟢 LOW | Frontend | `public/css/khujo.css:99` | Font stack ends at `sans-serif` without Bangla system fallbacks | Add `Kalpurush`, `Siyam Rupali`, `SolaimanLipi`, `Vrinda` fallback | ✅ DONE (Phase 0) |
 
 ---
 
 ## 2. Phased Execution Roadmap
 
-### Phase 0: Repository Hygiene & Foundation (Fast Wins)
-- [ ] **Task 0.1:** Move 13 dead scripts in `backend/` to `backend/archive/`.
-- [ ] **Task 0.2:** Remove `backend/crawler.py` and clean dead models in `backend/app/models/`.
-- [ ] **Task 0.3:** Fix root `requirements.txt` by removing the npm package lines.
-- [ ] **Task 0.4:** Create `.env.example` documenting all required environment variables.
-- [ ] **Task 0.5:** Fix `public/css/khujo.css` Bangla font fallback stack (SolaimanLipi, Kalpurush, etc.).
-- [ ] **Task 0.6:** Add test harness with baseline smoke tests.
+### Phase 0: Repository Hygiene & Foundation (COMPLETED ✅)
+- [x] **Task 0.1 (D18):** Move 13 dead scripts in `backend/` to `backend/archive/scripts/`.
+- [x] **Task 0.2 (D19, D20, D21):** Remove obsolete `backend/crawler.py` and archive dead models/services.
+- [x] **Task 0.3 (D14):** Fix root `requirements.txt` by removing npm package lines to pure Python.
+- [x] **Task 0.4 (D23):** Create `.env.example` documenting all required environment variables.
+- [x] **Task 0.5 (D24):** Fix `public/css/khujo.css` Bangla font fallback stack (SolaimanLipi, Kalpurush, etc.).
+- [x] **Task 0.6 (D23):** Add test harness with baseline smoke tests (all 12 tests passing).
 
 ### Phase 1: Security, Error Masking & Suggestion Gate (COMPLETED ✅)
 - [x] **Task 1.1 (D1):** Secure all `/api/v1/admin/*` endpoints with API Key authentication (`X-Admin-Key` header).
