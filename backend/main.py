@@ -1,30 +1,110 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, BackgroundTasks, Header, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import os
 import re
-from app.database import get_db
+import logging
+import hashlib
+import uuid
+try:
+    from app.database import get_db, SessionLocal
+except ImportError:
+    from backend.app.database import get_db, SessionLocal
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logger = logging.getLogger("khujo_api")
 
 app = FastAPI(title="Khujo API", description="Bangladesh's Own Search Engine API")
 
+# --- CORS Configuration (Fixes D9) ---
+cors_origins_env = os.getenv("ALLOWED_ORIGINS")
+if cors_origins_env:
+    allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+else:
+    allowed_origins = [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Admin Authentication Dependency (Fixes D1) ---
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "khujo_admin_secret_2026")
+
+def verify_admin_key(
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
+    admin_key: Optional[str] = Query(None)
+):
+    provided = x_admin_key or admin_key
+    if not provided or provided != ADMIN_API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Missing or invalid admin API key"
+        )
+    return provided
+
+# --- Safe Error Handler (Fixes D11) ---
+def handle_error(context: str, err: Exception, status_code: int = 500) -> HTTPException:
+    logger.error(f"Error in {context}: {err}", exc_info=True)
+    return HTTPException(status_code=status_code, detail=f"Operation failed in {context}")
+
+# --- Background Telemetry (Fixes D12 & D2) ---
+def record_search_telemetry(clean_q: str, results_count: int):
+    """
+    Asynchronously logs search events and gates suggestion entries.
+    Prevents write transactions and table locks in search GET requests.
+    """
+    session = SessionLocal()
+    try:
+        q_fp = hashlib.md5(clean_q.encode("utf-8")).hexdigest()
+        session.execute(text("""
+            INSERT INTO search.query_event (query_fingerprint, normalised_query, result_count, occurred_at, expires_at)
+            VALUES (:fp, lower(:q), :rc, now(), now() + interval '30 days')
+        """), {"fp": q_fp, "q": clean_q, "rc": results_count})
+
+        # Update popularity if phrase already exists
+        updated_sug = session.execute(text("""
+            UPDATE search.suggestion 
+            SET popularity_score = popularity_score + 1 
+            WHERE phrase_normalised = lower(:q)
+        """), {"q": clean_q}).rowcount
+
+        # Gated suggestion: new user queries enter as 'candidate' state, never 'active' immediately
+        if updated_sug == 0 and 2 <= len(clean_q) <= 80:
+            session.execute(text("""
+                INSERT INTO search.suggestion (phrase, phrase_normalised, language_code, priority, popularity_score, state)
+                VALUES (:q, lower(:q), 'bn', 10, 1, 'candidate')
+            """), {"q": clean_q})
+
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.warning(f"Telemetry logging background task failed: {e}")
+    finally:
+        session.close()
+
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     kind: Optional[str] = None
     state: Optional[str] = None
+
 
 @app.get("/api")
 async def root():
@@ -44,14 +124,23 @@ async def serve_index():
         return FileResponse(index_path, media_type="text/html")
     return {"message": "Welcome to Khujo API"}
 
+
+# --- Public Search Endpoint ---
 @app.get("/api/v1/search")
-async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
+async def search(
+    q: str,
+    limit: int = 10,
+    offset: int = 0,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    db: Session = Depends(get_db)
+):
     try:
         clean_q = q.strip()
         if not clean_q:
             return {"query": q, "results": [], "total": 0}
 
         norm_q = clean_q.lower().replace(" ", "")
+        
         # 1. Lookup knowledge graph entity & all associated transliteration aliases
         entity_res = db.execute(text("""
             SELECT e.entity_id, e.display_name, e.summary, e.metadata, e.entity_type_id
@@ -110,13 +199,14 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             for r in related_res:
                 r_meta = r[2] if isinstance(r[2], dict) else {}
                 r_img = r_meta.get("image_url")
-                if r_img: # Only include if they have an image for a nice UI
+                if r_img:
                     knowledge_graph["related_entities"].append({
                         "id": str(r[0]),
                         "title": r[1],
                         "image_url": r_img
                     })
-            # Fetch all linked names (Bangla, English, Banglish) for this entity
+
+            # Fetch linked names (Bangla, English, Banglish) for this entity
             aliases = db.execute(text("""
                 SELECT normalised_name FROM core.entity_name WHERE entity_id = :eid
             """), {"eid": entity_id}).fetchall()
@@ -124,8 +214,7 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 if a[0] and a[0] not in search_terms:
                     search_terms.append(a[0])
 
-        # 2. Composite Ranking Engine: Multi-signal scoring algorithm
-        # Score = Domain Match (100) + Title Match (80) + Title Sim (20) + Body Sim (5) + Homepage Boost (15)
+        # 2. Document Search
         docs = db.execute(text("""
             SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
                    content.document.summary, content.document.body_text, content.document.published_at, 
@@ -163,7 +252,6 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             LIMIT :limit OFFSET :offset
         """), {"q": clean_q, "terms": search_terms, "limit": limit, "offset": offset}).fetchall()
 
-
         results = []
         for d in docs:
             url = d[1] or ""
@@ -184,32 +272,8 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
                 "type": "document"
             })
 
-        # 3. Log search query event to search.query_event and update suggestion popularity
-        try:
-            import hashlib
-            q_fp = hashlib.md5(clean_q.encode('utf-8')).hexdigest()
-            db.execute(text("""
-                INSERT INTO search.query_event (query_fingerprint, normalised_query, result_count, occurred_at, expires_at)
-                VALUES (:fp, lower(:q), :rc, now(), now() + interval '30 days')
-            """), {"fp": q_fp, "q": clean_q, "rc": len(results)})
-
-            # Update popularity if exists, else insert
-            updated_sug = db.execute(text("""
-                UPDATE search.suggestion 
-                SET popularity_score = popularity_score + 1 
-                WHERE phrase_normalised = lower(:q)
-            """), {"q": clean_q}).rowcount
-
-            if updated_sug == 0:
-                db.execute(text("""
-                    INSERT INTO search.suggestion (phrase, phrase_normalised, language_code, priority, popularity_score)
-                    VALUES (:q, lower(:q), 'bn', 10, 1)
-                """), {"q": clean_q})
-
-            db.commit()
-        except Exception as log_err:
-            db.rollback()
-            pass
+        # Schedule asynchronous logging outside transaction (Fixes D12)
+        background_tasks.add_task(record_search_telemetry, clean_q, len(results))
 
         return {
             "query": q,
@@ -219,9 +283,7 @@ async def search(q: str, limit: int = 10, offset: int = 0, db: Session = Depends
             "total": len(results)
         }
     except Exception as e:
-        import logging
-        logging.error("Search error: %s", str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("search", e)
 
 
 @app.get("/api/v1/search/images")
@@ -231,8 +293,6 @@ async def search_images(q: str, limit: int = 20, db: Session = Depends(get_db)):
         if not clean_q:
             return {"query": q, "results": []}
 
-        # Search verified entities with images
-        # We can also extend this later to search documents, but for now we rely on the high-quality entity images
         docs = db.execute(text("""
             SELECT e.entity_id, e.display_name, e.summary, e.metadata
             FROM core.entity e
@@ -273,27 +333,28 @@ async def search_images(q: str, limit: int = 20, db: Session = Depends(get_db)):
             "total": len(results)
         }
     except Exception as e:
-        import logging
-        logging.error("Image search error: %s", str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("search_images", e)
 
+
+# --- Suggestions Endpoint (Fixes D2 & D17) ---
 @app.get("/api/v1/suggestions")
 async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
     try:
         clean_q = q.strip()
-        if not clean_q or len(clean_q) < 1:
+        if not clean_q:
             return []
 
         prefix_like = f"{clean_q}%"
         any_like = f"%{clean_q}%"
 
-        # 1. Fetch from search.suggestion table
+        # 1. Fetch from search.suggestion table - ONLY ACTIVE SUGGESTIONS
         sug_rows = db.execute(text("""
             SELECT phrase 
             FROM search.suggestion 
-            WHERE phrase_normalised ILIKE :prefix 
-               OR phrase_normalised ILIKE :any 
-               OR phrase_normalised % :q
+            WHERE (state = 'active' OR state IS NULL)
+              AND (phrase_normalised ILIKE :prefix 
+                   OR phrase_normalised ILIKE :any 
+                   OR phrase_normalised % :q)
             ORDER BY (CASE WHEN phrase_normalised ILIKE :prefix THEN 1 ELSE 2 END), 
                      popularity_score DESC, priority DESC
             LIMIT :limit
@@ -304,67 +365,32 @@ async def suggestions(q: str, limit: int = 8, db: Session = Depends(get_db)):
             if r[0] and ',' not in r[0] and r[0] not in suggestions_set:
                 suggestions_set.append(r[0])
 
-        # 2. Enrich from core.entity_name if needed
+        # 2. Enrich from verified core.entity_name if needed
         if len(suggestions_set) < limit:
             entity_rows = db.execute(text("""
                 SELECT name 
                 FROM core.entity_name 
-                WHERE normalised_name ILIKE :prefix OR normalised_name ILIKE :any
+                WHERE state = 'verified'
+                  AND (normalised_name ILIKE :prefix OR normalised_name ILIKE :any)
                 LIMIT :limit
             """), {"prefix": prefix_like, "any": any_like, "limit": limit}).fetchall()
             for r in entity_rows:
                 if r[0] and ',' not in r[0] and r[0] not in suggestions_set:
                     suggestions_set.append(r[0])
 
-        # 3. Enrich from content.document titles if needed
-        if len(suggestions_set) < limit:
-            # Note: Fetching more to allow for filtering
-            doc_rows = db.execute(text("""
-                SELECT title 
-                FROM content.document 
-                WHERE state = 'verified' AND title ILIKE :any
-                LIMIT :large_limit
-            """), {"any": any_like, "large_limit": limit * 10}).fetchall()
-            
-            import re
-            doc_suggestions = []
-            seen_lower = {s.lower() for s in suggestions_set}
-            
-            for r in doc_rows:
-                title = r[0]
-                if not title:
-                    continue
-                
-                # Clean title: split by common separators (|, -, :, etc.)
-                parts = re.split(r'[\|\-\:\—\–\•\‧\/\\\]\[]', title)
-                for part in parts:
-                    cleaned = part.strip()
-                    if not cleaned or cleaned.lower() in seen_lower:
-                        continue
-                    
-                    if clean_q.lower() in cleaned.lower() and len(cleaned) < 60:
-                        doc_suggestions.append(cleaned)
-                        break
-
-            # Sort document-derived suggestions by length (shortest first)
-            doc_suggestions.sort(key=len)
-            
-            for s in doc_suggestions:
-                if s.lower() not in seen_lower:
-                    suggestions_set.append(s)
-                    seen_lower.add(s.lower())
-                if len(suggestions_set) >= limit:
-                    break
-
+        # Removed D17 runtime unindexed document title regex splitting.
         return suggestions_set[:limit]
 
     except Exception as e:
-        import logging
-        logging.error("Suggestions error: %s", str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("suggestions", e)
 
 
-@app.get("/api/v1/admin/stats")
+# =====================================================================
+# ADMIN ROUTER — Protected with API Key Authentication (Fixes D1)
+# =====================================================================
+admin_router = APIRouter(prefix="/api/v1/admin", dependencies=[Depends(verify_admin_key)])
+
+@admin_router.get("/stats")
 async def get_admin_stats(db: Session = Depends(get_db)):
     try:
         counts = db.execute(text("""
@@ -374,7 +400,6 @@ async def get_admin_stats(db: Session = Depends(get_db)):
         """)).fetchall()
         
         stat_map = {row[0]: row[1] for row in counts}
-        
         db_size = db.execute(text("SELECT pg_size_pretty(pg_database_size(current_database()))")).scalar() or "0 B"
         
         return {
@@ -385,9 +410,9 @@ async def get_admin_stats(db: Session = Depends(get_db)):
             "db_size": db_size
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_stats", e)
 
-@app.get("/api/v1/admin/candidates")
+@admin_router.get("/candidates")
 async def get_candidates(status: str = "candidate", limit: int = 50, db: Session = Depends(get_db)):
     try:
         valid_statuses = ["candidate", "verified", "rejected"]
@@ -426,9 +451,9 @@ async def get_candidates(status: str = "candidate", limit: int = 50, db: Session
             })
         return results
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_candidates", e)
 
-@app.put("/api/v1/admin/document/{document_id}")
+@admin_router.put("/document/{document_id}")
 async def update_document(document_id: str, update_data: DocumentUpdate, db: Session = Depends(get_db)):
     try:
         updates = []
@@ -458,10 +483,9 @@ async def update_document(document_id: str, update_data: DocumentUpdate, db: Ses
         return {"success": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_update_document", e)
 
-
-@app.post("/api/v1/admin/verify/{document_id}")
+@admin_router.post("/verify/{document_id}")
 async def verify_document(document_id: str, db: Session = Depends(get_db)):
     try:
         db.execute(text("UPDATE content.document SET state = 'verified' WHERE document_id = :id"), {"id": document_id})
@@ -469,9 +493,9 @@ async def verify_document(document_id: str, db: Session = Depends(get_db)):
         return {"success": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_verify_document", e)
 
-@app.post("/api/v1/admin/reject/{document_id}")
+@admin_router.post("/reject/{document_id}")
 async def reject_document(document_id: str, db: Session = Depends(get_db)):
     try:
         db.execute(text("UPDATE content.document SET state = 'rejected' WHERE document_id = :id"), {"id": document_id})
@@ -479,9 +503,9 @@ async def reject_document(document_id: str, db: Session = Depends(get_db)):
         return {"success": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_reject_document", e)
 
-@app.post("/api/v1/admin/restore/{document_id}")
+@admin_router.post("/restore/{document_id}")
 async def restore_document(document_id: str, db: Session = Depends(get_db)):
     try:
         db.execute(text("UPDATE content.document SET state = 'candidate' WHERE document_id = :id"), {"id": document_id})
@@ -489,9 +513,9 @@ async def restore_document(document_id: str, db: Session = Depends(get_db)):
         return {"success": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_restore_document", e)
 
-@app.post("/api/v1/admin/batch_verify")
+@admin_router.post("/batch_verify")
 async def batch_verify(document_ids: List[str], db: Session = Depends(get_db)):
     try:
         if document_ids:
@@ -500,9 +524,9 @@ async def batch_verify(document_ids: List[str], db: Session = Depends(get_db)):
         return {"success": True, "count": len(document_ids)}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_batch_verify", e)
 
-@app.post("/api/v1/admin/batch_reject")
+@admin_router.post("/batch_reject")
 async def batch_reject(document_ids: List[str], db: Session = Depends(get_db)):
     try:
         if document_ids:
@@ -511,12 +535,12 @@ async def batch_reject(document_ids: List[str], db: Session = Depends(get_db)):
         return {"success": True, "count": len(document_ids)}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_batch_reject", e)
 
 class EntityFactsUpdate(BaseModel):
     facts: dict
 
-@app.get("/api/v1/admin/entities")
+@admin_router.get("/entities")
 async def get_admin_entities(status: str = "candidate", db: Session = Depends(get_db)):
     try:
         rows = db.execute(text("""
@@ -527,7 +551,6 @@ async def get_admin_entities(status: str = "candidate", db: Session = Depends(ge
         """), {"s": status}).fetchall()
         
         results = []
-        import json
         for r in rows:
             meta = r[3] if isinstance(r[3], dict) else {}
             results.append({
@@ -541,28 +564,28 @@ async def get_admin_entities(status: str = "candidate", db: Session = Depends(ge
             })
         return results
     except Exception as e:
-        import logging
-        logging.error("Admin error: %s", str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_entities", e)
 
-@app.put("/api/v1/admin/entities/{entity_id}/facts")
+@admin_router.put("/entities/{entity_id}/facts")
 async def update_entity_facts(entity_id: str, update: EntityFactsUpdate, db: Session = Depends(get_db)):
     try:
         import json
         row = db.execute(text("SELECT metadata FROM core.entity WHERE entity_id = :eid"), {"eid": entity_id}).fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail="Not found")
+            raise HTTPException(status_code=404, detail="Entity not found")
         meta = row[0] if isinstance(row[0], dict) else {}
         meta["facts"] = update.facts
         db.execute(text("UPDATE core.entity SET metadata = :m WHERE entity_id = :eid"), 
                    {"m": json.dumps(meta), "eid": entity_id})
         db.commit()
         return {"status": "updated"}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_update_entity_facts", e)
 
-@app.post("/api/v1/admin/entities/{entity_id}/action")
+@admin_router.post("/entities/{entity_id}/action")
 async def action_entity(entity_id: str, action: str, db: Session = Depends(get_db)):
     try:
         if action not in ["approve", "reject"]:
@@ -572,9 +595,11 @@ async def action_entity(entity_id: str, action: str, db: Session = Depends(get_d
                    {"s": target_state, "eid": entity_id})
         db.commit()
         return {"status": "success", "new_state": target_state}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_action_entity", e)
 
 class AliasVerifyPayload(BaseModel):
     entity_name_id: str
@@ -586,7 +611,7 @@ class AliasCreatePayload(BaseModel):
     name: str
     language_code: Optional[str] = "en"
 
-@app.get("/api/v1/admin/aliases")
+@admin_router.get("/aliases")
 async def get_admin_aliases(status: str = "candidate", db: Session = Depends(get_db)):
     try:
         rows = db.execute(text("""
@@ -612,12 +637,11 @@ async def get_admin_aliases(status: str = "candidate", db: Session = Depends(get
             })
         return results
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_aliases", e)
 
-@app.post("/api/v1/admin/aliases/verify")
+@admin_router.post("/aliases/verify")
 async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(get_db)):
     try:
-        import uuid
         if payload.action == "approve":
             db.execute(text("UPDATE core.entity_name SET state = 'verified' WHERE entity_name_id = :id"), {"id": payload.entity_name_id})
         elif payload.action == "reject":
@@ -626,7 +650,6 @@ async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(
             if payload.name:
                 parts = [p.strip() for p in payload.name.split(',') if p.strip()]
                 if parts:
-                    # Update first item into existing row
                     first_part = parts[0]
                     norm = first_part.lower().replace(' ', '')
                     db.execute(text("""
@@ -635,7 +658,6 @@ async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(
                         WHERE entity_name_id = :id
                     """), {"name": first_part, "norm": norm, "id": payload.entity_name_id})
                     
-                    # If multiple parts exist, fetch entity_id and insert remaining as separate clean rows
                     if len(parts) > 1:
                         row = db.execute(text("SELECT entity_id FROM core.entity_name WHERE entity_name_id = :id"), {"id": payload.entity_name_id}).fetchone()
                         if row:
@@ -663,12 +685,11 @@ async def verify_admin_alias(payload: AliasVerifyPayload, db: Session = Depends(
         return {"success": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_verify_alias", e)
 
-@app.post("/api/v1/admin/aliases/create")
+@admin_router.post("/aliases/create")
 async def create_admin_alias(payload: AliasCreatePayload, db: Session = Depends(get_db)):
     try:
-        import uuid
         parts = [p.strip() for p in payload.name.split(',') if p.strip()]
         for part in parts:
             part_norm = part.lower().replace(' ', '')
@@ -694,8 +715,12 @@ async def create_admin_alias(payload: AliasCreatePayload, db: Session = Depends(
         return {"success": True}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error("admin_create_alias", e)
 
+# Mount the admin router with authentication dependency
+app.include_router(admin_router)
+
+# Mount Static Files
 public_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public"))
 if os.path.isdir(public_dir):
     app.mount("/", StaticFiles(directory=public_dir, html=True), name="static")

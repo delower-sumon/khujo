@@ -106,12 +106,32 @@
       switchTab(currentTab);
     }
 
+    function getAdminKey() {
+      let key = localStorage.getItem('khujo_admin_key');
+      if (!key) {
+        key = prompt("Enter Admin API Key (default: khujo_admin_secret_2026):") || "khujo_admin_secret_2026";
+        localStorage.setItem('khujo_admin_key', key);
+      }
+      return key;
+    }
+
+    async function adminFetch(url, options = {}) {
+      options.headers = options.headers || {};
+      options.headers['X-Admin-Key'] = getAdminKey();
+      const res = await fetch(url, options);
+      if (res.status === 401) {
+        localStorage.removeItem('khujo_admin_key');
+        alert("Unauthorized: Invalid Admin Key. Please refresh and re-enter.");
+      }
+      return res;
+    }
+
     async function loadEntities() {
       const queueEl = document.getElementById('queue');
       queueEl.innerHTML = '<div class="empty-state">Loading entities...</div>';
       
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/admin/entities?status=${currentTab}`);
+        const res = await adminFetch(`http://localhost:8000/api/v1/admin/entities?status=${currentTab}`);
         if (!res.ok) throw new Error('Failed to load');
         entities = await res.json();
         renderEntities();
@@ -126,7 +146,7 @@
       const status = currentTab === 'alias-candidate' ? 'candidate' : 'verified';
       
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/admin/aliases?status=${status}`);
+        const res = await adminFetch(`http://localhost:8000/api/v1/admin/aliases?status=${status}`);
         if (!res.ok) throw new Error('Failed to load aliases');
         aliases = await res.json();
         renderAliases();
@@ -239,7 +259,7 @@
 
     async function actionEntity(id, action) {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/admin/entities/${id}/action?action=${action}`, { method: 'POST' });
+        const res = await adminFetch(`http://localhost:8000/api/v1/admin/entities/${id}/action?action=${action}`, { method: 'POST' });
         if (!res.ok) throw new Error('Action failed');
         loadEntities();
       } catch (err) {
@@ -251,7 +271,7 @@
       const textarea = document.getElementById(`facts-${id}`);
       try {
         const json = JSON.parse(textarea.value);
-        const res = await fetch(`http://localhost:8000/api/v1/admin/entities/${id}/facts`, {
+        const res = await adminFetch(`http://localhost:8000/api/v1/admin/entities/${id}/facts`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ facts: json })
@@ -265,7 +285,7 @@
 
     async function verifyAlias(id, action) {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/admin/aliases/verify`, {
+        const res = await adminFetch(`http://localhost:8000/api/v1/admin/aliases/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ entity_name_id: id, action: action })
@@ -282,7 +302,7 @@
       const val = input ? input.value.trim() : '';
       if (!val) return alert('Alias name cannot be empty');
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/admin/aliases/verify`, {
+        const res = await adminFetch(`http://localhost:8000/api/v1/admin/aliases/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ entity_name_id: id, action: 'update', name: val })

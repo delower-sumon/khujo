@@ -461,9 +461,29 @@
     let documentsData = [];
     let selectedIds = new Set();
 
+    function getAdminKey() {
+      let key = localStorage.getItem('khujo_admin_key');
+      if (!key) {
+        key = prompt("Enter Admin API Key (default: khujo_admin_secret_2026):") || "khujo_admin_secret_2026";
+        localStorage.setItem('khujo_admin_key', key);
+      }
+      return key;
+    }
+
+    async function adminFetch(url, options = {}) {
+      options.headers = options.headers || {};
+      options.headers['X-Admin-Key'] = getAdminKey();
+      const res = await fetch(url, options);
+      if (res.status === 401) {
+        localStorage.removeItem('khujo_admin_key');
+        alert("Unauthorized: Invalid Admin Key. Please refresh and re-enter.");
+      }
+      return res;
+    }
+
     async function loadStats() {
       try {
-        const res = await fetch(`${API_BASE}/stats`);
+        const res = await adminFetch(`${API_BASE}/stats`);
         const stats = await res.json();
         document.getElementById('statPending').textContent = stats.pending_candidates;
         document.getElementById('statVerified').textContent = stats.verified_count;
@@ -488,7 +508,7 @@
     async function loadDocuments() {
       const q = document.getElementById('queue');
       try {
-        const res = await fetch(`${API_BASE}/candidates?status=${currentStatus}`);
+        const res = await adminFetch(`${API_BASE}/candidates?status=${currentStatus}`);
         documentsData = await res.json();
         selectedIds.clear();
         updateSelectedUI();
@@ -604,7 +624,7 @@
 
       try {
         // 1. Update Document details
-        await fetch(`${API_BASE}/document/${id}`, {
+        await adminFetch(`${API_BASE}/document/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, description, kind, state: 'verified' })
@@ -679,7 +699,7 @@
 
     async function verifyDoc(id) {
       try {
-        await fetch(`${API_BASE}/verify/${id}`, { method: 'POST' });
+        await adminFetch(`${API_BASE}/verify/${id}`, { method: 'POST' });
         removeDocFromUI(id);
         loadStats();
       } catch (e) { alert("Verification failed: " + e.message); }
@@ -687,7 +707,7 @@
 
     async function rejectDoc(id) {
       try {
-        await fetch(`${API_BASE}/reject/${id}`, { method: 'POST' });
+        await adminFetch(`${API_BASE}/reject/${id}`, { method: 'POST' });
         removeDocFromUI(id);
         loadStats();
       } catch (e) { alert("Rejection failed: " + e.message); }
@@ -695,7 +715,7 @@
 
     async function restoreDoc(id) {
       try {
-        await fetch(`${API_BASE}/restore/${id}`, { method: 'POST' });
+        await adminFetch(`${API_BASE}/restore/${id}`, { method: 'POST' });
         removeDocFromUI(id);
         loadStats();
       } catch (e) { alert("Restoration failed: " + e.message); }
@@ -707,7 +727,7 @@
 
       const endpoint = action === 'verify' ? 'batch_verify' : 'batch_reject';
       try {
-        await fetch(`${API_BASE}/${endpoint}`, {
+        await adminFetch(`${API_BASE}/${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(ids)
