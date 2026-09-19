@@ -13,6 +13,8 @@ env/
 *.json.bak
 *.log
 logs/
+crawler/data/wiktionary_cache/
+crawler/data/raw_html/
 
 # IDEs & Editors
 .vscode/

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>khujo Architecture</title>
+  <style>
+    :root {
+      --bg-color: #e6e6e2;
+      --card-bg: #f5f5f0;
+      --text-main: #171717;
+      --text-muted: #737373;
+      --border-color: #d4d4d0;
+      --bubble-bg: #1c1917;
+      --bubble-text: #f5f5f4;
+      --node-color: #262626;
+      --node-dim: rgba(38, 38, 38, 0.15);
+      --link-color: rgba(60, 60, 60, 0.2);
+    }
+
+    body.dark-theme {
+      --bg-color: #0c0a09;
+      --card-bg: #1c1917;
+      --text-main: #f5f5f4;
+      --text-muted: #a8a29e;
+      --border-color: #292524;
+      --bubble-bg: #292524;
+      --bubble-text: #fafaf9;
+      --node-color: #e7e5e4;
+      --node-dim: rgba(231, 229, 228, 0.15);
+      --link-color: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #2d-graph {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Top Left Header */
+    .brand-bar {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 8px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+    }
+
+    /* Top Search Button & Modal */
+    .search-btn {
+      position: absolute;
+      top: 20px;
+      left: 130px;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+    }
+    .search-btn:hover { transform: scale(1.05); }
+
+    .search-modal {
+      position: absolute;
+      top: 20px;
+      left: 180px;
+      z-index: 20;
+      display: none;
+    }
+    .search-modal.active { display: block; }
+    .search-input {
+      width: 280px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      outline: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Side Panel */
+    .side-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 440px;
+      background: var(--card-bg);
+      border-left: 1px solid var(--border-color);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.08);
+    }
+    .side-panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 24px 28px 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .panel-meta {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .close-btn:hover { color: var(--text-main); }
+
+    .panel-body {
+      padding: 0 28px 24px 28px;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    .panel-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 4px 0 16px 0;
+      color: var(--text-main);
+      line-height: 1.1;
+      word-break: break-word;
+    }
+
+    .panel-summary {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-main);
+      margin-bottom: 24px;
+    }
+
+    .quote-bubble {
+      background: var(--bubble-bg);
+      color: var(--bubble-text);
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+    .quote-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #a8a29e;
+      margin-bottom: 6px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 20px 0 8px 0;
+    }
+
+    .avoid-box {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .pills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .pill {
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    body.dark-theme .pill { background: rgba(255, 255, 255, 0.06); }
+    .pill:hover {
+      background: var(--text-main);
+      color: var(--bg-color);
+    }
+
+    .details-text {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+    }
+
+    .panel-footer {
+      padding: 16px 28px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+    }
+    .nav-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nav-btn:hover {
+      background: var(--text-main);
+      color: var(--bg-color);
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three-spritetext@1.6.5/dist/three-spritetext.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.70.5/dist/3d-force-graph.min.js"></script>
+</head>
+<body>
+
+  <div class="brand-bar">
+    <div class="brand-title">khujo</div>
+  </div>
+
+  <div class="search-btn" onclick="toggleSearch()" title="Search nodes">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </div>
+
+  <div class="search-modal" id="searchModal">
+    <input type="text" class="search-input" id="searchInput" placeholder="Type node name (e.g. search, entity)..." oninput="onSearch(this.value)">
+  </div>
+
+  <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+    </svg>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="side-panel" id="sidePanel">
+    <div class="panel-header">
+      <div class="panel-meta" id="pMeta">CATEGORY · 01/74</div>
+      <button class="close-btn" onclick="closePanel()">&times;</button>
+    </div>
+    <div class="panel-body">
+      <h1 class="panel-title" id="pTitle">Node Title</h1>
+      <div class="panel-summary" id="pSummary">Summary sentence goes here...</div>
+
+      <div class="quote-bubble">
+        <div class="quote-label">HEARD IN THE WILD</div>
+        <div id="pProtip">Practical tip text...</div>
+      </div>
+
+      <div class="section-label">AVOID</div>
+      <div class="avoid-box" id="pAvoid">What to avoid...</div>
+
+      <div class="section-label">CONNECTS TO</div>
+      <div class="pills-container" id="pPills"></div>
+
+      <div class="section-label">FULL DEFINITION</div>
+      <div class="details-text" id="pDetails">Detailed implementation notes...</div>
+    </div>
+    <div class="panel-footer">
+      <button class="nav-btn" onclick="navigateNode(-1)">&larr; PREV</button>
+      <span style="font-size:12px; color:var(--text-muted)" id="pIndex">1 / 74</span>
+      <button class="nav-btn" onclick="navigateNode(1)">NEXT &rarr;</button>
+    </div>
+  </div>
+
+  <div id="2d-graph"></div>
+
+  <script>
+    const rawData = {"nodes": [{"id": "file:backend/main.py", "name": "main.py", "group": "Backend API", "val": 12, "summary": "Python module located at backend/main.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/main.py", "file": "backend/main.py"}, {"id": "cls:backend/main.py:DocumentUpdate", "name": "DocumentUpdate", "group": "Backend API", "val": 9, "summary": "Class defined in backend/main.py at line 21", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/main.py:21", "file": "backend/main.py:21"}, {"id": "cls:backend/main.py:EntityFactsUpdate", "name": "EntityFactsUpdate", "group": "Backend API", "val": 9, "summary": "Class defined in backend/main.py at line 500", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/main.py:500", "file": "backend/main.py:500"}, {"id": "cls:backend/main.py:AliasVerifyPayload", "name": "AliasVerifyPayload", "group": "Backend API", "val": 9, "summary": "Class defined in backend/main.py at line 563", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/main.py:563", "file": "backend/main.py:563"}, {"id": "cls:backend/main.py:AliasCreatePayload", "name": "AliasCreatePayload", "group": "Backend API", "val": 9, "summary": "Class defined in backend/main.py at line 568", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/main.py:568", "file": "backend/main.py:568"}, {"id": "file:backend/app/database.py", "name": "database.py", "group": "Backend DB", "val": 12, "summary": "Python module located at backend/app/database.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/app/database.py", "file": "backend/app/database.py"}, {"id": "func:backend/app/database.py:get_db", "name": "get_db()", "group": "Backend DB", "val": 7, "summary": "Function defined in backend/app/database.py at line 25", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/app/database.py:25", "file": "backend/app/database.py:25"}, {"id": "file:backend/r2_media.py", "name": "r2_media.py", "group": "Storage & Media", "val": 12, "summary": "Python module located at backend/r2_media.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/r2_media.py", "file": "backend/r2_media.py"}, {"id": "func:backend/r2_media.py:_get_s3_client", "name": "_get_s3_client()", "group": "Storage & Media", "val": 7, "summary": "Create a boto3 S3 client configured for Cloudflare R2.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/r2_media.py:40", "file": "backend/r2_media.py:40"}, {"id": "func:backend/r2_media.py:verify_connection", "name": "verify_connection()", "group": "Storage & Media", "val": 7, "summary": "Test that we can reach R2 and the bucket exists.\nReturns a status dict with success flag and details.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/r2_media.py:60", "file": "backend/r2_media.py:60"}, {"id": "func:backend/r2_media.py:upload_favicon", "name": "upload_favicon()", "group": "Storage & Media", "val": 7, "summary": "Uploads domain favicons and media assets to Cloudflare R2 object storage.", "protip": "Media assets never touch VPS local disk storage \u2014 only public R2 CDN URL strings are saved in PostgreSQL.", "avoid": "Do not store binary image data or base64 blobs inside database columns.", "details": "Uses boto3 S3 client targeted at Cloudflare R2 endpoint with 7-day Cache-Control header configuration.", "file": "backend/r2_media.py:84"}, {"id": "func:backend/r2_media.py:fetch_and_upload_favicon", "name": "fetch_and_upload_favicon()", "group": "Storage & Media", "val": 7, "summary": "Given a website URL, try to fetch its favicon and upload to R2.\nReturns the public R2 URL, or None if no favicon could be found.\n\nStrategy (in order):\n  1. Try /favicon.ico at the domain root\n  2. Try Google's favicon service as fallback", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/r2_media.py:116", "file": "backend/r2_media.py:116"}, {"id": "func:backend/r2_media.py:get_favicon_url", "name": "get_favicon_url()", "group": "Storage & Media", "val": 7, "summary": "Construct the expected public URL for a domain's favicon.\nDoes NOT check if it exists \u2014 used for fast lookups.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/r2_media.py:156", "file": "backend/r2_media.py:156"}, {"id": "file:backend/ner_script.py", "name": "ner_script.py", "group": "Data Extraction", "val": 12, "summary": "Python module located at backend/ner_script.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/ner_script.py", "file": "backend/ner_script.py"}, {"id": "func:backend/ner_script.py:run_ner", "name": "run_ner()", "group": "Data Extraction", "val": 7, "summary": "Function defined in backend/ner_script.py at line 8", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/ner_script.py:8", "file": "backend/ner_script.py:8"}, {"id": "file:crawler/content_crawler.py", "name": "content_crawler.py", "group": "Crawler Engine", "val": 12, "summary": "Python module located at crawler/content_crawler.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/content_crawler.py", "file": "crawler/content_crawler.py"}, {"id": "func:crawler/content_crawler.py:clean_body_text", "name": "clean_body_text()", "group": "Crawler Engine", "val": 7, "summary": "Strip navigation, headers, footers, sidebars, ads, scripts, and styles.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/content_crawler.py:29", "file": "crawler/content_crawler.py:29"}, {"id": "func:crawler/content_crawler.py:extract_article_data", "name": "extract_article_data()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/content_crawler.py at line 50", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/content_crawler.py:50", "file": "crawler/content_crawler.py:50"}, {"id": "func:crawler/content_crawler.py:crawl_content_urls", "name": "crawl_content_urls()", "group": "Crawler Engine", "val": 7, "summary": "Deep recursive spider that crawls queued URLs, strips garbage HTML, tags entities, and stages candidate documents.", "protip": "Polite rate limiting enforces a strict 2-second delay between domain requests to prevent publisher IP bans.", "avoid": "Never promote crawled documents directly to state='verified'. All crawled pages must pass through the Admin Gate.", "details": "Fixes Bengali UTF-8 mojibake encoding, extracts canonical URLs, generates content hashes, and queues up to 20 new internal links per page.", "file": "crawler/content_crawler.py:93"}, {"id": "file:crawler/entity_crawler.py", "name": "entity_crawler.py", "group": "Crawler Engine", "val": 12, "summary": "Python module located at crawler/entity_crawler.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/entity_crawler.py", "file": "crawler/entity_crawler.py"}, {"id": "func:crawler/entity_crawler.py:fetch_wikipedia_data", "name": "fetch_wikipedia_data()", "group": "Crawler Engine", "val": 7, "summary": "Fetch summary and image from Bengali Wikipedia API.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/entity_crawler.py:53", "file": "crawler/entity_crawler.py:53"}, {"id": "func:crawler/entity_crawler.py:insert_entity", "name": "insert_entity()", "group": "Crawler Engine", "val": 7, "summary": "Insert candidate entity and entity_name into database.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/entity_crawler.py:110", "file": "crawler/entity_crawler.py:110"}, {"id": "func:crawler/entity_crawler.py:main", "name": "main()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/entity_crawler.py at line 192", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/entity_crawler.py:192", "file": "crawler/entity_crawler.py:192"}, {"id": "file:crawler/geo_crawler.py", "name": "geo_crawler.py", "group": "Crawler Engine", "val": 12, "summary": "Python module located at crawler/geo_crawler.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/geo_crawler.py", "file": "crawler/geo_crawler.py"}, {"id": "func:crawler/geo_crawler.py:fetch_wiki_geo", "name": "fetch_wiki_geo()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/geo_crawler.py at line 22", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/geo_crawler.py:22", "file": "crawler/geo_crawler.py:22"}, {"id": "func:crawler/geo_crawler.py:update_geo_entity", "name": "update_geo_entity()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/geo_crawler.py at line 97", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/geo_crawler.py:97", "file": "crawler/geo_crawler.py:97"}, {"id": "func:crawler/geo_crawler.py:run", "name": "run()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/geo_crawler.py at line 143", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/geo_crawler.py:143", "file": "crawler/geo_crawler.py:143"}, {"id": "file:crawler/site_scout.py", "name": "site_scout.py", "group": "Crawler Engine", "val": 12, "summary": "Python module located at crawler/site_scout.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/site_scout.py", "file": "crawler/site_scout.py"}, {"id": "func:crawler/site_scout.py:scout_base_urls", "name": "scout_base_urls()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/site_scout.py at line 21", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/site_scout.py:21", "file": "crawler/site_scout.py:21"}, {"id": "func:crawler/site_scout.py:name_or_url", "name": "name_or_url()", "group": "Crawler Engine", "val": 7, "summary": "Function defined in crawler/site_scout.py at line 172", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/site_scout.py:172", "file": "crawler/site_scout.py:172"}, {"id": "file:crawler/seed_geography.py", "name": "seed_geography.py", "group": "Crawler Seeder", "val": 12, "summary": "Python module located at crawler/seed_geography.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_geography.py", "file": "crawler/seed_geography.py"}, {"id": "func:crawler/seed_geography.py:seed_geography", "name": "seed_geography()", "group": "Crawler Seeder", "val": 7, "summary": "Function defined in crawler/seed_geography.py at line 18", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_geography.py:18", "file": "crawler/seed_geography.py:18"}, {"id": "file:crawler/seed_platform_aliases.py", "name": "seed_platform_aliases.py", "group": "Crawler Seeder", "val": 12, "summary": "Python module located at crawler/seed_platform_aliases.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_platform_aliases.py", "file": "crawler/seed_platform_aliases.py"}, {"id": "func:crawler/seed_platform_aliases.py:run", "name": "run()", "group": "Crawler Seeder", "val": 7, "summary": "Function defined in crawler/seed_platform_aliases.py at line 31", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_platform_aliases.py:31", "file": "crawler/seed_platform_aliases.py:31"}, {"id": "file:crawler/seed_popular_phrases.py", "name": "seed_popular_phrases.py", "group": "Crawler Seeder", "val": 12, "summary": "Python module located at crawler/seed_popular_phrases.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_popular_phrases.py", "file": "crawler/seed_popular_phrases.py"}, {"id": "func:crawler/seed_popular_phrases.py:run", "name": "run()", "group": "Crawler Seeder", "val": 7, "summary": "Function defined in crawler/seed_popular_phrases.py at line 47", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_popular_phrases.py:47", "file": "crawler/seed_popular_phrases.py:47"}, {"id": "file:crawler/seed_sources.py", "name": "seed_sources.py", "group": "Crawler Seeder", "val": 12, "summary": "Python module located at crawler/seed_sources.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_sources.py", "file": "crawler/seed_sources.py"}, {"id": "func:crawler/seed_sources.py:compute_url_hash", "name": "compute_url_hash()", "group": "Crawler Seeder", "val": 7, "summary": "Function defined in crawler/seed_sources.py at line 127", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_sources.py:127", "file": "crawler/seed_sources.py:127"}, {"id": "func:crawler/seed_sources.py:seed_sources", "name": "seed_sources()", "group": "Crawler Seeder", "val": 7, "summary": "Function defined in crawler/seed_sources.py at line 130", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/seed_sources.py:130", "file": "crawler/seed_sources.py:130"}, {"id": "file:crawler/utils/db.py", "name": "db.py", "group": "Crawler Core", "val": 12, "summary": "Python module located at crawler/utils/db.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/db.py", "file": "crawler/utils/db.py"}, {"id": "func:crawler/utils/db.py:get_engine", "name": "get_engine()", "group": "Crawler Core", "val": 7, "summary": "Central database connection factory powering all crawler, seeder, and extraction scripts.", "protip": "Always wrap database queries in 'with engine.begin() as conn:' to ensure automatic transaction commits and rollback on error.", "avoid": "Do not instantiate multiple engine instances across worker loops \u2014 reuse the single engine instance.", "details": "Provides pooled SQLAlchemy engine connections with pre-ping validation for serverless and self-hosted PostgreSQL environments.", "file": "crawler/utils/db.py:36"}, {"id": "file:crawler/utils/links.py", "name": "links.py", "group": "Crawler Core", "val": 12, "summary": "Python module located at crawler/utils/links.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/links.py", "file": "crawler/utils/links.py"}, {"id": "func:crawler/utils/links.py:compute_url_hash", "name": "compute_url_hash()", "group": "Crawler Core", "val": 7, "summary": "Compute a deterministic hash for a given URL for deduplication.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/links.py:4", "file": "crawler/utils/links.py:4"}, {"id": "func:crawler/utils/links.py:is_valid_article_url", "name": "is_valid_article_url()", "group": "Crawler Core", "val": 7, "summary": "Filter out media files, login pages, and off-domain links.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/links.py:8", "file": "crawler/utils/links.py:8"}, {"id": "file:crawler/utils/r2.py", "name": "r2.py", "group": "Storage & Media", "val": 12, "summary": "Python module located at crawler/utils/r2.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/r2.py", "file": "crawler/utils/r2.py"}, {"id": "func:crawler/utils/r2.py:_get_s3_client", "name": "_get_s3_client()", "group": "Storage & Media", "val": 7, "summary": "Function defined in crawler/utils/r2.py at line 33", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/r2.py:33", "file": "crawler/utils/r2.py:33"}, {"id": "func:crawler/utils/r2.py:upload_favicon", "name": "upload_favicon()", "group": "Storage & Media", "val": 7, "summary": "Function defined in crawler/utils/r2.py at line 45", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/r2.py:45", "file": "crawler/utils/r2.py:45"}, {"id": "func:crawler/utils/r2.py:fetch_and_upload_favicon", "name": "fetch_and_upload_favicon()", "group": "Storage & Media", "val": 7, "summary": "Function defined in crawler/utils/r2.py at line 68", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/r2.py:68", "file": "crawler/utils/r2.py:68"}, {"id": "file:crawler/utils/robots.py", "name": "robots.py", "group": "Crawler Core", "val": 12, "summary": "Python module located at crawler/utils/robots.py", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/robots.py", "file": "crawler/utils/robots.py"}, {"id": "func:crawler/utils/robots.py:is_url_allowed", "name": "is_url_allowed()", "group": "Crawler Core", "val": 7, "summary": "Parse site's robots.txt and check if the given URL is allowed for user_agent.\nCorrectly respects Allow: and Disallow: directives.", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/robots.py:15", "file": "crawler/utils/robots.py:15"}, {"id": "func:crawler/utils/robots.py:fetch_and_parse_robots", "name": "fetch_and_parse_robots()", "group": "Crawler Core", "val": 7, "summary": "Function defined in crawler/utils/robots.py at line 41", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/robots.py:41", "file": "crawler/utils/robots.py:41"}, {"id": "func:crawler/utils/robots.py:matches_pattern", "name": "matches_pattern()", "group": "Crawler Core", "val": 7, "summary": "Function defined in crawler/utils/robots.py at line 74", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: crawler/utils/robots.py:74", "file": "crawler/utils/robots.py:74"}, {"id": "db:core.entity", "name": "core.entity", "group": "Database Core", "val": 10, "summary": "Permanent source of truth for canonical real-world entities (people, places, organizations, public bodies, topics).", "protip": "Entities represent real-world concepts, not URLs. Web documents link to entities via source records and entity mentions.", "avoid": "Do not destroy entity records when web pages expire. Entities persist indefinitely with versioned revisions.", "details": "Partitioned PostgreSQL table holding entity types, display names, summaries, metadata JSONB, state, and visibility flags.", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:core.entity_name", "name": "core.entity_name", "group": "Database Core", "val": 10, "summary": "Multi-lingual transliteration dictionary mapping canonical entities to Bangla, English, and Banglish aliases.", "protip": "Enables multi-script search: searching '\u09a2\u09be\u09ac\u09bf', 'Dhaka University', or 'DU' resolves to the identical canonical entity ID.", "avoid": "Do not hardcode entity aliases in Python source code. Store and query all transliterations inside core.entity_name.", "details": "Supports name kinds: preferred, official, alias, abbreviation, transliteration, misspelling, and historical.", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:core.place", "name": "core.place", "group": "Database Core", "val": 10, "summary": "Administrative and geographic containment hierarchy covering Country -> Division -> District -> Upazila -> Union.", "protip": "Contains 5,321+ pre-seeded Bangladeshi administrative places with geographic coordinates and parent place pointers.", "avoid": "Do not hardcode geographic boundaries in application code \u2014 query parent_place_id for administrative containment.", "details": "Linked to core.entity via primary key extension. Stores official codes, latitude, longitude, and GeoJSON boundaries.", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:core.assertion", "name": "core.assertion", "group": "Database Core", "val": 10, "summary": "Fact assertions linking subject and object", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:core.assertion_evidence", "name": "core.assertion_evidence", "group": "Database Core", "val": 10, "summary": "Provenance citations for verified claims", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:core.source", "name": "core.source", "group": "Database Core", "val": 10, "summary": "Web sources and platform registry", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:core.source_record", "name": "core.source_record", "group": "Database Core", "val": 10, "summary": "Stable URL/record identity", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:content.document", "name": "content.document", "group": "Content Layer", "val": 10, "summary": "Partitioned search document inventory split by content kinds (News, Articles, Community, Listing, Government, Media).", "protip": "Documents carry automatic retention policies (e.g., 30 days for news, 365 days for government notices).", "avoid": "Never bypass content retention policies by disabling document expiration dates.", "details": "Uses PostgreSQL list partitioning. Indexed with GIN trigram indexes on title_normalised and body_normalised.", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:content.entity_mention", "name": "content.entity_mention", "group": "Content Layer", "val": 10, "summary": "Extracted entity occurrences in documents", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:crawl.frontier_url", "name": "crawl.frontier_url", "group": "Crawl Pipeline", "val": 10, "summary": "URL queue and crawling state", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:crawl.fetch", "name": "crawl.fetch", "group": "Crawl Pipeline", "val": 10, "summary": "HTTP fetch log history", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:search.suggestion", "name": "search.suggestion", "group": "Search Engine", "val": 10, "summary": "Active query suggestion index containing curated phrases, popularity metrics, and language codes.", "protip": "Updated dynamically as users search, making suggestions self-learning over time.", "avoid": "Do not store duplicate normalized phrases \u2014 enforce unique constraints on (phrase_normalised, language_code).", "details": "Holds phrase, language, script, priority, popularity_score, and suggestion_state (candidate -> active -> suppressed).", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:search.query_event", "name": "search.query_event", "group": "Search Engine", "val": 10, "summary": "Privacy-preserving search query logs", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "db:media.asset", "name": "media.asset", "group": "Storage & Media", "val": 10, "summary": "Cloudflare R2 media metadata", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: backend/sql/0001_khojo_core.sql", "file": "backend/sql/0001_khojo_core.sql"}, {"id": "ui:SearchBar", "name": "SearchBar", "group": "Frontend UI", "val": 9, "summary": "Vanilla JS search bar component featuring sub-pixel dropdown alignment, debouncing, and Avro Bangla transliteration.", "protip": "Includes Avro keyboard integration allowing users to type Banglish ('khujo') and instantly convert to Bangla ('\u0996\u09c1\u0981\u099c\u09cb').", "avoid": "Do not fire un-debounced API requests on every keystroke \u2014 enforce a 150ms debounce threshold.", "details": "Handles keyboard navigation (Up/Down/Enter/Escape), mobile touch events, and search history caching.", "file": "public/js/khujo.js"}, {"id": "ui:loadSERP()", "name": "loadSERP()", "group": "Frontend UI", "val": 9, "summary": "Primary SERP renderer assembling organic search results, rich snippets, favicons, and Knowledge Graph sidebar cards.", "protip": "Renders entity sidebar cards whenever the search query resolves to a verified Knowledge Graph entity.", "avoid": "Do not show empty or broken Knowledge Graph cards \u2014 hide the card if no summary or facts are available.", "details": "Parses API JSON payloads, builds DOM nodes dynamically, handles image fallbacks, and formats publication dates.", "file": "public/js/khujo.js"}, {"id": "ui:drawKnowledgeGraph()", "name": "drawKnowledgeGraph()", "group": "Frontend UI", "val": 9, "summary": "Renders Knowledge Graph sidebar card with facts and images", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: public/js/khujo.js", "file": "public/js/khujo.js"}, {"id": "ui:getApiBase()", "name": "getApiBase()", "group": "Frontend UI", "val": 9, "summary": "Resolves FastAPI endpoint dynamically", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: public/js/khujo.js", "file": "public/js/khujo.js"}, {"id": "ui:esc()", "name": "esc()", "group": "Frontend UI", "val": 9, "summary": "XSS safety sanitizer for HTML string rendering", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: public/js/khujo.js", "file": "public/js/khujo.js"}, {"id": "ui:admin.html", "name": "admin.html", "group": "Frontend UI", "val": 9, "summary": "Human-In-The-Loop (HITL) admin dashboard for reviewing, verifying, and editing candidate documents and entities.", "protip": "Allows batch verification of crawled documents when crawler confidence is high to accelerate editorial workflow.", "avoid": "Never expose admin verification routes publicly without authentication headers.", "details": "Includes candidate queue counters, inline document title/summary editor, entity mention promoter, and reject buttons.", "file": "public/admin.html"}, {"id": "ui:entities.html", "name": "entities.html", "group": "Frontend UI", "val": 9, "summary": "Admin Entity Curation Vault and facts editor", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: public/entities.html", "file": "public/entities.html"}, {"id": "ui:search.html", "name": "search.html", "group": "Frontend UI", "val": 9, "summary": "Main SERP layout page", "protip": "Follow clean architecture principles and keep operations idempotent.", "avoid": "Avoid tight coupling between crawler tasks and SERP rendering logic.", "details": "File location: public/search.html", "file": "public/search.html"}], "links": [{"source": "file:backend/main.py", "target": "cls:backend/main.py:DocumentUpdate", "relation": "defines"}, {"source": "file:backend/main.py", "target": "cls:backend/main.py:EntityFactsUpdate", "relation": "defines"}, {"source": "file:backend/main.py", "target": "cls:backend/main.py:AliasVerifyPayload", "relation": "defines"}, {"source": "file:backend/main.py", "target": "cls:backend/main.py:AliasCreatePayload", "relation": "defines"}, {"source": "file:backend/app/database.py", "target": "func:backend/app/database.py:get_db", "relation": "defines"}, {"source": "file:backend/r2_media.py", "target": "func:backend/r2_media.py:_get_s3_client", "relation": "defines"}, {"source": "file:backend/r2_media.py", "target": "func:backend/r2_media.py:verify_connection", "relation": "defines"}, {"source": "func:backend/r2_media.py:verify_connection", "target": "func:backend/r2_media.py:_get_s3_client", "relation": "calls"}, {"source": "file:backend/r2_media.py", "target": "func:backend/r2_media.py:upload_favicon", "relation": "defines"}, {"source": "func:backend/r2_media.py:upload_favicon", "target": "func:backend/r2_media.py:_get_s3_client", "relation": "calls"}, {"source": "file:backend/r2_media.py", "target": "func:backend/r2_media.py:fetch_and_upload_favicon", "relation": "defines"}, {"source": "func:backend/r2_media.py:fetch_and_upload_favicon", "target": "func:backend/r2_media.py:upload_favicon", "relation": "calls"}, {"source": "func:backend/r2_media.py:fetch_and_upload_favicon", "target": "func:backend/r2_media.py:upload_favicon", "relation": "calls"}, {"source": "file:backend/r2_media.py", "target": "func:backend/r2_media.py:get_favicon_url", "relation": "defines"}, {"source": "file:backend/ner_script.py", "target": "func:backend/ner_script.py:run_ner", "relation": "defines"}, {"source": "file:crawler/content_crawler.py", "target": "func:crawler/content_crawler.py:clean_body_text", "relation": "defines"}, {"source": "file:crawler/content_crawler.py", "target": "func:crawler/content_crawler.py:extract_article_data", "relation": "defines"}, {"source": "func:crawler/content_crawler.py:extract_article_data", "target": "func:crawler/content_crawler.py:clean_body_text", "relation": "calls"}, {"source": "file:crawler/content_crawler.py", "target": "func:crawler/content_crawler.py:crawl_content_urls", "relation": "defines"}, {"source": "func:crawler/content_crawler.py:crawl_content_urls", "target": "func:crawler/content_crawler.py:extract_article_data", "relation": "calls"}, {"source": "file:crawler/entity_crawler.py", "target": "func:crawler/entity_crawler.py:fetch_wikipedia_data", "relation": "defines"}, {"source": "file:crawler/entity_crawler.py", "target": "func:crawler/entity_crawler.py:insert_entity", "relation": "defines"}, {"source": "file:crawler/entity_crawler.py", "target": "func:crawler/entity_crawler.py:main", "relation": "defines"}, {"source": "func:crawler/entity_crawler.py:main", "target": "func:crawler/entity_crawler.py:fetch_wikipedia_data", "relation": "calls"}, {"source": "func:crawler/entity_crawler.py:main", "target": "func:crawler/entity_crawler.py:insert_entity", "relation": "calls"}, {"source": "file:crawler/geo_crawler.py", "target": "func:crawler/geo_crawler.py:fetch_wiki_geo", "relation": "defines"}, {"source": "file:crawler/geo_crawler.py", "target": "func:crawler/geo_crawler.py:update_geo_entity", "relation": "defines"}, {"source": "file:crawler/geo_crawler.py", "target": "func:crawler/geo_crawler.py:run", "relation": "defines"}, {"source": "func:crawler/geo_crawler.py:run", "target": "func:crawler/geo_crawler.py:fetch_wiki_geo", "relation": "calls"}, {"source": "func:crawler/geo_crawler.py:run", "target": "func:crawler/geo_crawler.py:update_geo_entity", "relation": "calls"}, {"source": "file:crawler/site_scout.py", "target": "func:crawler/site_scout.py:scout_base_urls", "relation": "defines"}, {"source": "func:crawler/site_scout.py:scout_base_urls", "target": "func:backend/r2_media.py:fetch_and_upload_favicon", "relation": "calls"}, {"source": "file:crawler/site_scout.py", "target": "func:crawler/site_scout.py:name_or_url", "relation": "defines"}, {"source": "file:crawler/seed_geography.py", "target": "func:crawler/seed_geography.py:seed_geography", "relation": "defines"}, {"source": "file:crawler/seed_platform_aliases.py", "target": "func:crawler/seed_platform_aliases.py:run", "relation": "defines"}, {"source": "file:crawler/seed_popular_phrases.py", "target": "func:crawler/seed_popular_phrases.py:run", "relation": "defines"}, {"source": "file:crawler/seed_sources.py", "target": "func:crawler/seed_sources.py:compute_url_hash", "relation": "defines"}, {"source": "file:crawler/seed_sources.py", "target": "func:crawler/seed_sources.py:seed_sources", "relation": "defines"}, {"source": "func:crawler/seed_sources.py:seed_sources", "target": "func:crawler/seed_sources.py:compute_url_hash", "relation": "calls"}, {"source": "func:crawler/seed_sources.py:seed_sources", "target": "func:backend/r2_media.py:fetch_and_upload_favicon", "relation": "calls"}, {"source": "file:crawler/utils/db.py", "target": "func:crawler/utils/db.py:get_engine", "relation": "defines"}, {"source": "file:crawler/utils/links.py", "target": "func:crawler/utils/links.py:compute_url_hash", "relation": "defines"}, {"source": "file:crawler/utils/links.py", "target": "func:crawler/utils/links.py:is_valid_article_url", "relation": "defines"}, {"source": "file:crawler/utils/r2.py", "target": "func:crawler/utils/r2.py:_get_s3_client", "relation": "defines"}, {"source": "file:crawler/utils/r2.py", "target": "func:crawler/utils/r2.py:upload_favicon", "relation": "defines"}, {"source": "func:crawler/utils/r2.py:upload_favicon", "target": "func:backend/r2_media.py:_get_s3_client", "relation": "calls"}, {"source": "func:crawler/utils/r2.py:upload_favicon", "target": "func:crawler/utils/r2.py:_get_s3_client", "relation": "calls"}, {"source": "file:crawler/utils/r2.py", "target": "func:crawler/utils/r2.py:fetch_and_upload_favicon", "relation": "defines"}, {"source": "func:crawler/utils/r2.py:fetch_and_upload_favicon", "target": "func:backend/r2_media.py:upload_favicon", "relation": "calls"}, {"source": "func:crawler/utils/r2.py:fetch_and_upload_favicon", "target": "func:crawler/utils/r2.py:upload_favicon", "relation": "calls"}, {"source": "func:crawler/utils/r2.py:fetch_and_upload_favicon", "target": "func:backend/r2_media.py:upload_favicon", "relation": "calls"}, {"source": "func:crawler/utils/r2.py:fetch_and_upload_favicon", "target": "func:crawler/utils/r2.py:upload_favicon", "relation": "calls"}, {"source": "file:crawler/utils/robots.py", "target": "func:crawler/utils/robots.py:is_url_allowed", "relation": "defines"}, {"source": "file:crawler/utils/robots.py", "target": "func:crawler/utils/robots.py:fetch_and_parse_robots", "relation": "defines"}, {"source": "file:crawler/utils/robots.py", "target": "func:crawler/utils/robots.py:matches_pattern", "relation": "defines"}, {"source": "db:core.entity_name", "target": "db:core.entity", "relation": "belongs_to"}, {"source": "db:core.place", "target": "db:core.entity", "relation": "extends"}, {"source": "db:core.assertion", "target": "db:core.entity", "relation": "subjects"}, {"source": "db:core.assertion_evidence", "target": "db:core.assertion", "relation": "evidences"}, {"source": "db:content.document", "target": "db:core.source_record", "relation": "source_record"}, {"source": "db:content.entity_mention", "target": "db:core.entity", "relation": "references"}, {"source": "db:content.entity_mention", "target": "db:core.source_record", "relation": "in_document"}, {"source": "db:crawl.frontier_url", "target": "db:core.source", "relation": "source_host"}, {"source": "db:media.asset", "target": "db:core.source_record", "relation": "media_source"}, {"source": "func:crawler/content_crawler.py:crawl_content_urls", "target": "db:crawl.frontier_url", "relation": "queries/writes"}, {"source": "func:crawler/content_crawler.py:crawl_content_urls", "target": "db:content.document", "relation": "queries/writes"}, {"source": "func:crawler/content_crawler.py:crawl_content_urls", "target": "db:content.entity_mention", "relation": "queries/writes"}, {"source": "func:crawler/entity_crawler.py:insert_entity", "target": "db:core.entity", "relation": "queries/writes"}, {"source": "func:crawler/entity_crawler.py:insert_entity", "target": "db:core.entity_name", "relation": "queries/writes"}, {"source": "func:crawler/seed_geography.py:seed_geography", "target": "db:core.place", "relation": "queries/writes"}, {"source": "func:crawler/seed_geography.py:seed_geography", "target": "db:core.entity", "relation": "queries/writes"}, {"source": "func:backend/r2_media.py:upload_favicon", "target": "db:media.asset", "relation": "queries/writes"}, {"source": "ui:loadSERP()", "target": "ui:drawKnowledgeGraph()", "relation": "renders"}]};
+    let currentIndex = 0;
+    let selectedNode = null;
+    let hoveredNode = null;
+    let highlightNodes = new Set();
+    let highlightLinks = new Set();
+
+    // Map links for fast neighbor lookup
+    const neighbors = {};
+    rawData.nodes.forEach(n => neighbors[n.id] = new Set());
+    rawData.links.forEach(link => {
+      const s = typeof link.source === 'object' ? link.source.id : link.source;
+      const t = typeof link.target === 'object' ? link.target.id : link.target;
+      neighbors[s] && neighbors[s].add(t);
+      neighbors[t] && neighbors[t].add(s);
+    });
+
+    // Sort nodes and set sort index for circular clustering force
+    const categories = Array.from(new Set(rawData.nodes.map(n => n.group))).sort();
+    rawData.nodes.sort((a, b) => categories.indexOf(a.group) - categories.indexOf(b.group));
+    
+    rawData.nodes.forEach((node, i) => {
+      node.defaultSortIndex = i;
+    });
+
+    const Graph = ForceGraph3D()(document.getElementById('2d-graph'))
+      .graphData(rawData)
+      .backgroundColor(document.body.classList.contains('dark-theme') ? '#0c0a09' : '#e6e6e2')
+      .nodeId('id')
+      .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 2)
+      .linkDirectionalParticleWidth(link => highlightLinks.has(link) ? 3 : 1.5)
+      .linkDirectionalParticleSpeed(link => highlightLinks.has(link) ? 0.008 : 0.002)
+      .linkDirectionalParticleColor(link => highlightLinks.has(link) ? '#404040' : '#888888')
+      .nodeThreeObject(node => {
+        const isSelected = selectedNode && selectedNode.id === node.id;
+        const isHovered = hoveredNode && hoveredNode.id === node.id;
+        const isHighlighted = highlightNodes.has(node.id);
+        
+        const group = new THREE.Group();
+        
+        const radius = Math.max(5.5, (node.val || 6) * 1.15);
+        const geometry = new THREE.SphereGeometry(radius, 32, 32);
+        
+        let color = '#262626';
+        let opacity = 0.85;
+        
+        if (selectedNode || hoveredNode) {
+          if (isSelected || isHovered) {
+            color = '#000000';
+            opacity = 1.0;
+          } else if (isHighlighted) {
+            color = '#404040';
+            opacity = 0.95;
+          } else {
+            color = '#a3a3a3';
+            opacity = 0.12;
+          }
+        }
+        
+        const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity });
+        const sphere = new THREE.Mesh(geometry, material);
+        group.add(sphere);
+        
+        if (!selectedNode && !hoveredNode || isSelected || isHighlighted) {
+          const sprite = new SpriteText(node.name.toUpperCase());
+          sprite.color = (isSelected || isHovered) ? '#000000' : (isHighlighted ? '#404040' : '#888888');
+          sprite.textHeight = (isSelected || isHovered) ? 10 : 7;
+          sprite.position.y = - (radius + sprite.textHeight * 0.8);
+          group.add(sprite);
+        }
+        
+        return group;
+      })
+      .linkColor(link => {
+        if (!selectedNode && !hoveredNode) return 'rgba(60, 60, 60, 0.15)';
+        return highlightLinks.has(link) ? '#171717' : 'rgba(200, 200, 200, 0.05)';
+      })
+      .linkWidth(link => highlightLinks.has(link) ? 1.8 : 0.8)
+      .onNodeHover(node => {
+        hoveredNode = node;
+        if (!selectedNode) {
+          highlightNodes.clear();
+          highlightLinks.clear();
+          if (node) {
+            highlightNodes.add(node.id);
+            if (neighbors[node.id]) {
+              neighbors[node.id].forEach(nId => highlightNodes.add(nId));
+            }
+            rawData.links.forEach(link => {
+              const s = typeof link.source === 'object' ? link.source.id : link.source;
+              const t = typeof link.target === 'object' ? link.target.id : link.target;
+              if (s === node.id || t === node.id) {
+                highlightLinks.add(link);
+              }
+            });
+          }
+        }
+      })
+      .onNodeClick(node => selectNode(node))
+      .onBackgroundClick(() => resetSelection())
+      .d3AlphaDecay(0); // Keep simulation running subtly forever
+
+    // Zoom out base view slightly on load
+    setTimeout(() => {
+      Graph.cameraPosition({ z: 1200 }, null, 2000);
+    }, 500);
+
+    // Configure Custom Solar / Orbital Force
+    Graph.d3Force('charge').strength(-15);
+    Graph.d3Force('link').distance(40);
+    Graph.d3Force('solar', (alpha) => {
+      // Cap the alpha value to prevent chaotic jitter when d3AlphaDecay is 0
+      const a = Math.min(alpha, 0.1); 
+      const INNER_R = 80;
+      const DEFAULT_R = 140;
+
+      rawData.nodes.forEach((n, i) => {
+        if (!n.z) n.z = (Math.random() - 0.5) * 100;
+        if (!n.vz) n.vz = 0;
+
+        const isSelected = selectedNode && selectedNode.id === n.id;
+        const isConnected = selectedNode && neighbors[selectedNode.id] && neighbors[selectedNode.id].has(n.id);
+
+        if (isSelected || isConnected) {
+          // Foreground cluster centered at (0, 0, 200)
+          const centerX = 0, centerY = 0, centerZ = 200;
+
+          if (isSelected) {
+            n.vx -= (n.x - centerX) * a * 1.5; // pull strongly to center of foreground
+            n.vy -= (n.y - centerY) * a * 1.5;
+            n.vz -= (n.z - centerZ) * a * 1.5;
+            return;
+          }
+          
+          const dx = n.x - centerX;
+          const dy = n.y - centerY;
+          const dz = n.z - centerZ;
+          const dist = Math.sqrt(dx*dx + dy*dy + dz*dz) || 1;
+          
+          // push towards INNER_R orbit around foreground center
+          const force = (dist - INNER_R) * a * 0.2;
+          n.vx -= (dx / dist) * force;
+          n.vy -= (dy / dist) * force;
+          n.vz -= (dz / dist) * force;
+          
+          // subtle orbital movement in slow motion
+          const orbitSpeed = 0.2;
+          n.vx += (dy / dist) * a * orbitSpeed;
+          n.vy -= (dx / dist) * a * orbitSpeed;
+          n.vz += (dx / dist) * a * orbitSpeed * 0.1;
+
+        } else {
+          // Background sphere centered at (0, 0, 0)
+          const phi = Math.acos(-1 + (2 * i) / rawData.nodes.length);
+          const theta = Math.sqrt(rawData.nodes.length * Math.PI) * phi;
+          
+          const targetX = DEFAULT_R * Math.cos(theta) * Math.sin(phi);
+          const targetY = DEFAULT_R * Math.sin(theta) * Math.sin(phi);
+          const targetZ = DEFAULT_R * Math.cos(phi);
+          
+          const dx = n.x - targetX;
+          const dy = n.y - targetY;
+          const dz = n.z - targetZ;
+          
+          // Strongly pull to their categorized place on the sphere to keep them together
+          n.vx -= dx * a * 0.15;
+          n.vy -= dy * a * 0.15;
+          n.vz -= dz * a * 0.15;
+          
+          // very slow, gentle overall rotation
+          const dist = Math.sqrt(n.x*n.x + n.y*n.y + n.z*n.z) || 1;
+          n.vx += (n.y / dist) * a * 0.005;
+          n.vy -= (n.x / dist) * a * 0.005;
+          n.vz += (n.x / dist) * a * 0.001;
+        }
+      });
+    });
+
+    function selectNode(node) {
+      selectedNode = node;
+      const index = rawData.nodes.findIndex(n => n.id === node.id);
+      if (index !== -1) currentIndex = index;
+
+      history.pushState(null, '', `?term=${encodeURIComponent(node.name.toLowerCase())}`);
+
+      highlightNodes.clear();
+      highlightLinks.clear();
+
+      highlightNodes.add(node.id);
+      if (neighbors[node.id]) {
+        neighbors[node.id].forEach(nId => highlightNodes.add(nId));
+      }
+
+      rawData.links.forEach(link => {
+        const s = typeof link.source === 'object' ? link.source.id : link.source;
+        const t = typeof link.target === 'object' ? link.target.id : link.target;
+        if (s === node.id || t === node.id) {
+          highlightLinks.add(link);
+        }
+      });
+
+      // Fixed concentric layout handled fluidly by the custom 'solar' force
+      
+      Graph.d3ReheatSimulation();
+
+      // Center camera smoothly in 3D on the foreground cluster
+      Graph.cameraPosition({ x: 0, y: 0, z: 450 }, { x: 0, y: 0, z: 200 }, 2000);
+
+      // Populate right panel
+      document.getElementById('pMeta').innerText = `${node.group.toUpperCase()} · ${currentIndex + 1} / ${rawData.nodes.length}`;
+      document.getElementById('pTitle').innerText = node.name;
+      document.getElementById('pSummary').innerText = node.summary;
+      document.getElementById('pProtip').innerText = node.protip;
+      document.getElementById('pAvoid').innerText = node.avoid;
+      document.getElementById('pDetails').innerText = node.details;
+      document.getElementById('pIndex').innerText = `${currentIndex + 1} / ${rawData.nodes.length}`;
+
+      // Build connected pills
+      const connected = rawData.links.filter(l => {
+        const s = typeof l.source === 'object' ? l.source.id : l.source;
+        const t = typeof l.target === 'object' ? l.target.id : l.target;
+        return s === node.id || t === node.id;
+      });
+
+      const pillsHtml = connected.map(l => {
+        const s = typeof l.source === 'object' ? l.source.id : l.source;
+        const t = typeof l.target === 'object' ? l.target.id : l.target;
+        const targetId = s === node.id ? t : s;
+        const targetNode = rawData.nodes.find(n => n.id === targetId);
+        return targetNode ? `<div class="pill" onclick="selectById('${targetNode.id}')">${targetNode.name}</div>` : '';
+      }).join('');
+
+      document.getElementById('pPills').innerHTML = pillsHtml || '<div style="font-size:12px; color:var(--text-muted)">Isolated component</div>';
+      document.getElementById('sidePanel').classList.add('open');
+    }
+
+    function selectById(id) {
+      const target = rawData.nodes.find(n => n.id === id);
+      if (target) selectNode(target);
+    }
+
+    function resetSelection() {
+      selectedNode = null;
+      highlightNodes.clear();
+      highlightLinks.clear();
+      history.pushState(null, '', window.location.pathname);
+      closePanel();
+      
+      // Simulation handles layout transition back to default circle
+      Graph.d3ReheatSimulation();
+      Graph.cameraPosition({ x: 0, y: 0, z: 1200 }, { x: 0, y: 0, z: 0 }, 2000);
+    }
+
+    function closePanel() {
+      document.getElementById('sidePanel').classList.remove('open');
+      selectedNode = null;
+      highlightNodes.clear();
+      highlightLinks.clear();
+    }
+
+    function navigateNode(dir) {
+      currentIndex = (currentIndex + dir + rawData.nodes.length) % rawData.nodes.length;
+      selectNode(rawData.nodes[currentIndex]);
+    }
+
+    function toggleSearch() {
+      const m = document.getElementById('searchModal');
+      m.classList.toggle('active');
+      if (m.classList.contains('active')) document.getElementById('searchInput').focus();
+    }
+
+    function onSearch(q) {
+      if (!q.trim()) return;
+      const target = rawData.nodes.find(n => n.name.toLowerCase().includes(q.toLowerCase()));
+      if (target) selectNode(target);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-theme');
+      const isDarkNow = document.body.classList.contains('dark-theme');
+      Graph.backgroundColor(isDarkNow ? '#0c0a09' : '#e6e6e2');
+    }
+
+    // Process URL Parameters on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const term = urlParams.get('term');
+      if (term) {
+        const target = rawData.nodes.find(n => n.name.toLowerCase() === term.toLowerCase());
+        if (target) setTimeout(() => selectNode(target), 500);
+      }
+    });
+  </script>
+</body>
+</html>
