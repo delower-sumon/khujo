@@ -21,6 +21,11 @@ try:
 except ImportError:
     from backend.app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems, stem_and_normalize_bangla
 
+try:
+    from app.search.rank import retrieve_ranked_documents
+except ImportError:
+    from backend.app.search.rank import retrieve_ranked_documents
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("khujo_api")
 
@@ -248,75 +253,24 @@ async def search(
                 if a[0] and a[0] not in search_terms:
                     search_terms.append(a[0])
 
-        # 2. Document Search (Fixes D4 & D6)
-        # Drop ILIKE ANY from WHERE predicate; use GIN % operator to ensure Bitmap Index Scan
-        q_url_pattern = f"%{clean_q}%"
-
-        docs = db.execute(text("""
-            SELECT content.document.document_id, content.document.canonical_url, content.document.title, 
-                   content.document.summary, content.document.body_text, content.document.published_at, 
-                   core.source.source_name as source,
-                   (
-                       -- 1. Exact or title root match gets highest priority
-                       (CASE WHEN lower(content.document.title) = lower(:q) THEN 100.0
-                             WHEN lower(content.document.title) = lower(:stemmed_q) THEN 80.0
-                             ELSE 0.0 END) +
-
-                       -- 2. Trigram similarity on normalized title (heavy weight)
-                       (COALESCE(similarity(content.document.title_normalised, :q), 0.0) * 50.0) +
-
-                       -- 3. Body trigram presence (Fixes D6: eliminated expensive body float similarity)
-                       (CASE WHEN content.document.body_normalised % :q THEN 15.0 ELSE 0.0 END) +
-
-                       -- 4. URL matching (demoted to +10 so it never dominates over title)
-                       (CASE WHEN content.document.canonical_url ILIKE :url_pattern THEN 10.0 ELSE 0.0 END) +
-
-                       -- 5. Official / authoritative source boost
-                       (CASE WHEN CAST(content.document.document_kind AS text) IN ('official', 'government', 'listing') THEN 15.0 ELSE 0.0 END) +
-
-                       -- 6. Freshness decay boost
-                       (CASE WHEN content.document.published_at > now() - interval '7 days' THEN 10.0
-                             WHEN content.document.published_at > now() - interval '30 days' THEN 5.0
-                             ELSE 0.0 END)
-
-                   ) as final_score
-            FROM content.document
-            JOIN core.source_record ON content.document.source_record_id = core.source_record.source_record_id
-            LEFT JOIN core.source ON core.source_record.source_id = core.source.source_id
-            WHERE content.document.state = 'verified'
-              AND (content.document.expires_at IS NULL OR content.document.expires_at > now())
-              AND (
-                content.document.title_normalised % :q
-                OR content.document.title_normalised % :stemmed_q
-                OR content.document.body_normalised % :q
-              )
-            ORDER BY final_score DESC, content.document.published_at DESC NULLS LAST
-            LIMIT :limit OFFSET :offset
-        """), {
-            "q": clean_q,
-            "stemmed_q": stemmed_root,
-            "url_pattern": q_url_pattern,
-            "limit": limit,
-            "offset": offset
-        }).fetchall()
+        # 2. Document Search via BM25 Inverted Index (with Trigram Fallback)
+        ranked_docs = retrieve_ranked_documents(db, clean_q, search_terms, limit=limit, offset=offset)
 
         results = []
-        for d in docs:
-            url = d[1] or ""
-            domain = ""
-            if "://" in url:
-                domain = url.split("://")[1].split("/")[0].replace("www.", "")
-            
+        for d in ranked_docs:
+            domain = d.get("domain") or ""
             favicon_url = f"https://www.google.com/s2/favicons?domain={domain}&sz=32" if domain else None
-            snippet = d[3] if d[3] and len(d[3].strip()) > 10 else ((d[4][:220] + "...") if d[4] else "No description available")
-            
+            snippet = d.get("summary") if d.get("summary") and len(d.get("summary").strip()) > 10 else ((d.get("body")[:220] + "...") if d.get("body") else "No description available")
+
             results.append({
-                "id": str(d[0]),
-                "title": d[2] or "Untitled",
+                "id": d.get("id"),
+                "title": d.get("title") or "Untitled",
                 "snippet": snippet,
-                "url": url,
+                "url": d.get("url"),
                 "favicon": favicon_url,
-                "source": d[6] or domain,
+                "source": d.get("source") or domain,
+                "score": d.get("score"),
+                "retrieval_method": d.get("retrieval_method"),
                 "type": "document"
             })
 
