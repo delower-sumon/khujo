@@ -98,6 +98,37 @@ def extract_article_data(html: str, url: str) -> dict:
         "links": discovered_links
     }
 
+def is_bangladesh_content(url: str, title: str, body_text: str) -> bool:
+    """
+    Enforce Bangladesh-only content gate:
+    1. Host has .bd, .gov.bd, .edu.bd, .org.bd, etc. -> Pass
+    2. Contains Bengali script characters (\u0980-\u09FF) in meaningful proportion (> 30 chars) -> Pass
+    3. Contains prominent Bangladesh context keywords (e.g. বাংলাদেশ, ঢাকা, চট্টগ্রাম, etc.) -> Pass
+    Otherwise -> Discard as non-BD foreign noise.
+    """
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+
+    if host.endswith(".bd"):
+        return True
+
+    # Check Bengali script presence (at least 30 Bengali characters)
+    bn_chars = len(re.findall(r'[\u0980-\u09FF]', body_text))
+    if bn_chars >= 30:
+        return True
+
+    # Explicit Bangladesh geo/context keywords in Title or Body
+    BD_ANCHORS = [
+        "bangladesh", "dhaka", "chittagong", "sylhet", "rajshahi",
+        "khulna", "barisal", "rangpur", "mymensingh", "bengali", "bangla",
+        "taka", "upazila", "union parishad", "bcs", "nctb"
+    ]
+    combined_lower = f"{title} {body_text[:1000]}".lower()
+    if any(k in combined_lower for k in BD_ANCHORS):
+        return True
+
+    return False
+
 def crawl_content_urls(batch_limit: int = 10):
     engine = get_engine()
 
@@ -166,6 +197,15 @@ def crawl_content_urls(batch_limit: int = 10):
 
                 if not body_text or len(body_text.strip()) < 50:
                     log.warning("  Extracted body text too short for %s. Skipping insert.", article_url)
+                    with engine.begin() as skip_conn:
+                        skip_conn.execute(text("""
+                            UPDATE crawl.frontier_url SET state = 'fetched', last_status_code = 200 WHERE frontier_url_id = :fid
+                        """), {"fid": frontier_id})
+                    continue
+
+                # Enforce Bangladesh-Only Content Gate
+                if not is_bangladesh_content(article_url, data["title"], body_text):
+                    log.warning("  Non-Bangladesh content discarded: %s (Title: %s)", article_url, data["title"][:40])
                     with engine.begin() as skip_conn:
                         skip_conn.execute(text("""
                             UPDATE crawl.frontier_url SET state = 'fetched', last_status_code = 200 WHERE frontier_url_id = :fid

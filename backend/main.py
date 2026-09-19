@@ -22,6 +22,11 @@ except ImportError:
     from backend.app.nlp.bangla_stemmer import strip_bangla_suffix, expand_bangla_stems, stem_and_normalize_bangla
 
 try:
+    from app.nlp.banglish import transliterate_banglish, expand_query_with_banglish
+except ImportError:
+    from backend.app.nlp.banglish import transliterate_banglish, expand_query_with_banglish
+
+try:
     from app.search.rank import retrieve_ranked_documents
 except ImportError:
     from backend.app.search.rank import retrieve_ranked_documents
@@ -163,9 +168,14 @@ async def search(
         stemmed_root = strip_bangla_suffix(clean_q)
         stemmed_norm = stemmed_root.lower().replace(" ", "")
 
-        # Expand search terms with morphological roots (Fixes D5)
-        expanded_stems = expand_bangla_stems(clean_q)
-        search_terms = list(dict.fromkeys([clean_q] + expanded_stems))
+        # Banglish transliteration detection & expansion (e.g. 'ami banglay gaan gai' -> 'আমি বাংলায় গান গাই')
+        banglish_primary, banglish_variants = transliterate_banglish(clean_q)
+        if banglish_primary:
+            expanded_stems = expand_bangla_stems(banglish_primary)
+            search_terms = list(dict.fromkeys([clean_q, banglish_primary] + banglish_variants + expanded_stems))
+        else:
+            expanded_stems = expand_bangla_stems(clean_q)
+            search_terms = list(dict.fromkeys([clean_q] + expanded_stems))
         
         # 1. Lookup knowledge graph entity & all associated transliteration aliases (Fixes D3 & D5)
         # Tiered precision: Exact name -> Exact normalised -> Stemmed root -> Stemmed normalised -> Substring (min 4 chars)
@@ -181,13 +191,15 @@ async def search(
                OR lower(n.normalised_name) = lower(:norm_q)
                OR lower(n.name) = lower(:stemmed_q)
                OR lower(n.normalised_name) = lower(:stemmed_norm)
+               OR (:banglish_q != '' AND (lower(n.name) = lower(:banglish_q) OR lower(n.normalised_name) = lower(:banglish_norm)))
                OR (:allow_sub = TRUE AND (n.normalised_name ILIKE :q_like OR e.display_name ILIKE :q_like)))
             ORDER BY 
                (CASE WHEN lower(n.name) = lower(:q) THEN 1 
                      WHEN lower(n.normalised_name) = lower(:norm_q) THEN 2 
                      WHEN lower(n.name) = lower(:stemmed_q) THEN 3
                      WHEN lower(n.normalised_name) = lower(:stemmed_norm) THEN 4
-                     ELSE 5 END),
+                     WHEN :banglish_q != '' AND lower(n.name) = lower(:banglish_q) THEN 5
+                     ELSE 6 END),
                (CASE WHEN e.metadata->>'images' IS NOT NULL OR e.metadata->>'image_url' IS NOT NULL THEN 0 ELSE 1 END),
                n.entity_name_id
             LIMIT 1
@@ -196,6 +208,8 @@ async def search(
             "norm_q": norm_q,
             "stemmed_q": stemmed_root,
             "stemmed_norm": stemmed_norm,
+            "banglish_q": banglish_primary or "",
+            "banglish_norm": (banglish_primary or "").lower().replace(" ", ""),
             "allow_sub": allow_substring,
             "q_like": q_like
         }).fetchone()
@@ -276,6 +290,12 @@ async def search(
 
         # Schedule asynchronous logging outside transaction (Fixes D12)
         background_tasks.add_task(record_search_telemetry, clean_q, len(results))
+
+        if not correction and banglish_primary:
+            correction = {
+                "original_query": clean_q,
+                "target_name": banglish_primary
+            }
 
         return {
             "query": q,
