@@ -1,0 +1,195 @@
+entity_id,name_bn,name_en,acronym,category,verification_note,status
+uni_crawler_1,ঢাকা বিশ্ববিদ্যালয়,University of Dhaka,ঢাবি (DU),Universities,,no_issue_detected
+uni_crawler_2,রাজশাহী বিশ্ববিদ্যালয়,University of Rajshahi,রাবি (RU),Universities,,no_issue_detected
+uni_crawler_3,চট্টগ্রাম বিশ্ববিদ্যালয়,University of Chittagong,চবি (CU),Universities,,no_issue_detected
+uni_crawler_4,জাহাঙ্গীরনগর বিশ্ববিদ্যালয়,Jahangirnagar University,জাবি (JU),Universities,,no_issue_detected
+uni_crawler_5,"ইসলামী বিশ্ববিদ্যালয়, বাংলাদেশ","Islamic University, Bangladesh",ইবি (IU),Universities,,no_issue_detected
+uni_crawler_6,খুলনা বিশ্ববিদ্যালয়,Khulna University,খুবি (KU),Universities,,no_issue_detected
+uni_crawler_7,জগন্নাথ বিশ্ববিদ্যালয়,Jagannath University,জবি (JnU),Universities,,no_issue_detected
+uni_crawler_8,কুমিল্লা বিশ্ববিদ্যালয়,Comilla University,কুবি (CoU),Universities,,no_issue_detected
+uni_crawler_9,জাতীয় কবি কাজী নজরুল ইসলাম বিশ্ববিদ্যালয়,Jatiya Kabi Kazi Nazrul Islam University,জেকেকেএনআইইউ (JKKNIU),Universities,,no_issue_detected
+uni_crawler_10,বাংলাদেশ ইউনিভার্সিটি অব প্রফেশনালস,Bangladesh University of Professionals,বিইউপি (BUP),Universities,,no_issue_detected
+uni_crawler_11,বেগম রোকেয়া বিশ্ববিদ্যালয়,Begum Rokeya University,বিআরইউআর (BRUR),Universities,,no_issue_detected
+uni_crawler_12,বরিশাল বিশ্ববিদ্যালয়,University of Barisal,বিইউ (BU),Universities,,no_issue_detected
+uni_crawler_13,"রবীন্দ্র বিশ্ববিদ্যালয়, বাংলাদেশ","Rabindra University, Bangladesh",আরইউবি (RUB),Universities,,no_issue_detected
+uni_crawler_14,নেত্রকোনা বিশ্ববিদ্যালয়,Netrokona University,এনকেইউ (NkU),Universities,,no_issue_detected
+uni_crawler_15,কিশোরগঞ্জ বিশ্ববিদ্যালয়,Kishoreganj University,কেজিইউ (KgU),Universities,,no_issue_detected
+uni_crawler_16,মেহেরপুর বিশ্ববিদ্যালয়,Meherpur University,এমইউ (MU),Universities,,no_issue_detected
+uni_crawler_17,বগুড়া বিশ্ববিদ্যালয়,University of Bogura,ইউবি (UB),Universities,,no_issue_detected
+uni_crawler_18,ঠাকুরগাঁও বিশ্ববিদ্যালয়,Thakurgaon University,টিইউ (TU),Universities,,no_issue_detected
+uni_crawler_19,নওগাঁ বিশ্ববিদ্যালয়,Naogaon University,এনএইউ (NaU),Universities,,no_issue_detected
+uni_crawler_20,শাহজালাল বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Shahjalal University of Science and Technology,শাবিপ্রবি (SUST),Universities,,no_issue_detected
+uni_crawler_21,হাজী মোহাম্মদ দানেশ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Hajee Mohammad Danesh Science & Technology University,হাবিপ্রবি (HSTU),Universities,,no_issue_detected
+uni_crawler_22,মাওলানা ভাসানী বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Mawlana Bhashani Science and Technology University,মাভাবিপ্রবি (MBSTU),Universities,,no_issue_detected
+uni_crawler_23,পটুয়াখালী বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Patuakhali Science and Technology University,পবিপ্রবি (PSTU),Universities,,no_issue_detected
+uni_crawler_24,নোয়াখালী বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Noakhali Science and Technology University,নোবিপ্রবি (NSTU),Universities,,no_issue_detected
+uni_crawler_25,যশোর বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Jashore University of Science and Technology,যবিপ্রবি (JUST),Universities,,no_issue_detected
+uni_crawler_26,পাবনা বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Pabna University of Science and Technology,পাবিপ্রবি (PUST),Universities,,no_issue_detected
+uni_crawler_27,গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Gopalganj Science and Technology University,জিএসটিইউ (GSTU),Universities,,no_issue_detected
+uni_crawler_28,রাঙামাটি বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Rangamati Science and Technology University,আরএমএসটিইউ (RmSTU),Universities,,no_issue_detected
+uni_crawler_29,জামালপুর বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Jamalpur Science and Technology University,জেএসটিইউ (JSTU),Universities,,no_issue_detected
+uni_crawler_30,চাঁদপুর বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Chandpur Science and Technology University,সিএসটিইউ (CSTU),Universities,,no_issue_detected
+uni_crawler_31,সুনামগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Sunamganj Science and Technology University,এসএসটিইউ (SSTU),Universities,,no_issue_detected
+uni_crawler_32,লক্ষ্মীপুর বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Lakshmipur Science and Technology University,এলএসটিইউ (LSTU),Universities,,no_issue_detected
+uni_crawler_33,পিরোজপুর বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Pirojpur Science and Technology University,পিআরএসটিইউ (PrSTU),Universities,,no_issue_detected
+uni_crawler_34,সাতক্ষীরা বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Satkhira University of Science and Technology,এসএইউএসটি (SaUST),Universities,,no_issue_detected
+uni_crawler_35,নারায়ণগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Narayanganj Science and Technology University,এনজিএসটিইউ (NGSTU),Universities,,no_issue_detected
+uni_crawler_36,বাংলাদেশ প্রকৌশল বিশ্ববিদ্যালয়,Bangladesh University of Engineering & Technology,বুয়েট (BUET),Universities,,no_issue_detected
+uni_crawler_37,মিলিটারি ইনস্টিটিউট অব সায়েন্স অ্যান্ড টেকনোলজি,Military Institute of Science and Technology,এমআইএসটি (MIST),Universities,,no_issue_detected
+uni_crawler_38,রাজশাহী প্রকৌশল ও প্রযুক্তি বিশ্ববিদ্যালয়,Rajshahi University of Engineering & Technology,রুয়েট (RUET),Universities,,no_issue_detected
+uni_crawler_39,খুলনা প্রকৌশল ও প্রযুক্তি বিশ্ববিদ্যালয়,Khulna University of Engineering & Technology,কুয়েট (KUET),Universities,,no_issue_detected
+uni_crawler_40,চট্টগ্রাম প্রকৌশল ও প্রযুক্তি বিশ্ববিদ্যালয়,Chittagong University of Engineering & Technology,চুয়েট (CUET),Universities,,no_issue_detected
+uni_crawler_41,ঢাকা প্রকৌশল ও প্রযুক্তি বিশ্ববিদ্যালয়,Dhaka University of Engineering & Technology,ডুয়েট (DUET),Universities,,no_issue_detected
+uni_crawler_42,বাংলাদেশ কৃষি বিশ্ববিদ্যালয়,Bangladesh Agricultural University,বাকৃবি (BAU),Universities,,no_issue_detected
+uni_crawler_43,গাজীপুর কৃষি বিশ্ববিদ্যালয়,Gazipur Agricultural University,জিএইউ (GAU),Universities,,no_issue_detected
+uni_crawler_44,শেরেবাংলা কৃষি বিশ্ববিদ্যালয়,Sher-e-Bangla Agricultural University,শেকৃবি (SBAU),Universities,,no_issue_detected
+uni_crawler_45,সিলেট কৃষি বিশ্ববিদ্যালয়,Sylhet Agricultural University,সিকৃবি (SAU),Universities,,no_issue_detected
+uni_crawler_46,খুলনা কৃষি বিশ্ববিদ্যালয়,Khulna Agricultural University,কেএইউ (KAU),Universities,,no_issue_detected
+uni_crawler_47,হবিগঞ্জ কৃষি বিশ্ববিদ্যালয়,Habiganj Agricultural University,এইচএইউ (HAU),Universities,,no_issue_detected
+uni_crawler_48,কুড়িগ্রাম কৃষি বিশ্ববিদ্যালয়,Kurigram Agricultural University,কেইউআরআইএইউ (KuriAU),Universities,,no_issue_detected
+uni_crawler_49,শরীয়তপুর কৃষি বিশ্ববিদ্যালয়,Shariatpur Agriculture University,এসএইচএইউ (ShAU),Universities,,no_issue_detected
+uni_crawler_50,বাংলাদেশ মেডিকেল বিশ্ববিদ্যালয়,Bangladesh Medical University,বিএমইউ (BMU),Universities,,no_issue_detected
+uni_crawler_51,চট্টগ্রাম মেডিকেল বিশ্ববিদ্যালয়,Chittagong Medical University,সিএমইউ (CMU),Universities,,no_issue_detected
+uni_crawler_52,রাজশাহী মেডিকেল বিশ্ববিদ্যালয়,Rajshahi Medical University,আরএমইউ (RMU),Universities,,no_issue_detected
+uni_crawler_53,সিলেট মেডিকেল বিশ্ববিদ্যালয়,Sylhet Medical University,এসএমইউ (SMU),Universities,,no_issue_detected
+uni_crawler_54,খুলনা মেডিকেল বিশ্ববিদ্যালয়,Khulna Medical University,কেএমইউ (KMU),Universities,,no_issue_detected
+uni_crawler_55,চট্টগ্রাম ভেটেরিনারি ও এনিম্যাল সায়েন্সেস বিশ্ববিদ্যালয়,Chittagong Veterinary and Animal Sciences University,সিভিএএসইউ (CVASU),Universities,,no_issue_detected
+uni_crawler_56,বাংলাদেশ টেক্সটাইল বিশ্ববিদ্যালয়,Bangladesh University of Textiles,বিইউটিইএক্স (BUTEX),Universities,,no_issue_detected
+uni_crawler_57,বঙ্গবন্ধু শেখ মুজিবুর রহমান মেরিটাইম বিশ্ববিদ্যালয়,Bangladesh Maritime University,বিএমইউ (BMU),Universities,,no_issue_detected
+uni_crawler_58,বিশ্ববিদ্যালয় ফ্রন্টিয়ার টেকনোলজি বাংলাদেশ,"University of Frontier Technology, Bangladesh",ইউএফটিবি (UFTB),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_59,এভিয়েশন অ্যান্ড অ্যারোস্পেস বিশ্ববিদ্যালয় বাংলাদেশ,Aviation and Aerospace University Bangladesh,এএইউবি (AAUB),Universities,,no_issue_detected
+uni_crawler_60,"জাতীয় বিশ্ববিদ্যালয়, বাংলাদেশ",National University Bangladesh,এনইউ (NU),Universities,,no_issue_detected
+uni_crawler_61,বাংলাদেশ উন্মুক্ত বিশ্ববিদ্যালয়,Bangladesh Open University,বিওইউ (BOU),Universities,,no_issue_detected
+uni_crawler_62,ইসলামি আরবি বিশ্ববিদ্যালয়,Islamic Arabic University,আইএইউ (IAU),Universities,,no_issue_detected
+uni_crawler_63,ঢাকা সেন্ট্রাল বিশ্ববিদ্যালয়,Dhaka Central University,ডিসিইউ (DCU),Universities,,no_issue_detected
+uni_crawler_64,সিলেট ইঞ্জিনিয়ারিং কলেজ,Sylhet Engineering College,এসইসি (SEC),Universities,,no_issue_detected
+uni_crawler_65,ময়মনসিংহ ইঞ্জিনিয়ারিং কলেজ,Mymensingh Engineering College,এমইসি (MEC),Universities,,no_issue_detected
+uni_crawler_66,ফরিদপুর ইঞ্জিনিয়ারিং কলেজ,Faridpur Engineering College,এফইসি (FEC),Universities,,no_issue_detected
+uni_crawler_67,বরিশাল ইঞ্জিনিয়ারিং কলেজ,Barisal Engineering College,বিইসি (BEC),Universities,,no_issue_detected
+uni_crawler_68,টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ চট্টগ্রাম,"Textile Engineering College, Chittagong",সিটিইসি (CTEC),Universities,,no_issue_detected
+uni_crawler_69,পাবনা টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ,Pabna Textile Engineering College,পিটিইসি (PTEC),Universities,,no_issue_detected
+uni_crawler_70,টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ নোয়াখালী,"Textile Engineering College, Noakhali",টিইসিএন (TECN),Universities,,no_issue_detected
+uni_crawler_71,টাঙ্গাইল টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ,Tangail Textile Engineering College,টিটিইসি (TTEC),Universities,,no_issue_detected
+uni_crawler_72,বরিশাল টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ,Barishal Textile Engineering College,বিটিইসি (BTEC),Universities,,no_issue_detected
+uni_crawler_73,ঝিনাইদহ টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ ঝিনাইদহ,"Jhenaidah Textile Engineering College, Jhenaidah",জেটিইসি (JTEC),Universities,,no_issue_detected
+uni_crawler_74,রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ,Rangpur Textile Engineering College,আরটিইসি (RTEC),Universities,,no_issue_detected
+uni_crawler_75,গোপালগঞ্জ টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ,Gopalganj Textile Engineering College,জিটিইসি (GTEC),Universities,,no_issue_detected
+uni_crawler_76,জামালপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ,Jamalpur Textile Engineering College,জেটিইসি (JTEC),Universities,,no_issue_detected
+uni_crawler_77,ইন্টারন্যাশনাল বিশ্ববিদ্যালয় বিজনেস এগ্রিকালচার অ্যান্ড টেকনোলজি,International University of Business Agriculture and Technology,আইইউবিএটি (IUBAT),Universities,,no_issue_detected
+uni_crawler_78,নর্থ সাউথ বিশ্ববিদ্যালয়,North South University,এনএসইউ (NSU),Universities,,no_issue_detected
+uni_crawler_79,"ইন্ডিপেনডেন্ট বিশ্ববিদ্যালয়, বাংলাদেশ","Independent University, Bangladesh",আইইউবি (IUB),Universities,,no_issue_detected
+uni_crawler_80,আমেরিকান ইন্টারন্যাশনাল ইউনিভার্সিটি-বাংলাদেশ,American International University-Bangladesh,এআইইউবি (AIUB),Universities,,no_issue_detected
+uni_crawler_81,ঢাকা ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Dhaka International University,ডিআইইউ (DIU),Universities,,no_issue_detected
+uni_crawler_82,ইন্টারন্যাশনাল ইসলামিক বিশ্ববিদ্যালয় চট্টগ্রাম,"International Islamic University, Chittagong",আইআইইউসি (IIUC),Universities,,no_issue_detected
+uni_crawler_83,এশিয়ান বিশ্ববিদ্যালয় বাংলাদেশ,Asian University of Bangladesh,এইউবি (AUB),Universities,,no_issue_detected
+uni_crawler_84,ইস্ট ওয়েস্ট বিশ্ববিদ্যালয়,East West University,ইডব্লিউইউ (EWU),Universities,,no_issue_detected
+uni_crawler_85,গণ বিশ্ববিদ্যালয়,Gono Bishwabidyalay,জিবি (GB),Universities,,no_issue_detected
+uni_crawler_86,"পিপলস বিশ্ববিদ্যালয়, বাংলাদেশ",People's University of Bangladesh,পিইউবি (PUB),Universities,"যান্ত্রিক ত্রুটি: apostrophe-s (""এস"") বিচ্ছিন্ন টোকেন হিসেবে থেকে গিয়েছিল",verified_fixed
+uni_crawler_87,কুইন্স বিশ্ববিদ্যালয়,Queens University,কিউইউ (QU),Universities,,no_issue_detected
+uni_crawler_88,বিশ্ববিদ্যালয় এশিয়া প্যাসিফিক বাংলাদেশ,University of Asia Pacific (Bangladesh),ইউএপি (UAP),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_89,চট্টগ্রাম ইন্ডিপেনডেন্ট বিশ্ববিদ্যালয়,Chittagong Independent University (CIU),সিআইইউ (CIU),Universities,"নামের মধ্যে সংক্ষিপ্ত রূপ (সিআইইউ) অপ্রয়োজনীয়ভাবে পুনরাবৃত্ত হয়েছিল, পৃথক acronym কলামে আগে থেকেই আছে",verified_fixed
+uni_crawler_90,বাংলাদেশ বিশ্ববিদ্যালয়,Bangladesh University,বিইউ (BU),Universities,,no_issue_detected
+uni_crawler_91,বিজিসি ট্রাস্ট বিশ্ববিদ্যালয় বাংলাদেশ,BGC Trust University Bangladesh,বিজিসিটিইউবি (BGCTUB),Universities,,no_issue_detected
+uni_crawler_92,ব্র্যাক বিশ্ববিদ্যালয়,BRAC University,ব্র্যাকইউ (BracU),Universities,,no_issue_detected
+uni_crawler_93,মানারাত ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Manarat International University,এমআইইউ (MIU),Universities,,no_issue_detected
+uni_crawler_94,প্রিমিয়ার বিশ্ববিদ্যালয় চট্টগ্রাম,"Premier University, Chittagong",পিইউ (PU),Universities,,no_issue_detected
+uni_crawler_95,সাউদার্ন বিশ্ববিদ্যালয় বাংলাদেশ,"Southern University, Bangladesh",এসইউবি (SUB),Universities,,no_issue_detected
+uni_crawler_96,সিলেট ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Sylhet International University,এসআইইউ (SIU),Universities,,no_issue_detected
+uni_crawler_97,বিশ্ববিদ্যালয় ডেভেলপমেন্ট অল্টারনেটিভ,University of Development Alternative,ইউওডিএ (UODA),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_98,সিটি বিশ্ববিদ্যালয় বাংলাদেশ,"City University, Bangladesh",সিইউবি (CUB),Universities,,no_issue_detected
+uni_crawler_99,ড্যাফোডিল ইন্টারন্যাশনাল ইউনিভার্সিটি,Daffodil International University,ডিআইইউ (DIU),Universities,,no_issue_detected
+uni_crawler_100,গ্রিন বিশ্ববিদ্যালয় বাংলাদেশ,Green University of Bangladesh,জিইউবি (GUB),Universities,,no_issue_detected
+uni_crawler_101,ইবাইস বিশ্ববিদ্যালয়,IBAIS University,ইবি (IU),Universities,,no_issue_detected
+uni_crawler_102,লিডিং বিশ্ববিদ্যালয়,Leading University,এলইউ (LU),Universities,,no_issue_detected
+uni_crawler_103,নর্দান বিশ্ববিদ্যালয় বাংলাদেশ,"Northern University, Bangladesh",এনইউবি (NUB),Universities,,no_issue_detected
+uni_crawler_104,প্রাইম বিশ্ববিদ্যালয়,Prime University,পিইউ (PU),Universities,,no_issue_detected
+uni_crawler_105,সাউথইস্ট বিশ্ববিদ্যালয়,Southeast University,এসইইউ (SEU),Universities,,no_issue_detected
+uni_crawler_106,স্ট্যামফোর্ড বিশ্ববিদ্যালয় বাংলাদেশ,Stamford University Bangladesh,এসইউ (SU),Universities,,no_issue_detected
+uni_crawler_107,স্টেট বিশ্ববিদ্যালয় বাংলাদেশ,State University of Bangladesh,এসইউবি (SUB),Universities,,no_issue_detected
+uni_crawler_108,ইস্টার্ন বিশ্ববিদ্যালয় বাংলাদেশ,"Eastern University, Bangladesh",ইইউ (EU),Universities,,no_issue_detected
+uni_crawler_109,মেট্রোপলিটন বিশ্ববিদ্যালয়,Metropolitan University,এমইউ (MU),Universities,,no_issue_detected
+uni_crawler_110,মিলেনিয়াম বিশ্ববিদ্যালয়,Millennium University,এমইউ (MU),Universities,,no_issue_detected
+uni_crawler_111,প্রাইমএশিয়া বিশ্ববিদ্যালয়,Primeasia University,পিএইউ (PAU),Universities,,no_issue_detected
+uni_crawler_112,রয়েল বিশ্ববিদ্যালয় ঢাকা,Royal University of Dhaka,আরইউডি (RUD),Universities,,no_issue_detected
+uni_crawler_113,ইউনাইটেড ইন্টারন্যাশনাল ইউনিভার্সিটি,United International University,ইউআইইউ (UIU),Universities,,no_issue_detected
+uni_crawler_114,বিশ্ববিদ্যালয় ইনফরমেশন টেকনোলজি অ্যান্ড সায়েন্সেস,University of Information Technology and Sciences,ইউআইটিএস (UITS),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_115,বিশ্ববিদ্যালয় সাউথ এশিয়া বাংলাদেশ,"University of South Asia, Bangladesh",ইউএসএবি (USAB),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_116,প্রেসিডেন্সি বিশ্ববিদ্যালয়,Presidency University,পিইউ (PU),Universities,,no_issue_detected
+uni_crawler_117,উত্তরা বিশ্ববিদ্যালয়,Uttara University,ইউইউ (UU),Universities,,no_issue_detected
+uni_crawler_118,ভিক্টোরিয়া বিশ্ববিদ্যালয় বাংলাদেশ,Victoria University of Bangladesh,ভিইউবি (VUB),Universities,,no_issue_detected
+uni_crawler_119,ওয়ার্ল্ড বিশ্ববিদ্যালয় বাংলাদেশ,World University of Bangladesh,ডব্লিউইউবি (WUB),Universities,,no_issue_detected
+uni_crawler_120,আশা বিশ্ববিদ্যালয় বাংলাদেশ,Asa University Bangladesh,এএসএইউবি (ASAUB),Universities,,no_issue_detected
+uni_crawler_121,বাংলাদেশ ইসলামী বিশ্ববিদ্যালয়,Bangladesh Islami University,বিআইইউ (BIU),Universities,,no_issue_detected
+uni_crawler_122,ইস্ট ডেল্টা বিশ্ববিদ্যালয়,East Delta University,ইডিইউ (EDU),Universities,,no_issue_detected
+uni_crawler_123,নর্দান বিশ্ববিদ্যালয় বিজনেস অ্যান্ড টেকনোলজি খুলনা,Northern University of Business and Technology Khulna,এনইউবি (NUB),Universities,,no_issue_detected
+uni_crawler_124,ব্রিটানিয়া বিশ্ববিদ্যালয়,Britannia University,বিইউ (BU),Universities,,no_issue_detected
+uni_crawler_125,ফেনী বিশ্ববিদ্যালয়,Feni University,এফইউ (FU),Universities,,no_issue_detected
+uni_crawler_126,খাজা ইউনুস আলী বিশ্ববিদ্যালয়,Khwaja Yunus Ali University,কেওয়াইএইউ (KYAU),Universities,,no_issue_detected
+uni_crawler_127,ইউরোপিয়ান বিশ্ববিদ্যালয় বাংলাদেশ,European University of Bangladesh,ইইউবি (EUB),Universities,,no_issue_detected
+uni_crawler_128,ফার্স্ট ক্যাপিটাল বিশ্ববিদ্যালয় বাংলাদেশ,First Capital University Of Bangladesh,এফসিইউবি (FCUB),Universities,,no_issue_detected
+uni_crawler_129,বিজিএমইএ বিশ্ববিদ্যালয় ফ্যাশন টেকনোলজি,BGMEA University of Fashion & Technology,বিইউএফটি (BUFT),Universities,,no_issue_detected
+uni_crawler_130,হামদর্দ বিশ্ববিদ্যালয় বাংলাদেশ,Hamdard University Bangladesh,এইচইউবি (HUB),Universities,,no_issue_detected
+uni_crawler_131,ঈশা খাঁ ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Ishakha International University,আইআইইউবি (IIUB),Universities,,no_issue_detected
+uni_crawler_132,নর্থ ইস্ট বিশ্ববিদ্যালয় বাংলাদেশ,North East University Bangladesh,এনইইউবি (NEUB),Universities,,no_issue_detected
+uni_crawler_133,নর্থ ওয়েস্টার্ন বিশ্ববিদ্যালয় বাংলাদেশ,"North Western University, Bangladesh",এনডব্লিউইউ (NWU),Universities,,no_issue_detected
+uni_crawler_134,পোর্ট সিটি ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Port City International University,পিসিআইইউ (PCIU),Universities,,no_issue_detected
+uni_crawler_135,বরেন্দ্র বিশ্ববিদ্যালয়,Varendra University,ভিইউ (VU),Universities,,no_issue_detected
+uni_crawler_136,সোনারগাঁও বিশ্ববিদ্যালয়,Sonargaon University,এসইউ (SU),Universities,,no_issue_detected
+uni_crawler_137,কক্সবাজার ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Cox's Bazar International University,সিবিআইইউ (CBIU),Universities,"যান্ত্রিক ত্রুটি সংশোধন + প্রতিষ্ঠিত বাংলা বানান ""কক্সবাজার"" (একত্রে)",verified_fixed
+uni_crawler_138,ফারইস্ট ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Fareast International University,এফআইইউ (FIU),Universities,,no_issue_detected
+uni_crawler_139,জার্মান বিশ্ববিদ্যালয় বাংলাদেশ,German University Bangladesh,জিইউবি (GUB),Universities,,no_issue_detected
+uni_crawler_140,নর্থ বেঙ্গল ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,North Bengal International University,এনবিআইইউ (NBIU),Universities,,no_issue_detected
+uni_crawler_141,নটর ডেম বিশ্ববিদ্যালয় বাংলাদেশ,Notre Dame University Bangladesh,এনডিইউবি (NDUB),Universities,,no_issue_detected
+uni_crawler_142,রণদা প্রসাদ সাহা বিশ্ববিদ্যালয়,Ranada Prasad Shaha University,আরপিএসইউ (RPSU),Universities,,no_issue_detected
+uni_crawler_143,ব্রহ্মপুত্র ইন্টারন্যাশনাল বিশ্ববিদ্যালয়,Brahmaputra International University,বিআইইউ (BIU),Universities,,no_issue_detected
+uni_crawler_144,টাইমস বিশ্ববিদ্যালয় বাংলাদেশ,Times University Bangladesh,টিএমইউবি (TMUB),Universities,,no_issue_detected
+uni_crawler_145,কানাডিয়ান বিশ্ববিদ্যালয় বাংলাদেশ,Canadian University of Bangladesh,সিইউবি (CUB),Universities,,no_issue_detected
+uni_crawler_146,গ্লোবাল বিশ্ববিদ্যালয় বাংলাদেশ,Global University Bangladesh,জিইউবি (GUB),Universities,,no_issue_detected
+uni_crawler_147,এনপিআই বিশ্ববিদ্যালয় বাংলাদেশ,NPI University of Bangladesh,এনপিআইইউবি (NPIUB),Universities,,no_issue_detected
+uni_crawler_148,রবীন্দ্র মৈত্রী বিশ্ববিদ্যালয়,Rabindra Maitree University,আরএমইউ (RMU),Universities,,no_issue_detected
+uni_crawler_149,বিশ্ববিদ্যালয় স্কলার্স,University of Scholars,আইইউএস (IUS),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_150,বিশ্ববিদ্যালয় ক্রিয়েটিভ টেকনোলজি চট্টগ্রাম,University of Creative Technology Chittagong,ইউসিটিসি (UCTC),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_151,আনোয়ার খান মডার্ন বিশ্ববিদ্যালয়,Anwer Khan Modern University,একেএমইউ (AKMU),Universities,,no_issue_detected
+uni_crawler_152,বিশ্ববিদ্যালয় গ্লোবাল ভিলেজ,University of Global Village,ইউআইজিভি (UIGV),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_153,খুলনা খান বাহাদুর আহছানউল্লা বিশ্ববিদ্যালয়,Khulna Khan Bahadur Ahsanullah University,কেকেবিএইউ (KKBAU),Universities,,no_issue_detected
+uni_crawler_154,ট্রাস্ট বিশ্ববিদ্যালয় বরিশাল,"Trust University, Barishal",টিইউবি (TUB),Universities,,no_issue_detected
+uni_crawler_155,বিশ্ববিদ্যালয় ব্রাহ্মণবাড়িয়া,University of Brahmanbaria,ইউওবি (UOB),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_156,বিশ্ববিদ্যালয় স্কিল এনরিচমেন্ট অ্যান্ড টেকনোলজি,University of Skill Enrichment and Technology,ইউএসইটি (USET),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_157,ইন্টারন্যাশনাল স্ট্যান্ডার্ড বিশ্ববিদ্যালয়,International Standard University,আইএসইউ (ISU),Universities,,no_issue_detected
+uni_crawler_158,জেডএনআরএফ বিশ্ববিদ্যালয় ম্যানেজমেন্ট সায়েন্সেস,ZNRF University of Management Sciences,জেডইউএমএস (ZUMS),Universities,,no_issue_detected
+uni_crawler_159,বান্দরবান বিশ্ববিদ্যালয়,Bandarban University,বিডিইউ (BdU),Universities,,no_issue_detected
+uni_crawler_160,আরটিএম আল কবির টেকনিক্যাল বিশ্ববিদ্যালয়,RTM Al-Kabir Technical University,আরটিএম-একেটিইউ (RTM-AKTU),Universities,,no_issue_detected
+uni_crawler_161,ইন্টারন্যাশনাল ইসলামী বিশ্ববিদ্যালয় সায়েন্স অ্যান্ড টেকনোলজি বাংলাদেশ,International Islami University of Science and Technology Bangladesh,আইআইইউএসটিবি (IIUSTB),Universities,,no_issue_detected
+uni_crawler_162,মাইক্রোল্যান্ড বিশ্ববিদ্যালয় সায়েন্স অ্যান্ড টেকনোলজি,Microland University of Science and Technology,এমইউএসটি (MUST),Universities,,no_issue_detected
+uni_crawler_163,লালন বিশ্ববিদ্যালয় সায়েন্স আর্টস,Lalon University of Science & Arts,এলইউএসএ (LUSA),Universities,,no_issue_detected
+uni_crawler_164,গ্রামীণ বিশ্ববিদ্যালয়,Grameen University,জিইউ (GU),Universities,,no_issue_detected
+uni_crawler_165,বিশ্ববিদ্যালয় সায়েন্স টেকনোলজি চট্টগ্রাম,University of Science & Technology Chittagong,ইউএসটিসি (USTC),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_166,আহ্ছানউল্লা বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Ahsanullah University of Science and Technology,এইউএসটি (AUST),Universities,,no_issue_detected
+uni_crawler_167,পুণ্ড্র ইউনিভার্সিটি অব সায়েন্স অ্যান্ড টেকনোলজি,Pundra University of Science and Technology,পিডিইউএসটি (PDUST),Universities,"বানান (""পুন্ড্র""->""পুণ্ড্র"") ও কাঠামো সংশোধন; Wikipedia-নিশ্চিত প্রকৃত ব্যবহার",verified_fixed
+uni_crawler_168,বাংলাদেশ বিশ্ববিদ্যালয় বিজনেস অ্যান্ড টেকনোলজি,Bangladesh University of Business and Technology,বিইউবিটি (BUBT),Universities,,no_issue_detected
+uni_crawler_169,অতীশ দীপঙ্কর বিশ্ববিদ্যালয় সায়েন্স অ্যান্ড টেকনোলজি,Atish Dipankar University of Science and Technology,এডিইউএসটি (ADUST),Universities,,no_issue_detected
+uni_crawler_170,জেডএইচ সিকদার বিশ্ববিদ্যালয় সায়েন্স টেকনোলজি,ZH Sikder University of Science & Technology,জেডএইচএসইউএসটি (ZHSUST),Universities,,no_issue_detected
+uni_crawler_171,রাজশাহী বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়,Rajshahi Science & Technology University,আরএসটিইউ (RSTU),Universities,"ভুল লিপ্যন্তর ছিল (""সায়েন্স টেকনোলজি""); Wikipedia অনুযায়ী প্রকৃত নাম অনুবাদকৃত রূপ ব্যবহার করে",verified_fixed
+uni_crawler_172,বাংলাদেশ আর্মি ইন্টারন্যাশনাল বিশ্ববিদ্যালয় সায়েন্স টেকনোলজি,Bangladesh Army International University of Science & Technology,বিএআইইউএসটি (BAIUST),Universities,,no_issue_detected
+uni_crawler_173,"বাংলাদেশ আর্মি ইউনিভার্সিটি অফ সাইন্স এন্ড টেকনোলজি, খুলনা","Bangladesh Army University of Science & Technology, Khulna","বিএইউএসটি, কেএইচইউএলএনএ (BAUST, Khulna)",Universities,সতর্কতা: সৈয়দপুর শাখার থেকে আলাদা নামকরণ রীতি — Wikipedia অনুযায়ী খুলনা শাখা লিপ্যন্তরিত রূপ বজায় রাখে,verified_fixed
+uni_crawler_174,"বাংলাদেশ আর্মি বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়, সৈয়দপুর","Bangladesh Army University of Science and Technology, Saidpur","বিএইউএসটি, এসএআইডিপিইউআর (BAUST, Saidpur)",Universities,Wikipedia-নিশ্চিত সরকারি/সেনা-অনুমোদিত নামকরণ,verified_fixed
+uni_crawler_175,সিসিএন বিশ্ববিদ্যালয় সায়েন্স টেকনোলজি,CCN University of Science & Technology,সিসিএনইউএসটি (CCNUST),Universities,,no_issue_detected
+uni_crawler_176,সেন্ট্রাল বিশ্ববিদ্যালয় সায়েন্স অ্যান্ড টেকনোলজি,Central University of Science and Technology,সিইউএসটি (CUST),Universities,,no_issue_detected
+uni_crawler_177,ড. মমতাজ বেগম বিশ্ববিদ্যালয় সায়েন্স অ্যান্ড টেকনোলজি,Dr. Momtaz Begum University of Science and Technology,এমইউএসটি (MUST),Universities,,no_issue_detected
+uni_crawler_178,সেন্ট্রাল উইমেন্স বিশ্ববিদ্যালয়,Central Women's University,সিডব্লিউইউ (CWU),Universities,"যান্ত্রিক ত্রুটি: apostrophe-s (""এস"") বিচ্ছিন্ন টোকেন হিসেবে থেকে গিয়েছিল",verified_fixed
+uni_crawler_179,শান্ত মরিয়ম বিশ্ববিদ্যালয় ক্রিয়েটিভ টেকনোলজি,Shanto-Mariam University of Creative Technology,এসএমইউসিটি (SMUCT),Universities,,no_issue_detected
+uni_crawler_180,বিশ্ববিদ্যালয় লিবারেল আর্টস বাংলাদেশ,University of Liberal Arts Bangladesh,ইউএলএবি (ULAB),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review
+uni_crawler_181,বাংলাদেশ বিশ্ববিদ্যালয় হেলথ সায়েন্সেস,Bangladesh University of Health Sciences,বিইউএইচএস (BUHS),Universities,,no_issue_detected
+uni_crawler_182,এক্সিম ব্যাংক এগ্রিকালচারাল বিশ্ববিদ্যালয় বাংলাদেশ,Exim Bank Agricultural University Bangladesh,ইবিএইউবি (EBAUB),Universities,,no_issue_detected
+uni_crawler_183,বাংলাদেশ সেনাবাহিনী প্রকৌশল ও প্রযুক্তি বিশ্ববিদ্যালয়,Bangladesh Army University of Engineering & Technology,বিএইউইটি (BAUET),Universities,"""আর্মি""->""সেনাবাহিনী"" ও ""ইঞ্জিনিয়ারিং টেকনোলজি""->""প্রকৌশল ও প্রযুক্তি""; Wikipedia-নিশ্চিত",verified_fixed
+uni_crawler_184,রবীন্দ্র সৃজনকলা বিশ্ববিদ্যালয়,Tagore University of Creative Arts,টিইউসিএ (TUCA),Universities,ব্যবহারকারী-চিহ্নিত ভুল; Wikipedia/official সূত্রে প্রকৃত নাম নিশ্চিত করা হয়েছে,verified_fixed
+uni_crawler_185,ইসলামিক বিশ্ববিদ্যালয় টেকনোলজি,Islamic University of Technology,আইইউটি (IUT),Universities,,no_issue_detected
+uni_crawler_186,এশিয়ান বিশ্ববিদ্যালয় ফর উইমেন,Asian University for Women,এইউডব্লিউ (AUW),Universities,,no_issue_detected
+uni_crawler_187,ময়মনসিংহ বিশ্ববিদ্যালয় ইঞ্জিনিয়ারিং অ্যান্ড টেকনোলজি,Mymensingh University of Engineering and Technology,এমইউইটি (MUET),Universities,,no_issue_detected
+uni_crawler_188,ময়মনসিংহ মেডিকেল বিশ্ববিদ্যালয়,Mymensingh Medical University,এমএমইউ (MMU),Universities,,no_issue_detected
+uni_crawler_189,ঠাকুরগাঁও বিশ্ববিদ্যালয় সায়েন্স অ্যান্ড টেকনোলজি,Thakurgaon University of Science and Technology,টিএসটিইউ (TSTU),Universities,,no_issue_detected
+uni_crawler_190,মেরিন সায়েন্স বিশ্ববিদ্যালয় বরিশাল,Marine Science University of Barisal,এমএসইউবি (MSUB),Universities,,no_issue_detected
+uni_crawler_191,মাইকেল মধুসূদন কালচারাল বিশ্ববিদ্যালয়,Michael Madhusudan Cultural University,এমএমসিইউ (MMCU),Universities,,no_issue_detected
+uni_crawler_192,বাংলাদেশ বিশ্ববিদ্যালয় জুরিডিক্যাল সায়েন্সেস,Bangladesh University of Juridical Sciences,বিইউজেএস (BUJS),Universities,,no_issue_detected
+uni_crawler_193,বাংলাদেশ বিশ্ববিদ্যালয় এডুকেশনাল প্ল্যানিং অ্যান্ড অ্যাডমিনিস্ট্রেশন,Bangladesh University of Educational Planning and Administration,বিইউইডিপিএ (BUEdPA),Universities,,no_issue_detected
+uni_crawler_194,বিশ্ববিদ্যালয় ব্লু ইকোনমি সায়েন্সেস অ্যান্ড টেকনোলজি,University of Blue Economy Sciences and Technology,ইউবিইএসটি (UBEST),Universities,"শব্দক্রম ""বিশ্ববিদ্যালয়..."" — প্রকৃত প্রাতিষ্ঠানিক ব্যবহার যাচাই প্রয়োজন (BAUST খুলনা/সৈয়দপুরের ভিন্নতা থেকে দেখা গেছে যে অনুমান নিরাপদ নয়)",needs_manual_review

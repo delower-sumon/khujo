@@ -1,0 +1,38 @@
+entity_id,name_bn,name_en,acronym,category
+pol_crawler_1,,"Party                               NaN
+Party.1    Bangladesh Nationalist Party
+Name: 0, dtype: str",,Political Parties
+pol_crawler_2,,"Party                             NaN
+Party.1    Bangladesh Jamaat-e-Islami
+Name: 1, dtype: str",,Political Parties
+pol_crawler_3,,"Party                         NaN
+Party.1    National Citizen Party
+Name: 2, dtype: str",,Political Parties
+pol_crawler_4,,"Party                             NaN
+Party.1    Bangladesh Khelafat Majlis
+Name: 3, dtype: str",,Political Parties
+pol_crawler_5,,"Party                            NaN
+Party.1    Islami Andolan Bangladesh
+Name: 4, dtype: str",,Political Parties
+pol_crawler_6,,"Party                  NaN
+Party.1    Khelafat Majlis
+Name: 5, dtype: str",,Political Parties
+pol_crawler_7,,"Party                        NaN
+Party.1    Gono Odhikar Parishad
+Name: 6, dtype: str",,Political Parties
+pol_crawler_8,,"Party                      NaN
+Party.1    Ganosanhati Andolan
+Name: 7, dtype: str",,Political Parties
+pol_crawler_9,,"Party                          NaN
+Party.1    Bangladesh Jatiya Party
+Name: 8, dtype: str",,Political Parties
+pol_crawler_10,,"Party                          NaN
+Party.1    Independent politicians
+Name: 9, dtype: str",,Political Parties
+pol_crawler_11,,Awami League,,Political Parties
+pol_crawler_12,,Purba Banglar Communist Party,,Political Parties
+pol_crawler_13,,Purba Banglar Sarbahara Party,,Political Parties
+pol_crawler_14,,Bangladesh Krishak Sramik Awami League,,Political Parties
+pol_crawler_15,,Hizb ut-Tahrir,,Political Parties
+pol_crawler_16,,Maoist Bolshevik Reorganization Movement of the Purba Bangla Sarbahara Party,,Political Parties
+pol_crawler_17,,Kuki-Chin National Front,,Political Parties

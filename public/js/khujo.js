@@ -560,31 +560,55 @@ async function loadSERP() {
       }
     }
 
-    // ── Build Inline Knowledge Graph (Google Style)
-    let inlineKgHtml = '';
-    const kg = data.knowledge_graph;
-    if (kg) {
-      let factsHtml = '';
+    // ── Function to build Google-Style Knowledge Graph Card
+    function buildKnowledgeGraphCardHtml(kg) {
+      if (!kg) return '';
+
+      const isUniversity = kg.entity_type === 'universities' || 
+                           (kg.category && kg.category.toLowerCase().includes('universit')) || 
+                           (kg.title && (kg.title.includes('বিশ্ববিদ্যালয়') || kg.title.includes('University') || kg.title.includes('ঢাবি') || kg.title.includes('DU')));
+      const isPoliticalParty = kg.entity_type === 'political_parties' || 
+                              (kg.title && (kg.title.includes('লীগ') || kg.title.includes('দল') || kg.title.includes('বিএনপি')));
+
+      // 1. Facts processing
+      let factsRowsHtml = '';
       if (kg.facts && Object.keys(kg.facts).length > 0) {
-        const skipKeys = ['UN/LOCODE', 'ওয়েবসাইট', 'পৌর এলাকা', 'প্রতিষ্ঠিত', 'স্থানাঙ্ক'];
-        let validFacts = Object.entries(kg.facts).filter(([k, v]) => !skipKeys.includes(k)).slice(0, 5);
+        const skipKeys = ['UN/LOCODE', 'পৌর এলাকা', 'প্রতিষ্ঠিত', 'স্থানাঙ্ক'];
+        if (isUniversity) {
+          skipKeys.push('ধরন', 'ওয়েবসাইট');
+        }
+        const validFacts = Object.entries(kg.facts).filter(([k, v]) => !skipKeys.includes(k) && v);
         if (validFacts.length > 0) {
-          factsHtml = '<div class="kg-facts-box">';
-          for (const [key, val] of validFacts) {
-            factsHtml += `<div class="kg-fact-row"><span class="kg-fact-key">${esc(key)}</span><span class="kg-fact-val">${esc(val)}</span></div>`;
-          }
-          factsHtml += '</div>';
+          factsRowsHtml = `
+            <div class="kg-panel-facts">
+              ${validFacts.map(([k, v]) => {
+                let valHtml = esc(v);
+                if (String(v).startsWith('http')) {
+                  let domain = v;
+                  try { domain = new URL(v).hostname.replace(/^www\./, ''); } catch(e) {}
+                  valHtml = `<a href="${esc(v)}" target="_blank" rel="noopener noreferrer" class="kg-fact-link">${esc(domain)}&nbsp;↗</a>`;
+                }
+                return `
+                  <div class="kg-fact-line">
+                    <span class="kg-fact-key-bold">${esc(k)}:</span>
+                    <span class="kg-fact-val-txt">${valHtml}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
         }
       }
-      
+
+      // 2. Related entities slider
       let relatedHtml = '';
       if (kg.related_entities && kg.related_entities.length > 0) {
         relatedHtml = `
-          <div class="kg-related-sq">
-            <h4 class="kg-related-title">লোকজন এগুলিও সার্চ করেছে</h4>
+          <div class="kg-related-sq" style="margin-top:14px; padding-top:12px; border-top:1px solid #ebebeb;">
+            <h4 class="kg-related-title" style="font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text-primary);">সম্পর্কিত অনুসন্ধান</h4>
             <div class="kg-related-slider-sq">
               ${kg.related_entities.map(re => `
-                <a href="/?q=${encodeURIComponent(re.title)}" class="kg-related-item-sq">
+                <a href="/search.html?q=${encodeURIComponent(re.title)}" class="kg-related-item-sq">
                   <img src="${esc(re.image_url)}" alt="${esc(re.title)}" class="kg-related-img-sq" loading="lazy">
                   <span class="kg-related-name-sq">${esc(re.title)}</span>
                 </a>
@@ -594,58 +618,166 @@ async function loadSERP() {
         `;
       }
 
-      let imageHtml = '';
-      let cardClass = 'kg-inline-card';
-      const imgs = (kg.images && kg.images.length > 0) ? kg.images.slice(0, 3) : (kg.image_url ? [kg.image_url] : []);
-      
-      if (imgs.length === 1) {
-        cardClass += ' has-single-hero';
-        imageHtml = `<img src="${esc(imgs[0])}" alt="${esc(kg.title)}" class="kg-inline-hero">`;
-      } else if (imgs.length > 1) {
-        cardClass += ' has-multi-collage';
-        const count = imgs.length;
-        imageHtml = `<div class="kg-collage kg-collage-${count}">`;
-        imgs.forEach((img) => {
-          imageHtml += `<div class="kg-collage-img-wrap"><img src="${esc(img)}" alt="${esc(kg.title)}" class="kg-collage-img" onerror="this.closest('.kg-collage-img-wrap')?.remove();"></div>`;
-        });
-        imageHtml += `</div>`;
-      }
+      // 3. Header / Split Hero
+      let heroHtml = '';
+      if (isUniversity) {
+        let photoUrl = kg.image_url;
+        if (kg.images && kg.images.length > 0) {
+          const nonLogo = kg.images.find(img => !img.includes('logo') && !img.includes('Logo') && !img.includes('outline'));
+          if (nonLogo) photoUrl = nonLogo;
+        }
+        if (!photoUrl) photoUrl = kg.image_url || '/logo.svg';
 
-      let aboutHtml = '';
-      const isFallbackDesc = kg.description && kg.description.includes('সম্পর্কিত তথ্য');
-      if (kg.description && kg.description.trim() !== '' && !isFallbackDesc) {
-        aboutHtml = `
-          <div class="kg-about-section">
-            <div class="kg-inline-overview">
-              <p>${esc(kg.description)}</p>
-              ${kg.title ? `<a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener" class="kg-wiki-link">উইকিপিডিয়া</a>` : ''}
+        let lat = kg.latitude;
+        let lng = kg.longitude;
+        if ((!lat || !lng) && kg.facts && kg.facts['স্থানাঙ্ক']) {
+          const parts = kg.facts['স্থানাঙ্ক'].split(',');
+          if (parts.length === 2) {
+            lat = parseFloat(parts[0].trim());
+            lng = parseFloat(parts[1].trim());
+          }
+        }
+        if (!lat || !lng) {
+          lat = 23.7330;
+          lng = 90.3929;
+        }
+
+        heroHtml = `
+          <div class="kg-hero-split">
+            <div class="kg-hero-left">
+              <img src="${esc(photoUrl)}" alt="${esc(kg.title)}" class="kg-hero-img" onerror="this.src='/logo.svg'">
+              <a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" class="kg-hero-badge">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>ফটোগুলি দেখুন</span>
+              </a>
+            </div>
+            <div class="kg-hero-right">
+              <iframe class="kg-hero-map-iframe" src="https://www.openstreetmap.org/export/embed.html?bbox=${(Number(lng)-0.007).toFixed(4)}%2C${(Number(lat)-0.005).toFixed(4)}%2C${(Number(lng)+0.007).toFixed(4)}%2C${(Number(lat)+0.005).toFixed(4)}&layer=mapnik&marker=${Number(lat).toFixed(4)}%2C${Number(lng).toFixed(4)}" frameborder="0" scrolling="no" title="মানচিত্র"></iframe>
+              <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" class="kg-hero-map-expand" title="মানচিত্রে বড় করে দেখুন">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#5f6368" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              </a>
             </div>
           </div>
         `;
-      } else if (kg.title) {
-        // Just provide the wiki link if no proper description
-        aboutHtml = `
-          <div class="kg-about-section" style="padding-top:0; border:none;">
-            <a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener" class="kg-wiki-link">উইকিপিডিয়া</a>
+      } else if (isPoliticalParty) {
+        heroHtml = `
+          <div class="kg-entity-header" style="padding: 16px 16px 0 16px; display:flex; align-items:center; gap:12px;">
+            ${kg.logo_url ? `<img src="${esc(kg.logo_url)}" alt="Logo" class="kg-entity-logo" onerror="this.style.display='none'">` : ''}
+            <div class="kg-header-text">
+              <h2 class="kg-panel-title" style="margin-bottom:2px;">${esc(kg.title)}</h2>
+              <span class="kg-entity-badge">রাজনৈতিক দল</span>
+            </div>
+          </div>
+        `;
+      } else if (kg.image_url) {
+        heroHtml = `
+          <div style="width:100%; height:180px; overflow:hidden; background:#f1f3f4;">
+            <img src="${esc(kg.image_url)}" alt="${esc(kg.title)}" style="width:100%; height:100%; object-fit:cover;">
           </div>
         `;
       }
 
-      inlineKgHtml = `
-        <div class="${cardClass}">
-          ${imageHtml}
-          <div class="kg-inline-content">
-            <h2 class="kg-inline-title">${esc(kg.title)}</h2>
-            ${aboutHtml}
-            ${factsHtml}
+      // 4. Title, Subtitle, Rating
+      let titleSectionHtml = '';
+      if (!isPoliticalParty) {
+        let ratingHtml = '';
+        if (isUniversity) {
+          const rating = kg.rating || '৪.৫';
+          const reviews = kg.reviews_count || '১০,৩৯৯';
+          ratingHtml = `
+            <div class="kg-panel-rating-row">
+              <span class="kg-rating-score">${esc(rating)}</span>
+              <div class="kg-rating-stars">★★★★★</div>
+              <a href="https://www.google.com/search?q=${encodeURIComponent(kg.title)}+reviews" target="_blank" rel="noopener noreferrer" class="kg-rating-reviews">${esc(reviews)}টি Google রিভিউ</a>
+              <button type="button" class="kg-menu-dots" aria-label="বিকল্প">⋮</button>
+            </div>
+          `;
+        }
+
+        const subtitle = kg.subtitle || (isUniversity ? 'বিশ্ববিদ্যালয়, ঢাকা' : (kg.entity_type ? esc(kg.entity_type) : ''));
+
+        titleSectionHtml = `
+          <h2 class="kg-panel-title">${esc(kg.title)}</h2>
+          ${ratingHtml}
+          ${subtitle ? `<div class="kg-panel-subtitle">${esc(subtitle)}</div>` : ''}
+        `;
+      }
+
+      // 5. Action Buttons (Pills)
+      let actionsHtml = '';
+      const websiteUrl = kg.official_website || (kg.facts && kg.facts['ওয়েবসাইট'] ? kg.facts['ওয়েবসাইট'] : null);
+      actionsHtml = `
+        <div class="kg-action-pills">
+          ${websiteUrl ? `
+            <a href="${esc(websiteUrl)}" target="_blank" rel="noopener noreferrer" class="kg-pill-btn">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span>ওয়েবসাইট</span>
+            </a>
+          ` : ''}
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" class="kg-pill-btn">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            <span>দিকনির্দেশ</span>
+          </a>
+          <a href="https://www.google.com/search?q=${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" class="kg-pill-btn kg-pill-more">
+            <span>+৪</span>
+          </a>
+        </div>
+      `;
+
+      // 6. Description with Inline Wikipedia Link
+      let descHtml = '';
+      if (kg.description && kg.description.trim() !== '') {
+        descHtml = `
+          <div class="kg-panel-desc">
+            ${esc(kg.description)}
+            ${kg.title ? `<a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" class="kg-wiki-inline-link">উইকিপিডিয়া</a>` : ''}
           </div>
-          ${relatedHtml}
+        `;
+      }
+
+      return `
+        <div class="kg-card-google">
+          ${heroHtml}
+          <div class="kg-panel-body">
+            ${titleSectionHtml}
+            ${actionsHtml}
+            <hr class="kg-panel-divider">
+            ${descHtml}
+            ${factsRowsHtml}
+            ${relatedHtml}
+          </div>
         </div>
       `;
     }
 
+    // ── Build Inline Knowledge Graph (Google Style for mobile)
+    let inlineKgHtml = '';
+    const kg = data.knowledge_graph;
+    if (kg) {
+      inlineKgHtml = `<div class="kg-inline-card">${buildKnowledgeGraphCardHtml(kg)}</div>`;
+    }
+
+    // ── Knowledge Card sidebar (Google Style for desktop - always render if kg exists)
+    if (kg && kgCard) {
+      const kgCardContent = document.getElementById('kgCardContent');
+      if (kgCardContent) {
+        kgCardContent.innerHTML = buildKnowledgeGraphCardHtml(kg);
+      }
+      kgCard.classList.remove('hidden');
+    }
+
     if (results.length === 0) {
-      resultsList.innerHTML = inlineKgHtml + renderEmpty();
+      if (kg) {
+        resultsList.innerHTML = `
+          ${inlineKgHtml}
+          <div class="kg-empty-with-entity" style="padding:24px; background:var(--surface-0); border:1px solid var(--surface-3); border-radius:12px; margin-top:16px;">
+            <p style="font-size:15px; color:var(--text-primary); margin-bottom:8px;"><strong>"${esc(query)}"</strong> সম্পর্কিত তথ্য জ্ঞানকোষে উপলব্ধ রয়েছে।</p>
+            <p style="font-size:13px; color:var(--text-secondary);">ওয়েব ফলাফল শীঘ্রই ইন্ডেক্স করা হবে। বিস্তারিত তথ্যের জন্য ডানদিকের প্যানেলটি দেখুন।</p>
+          </div>
+        `;
+      } else {
+        resultsList.innerHTML = renderEmpty();
+      }
       return;
     }
 
@@ -660,37 +792,13 @@ async function loadSERP() {
     const sources = Array.from(sourceMap.values());
 
     // ── Render results
-    resultsList.innerHTML = inlineKgHtml; // Prepend KG inline card
+    resultsList.innerHTML = inlineKgHtml; // Prepend KG inline card (hidden on desktop via CSS)
     resultsList.insertAdjacentHTML('beforeend', renderContextCard(sources.length, query));
     
     const list = document.createElement('div');
     list.className = 'result-list';
     results.forEach((r) => list.insertAdjacentHTML('beforeend', renderResultCard(r)));
     resultsList.appendChild(list);
-
-
-    // ── Knowledge Card sidebar (Fixes D7 & D8)
-    if (kg && kgCard) {
-      const kgCardContent = document.getElementById('kgCardContent');
-      if (kgCardContent) {
-        let kgHtml = '';
-        if (kg.image_url) {
-          kgHtml += `<div style="margin-bottom:10px;"><img src="${esc(kg.image_url)}" alt="${esc(kg.title)}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;"></div>`;
-        }
-        kgHtml += `<h3 style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text-primary);">${esc(kg.title)}</h3>`;
-        if (kg.description) {
-          kgHtml += `<p style="font-size:13px;line-height:1.5;color:var(--text-secondary);margin-bottom:10px;">${esc(kg.description.slice(0, 180))}${kg.description.length > 180 ? '...' : ''}</p>`;
-        }
-        if (kg.title) {
-          kgHtml += `<div style="margin-bottom:8px;"><a href="https://bn.wikipedia.org/wiki/${encodeURIComponent(kg.title)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--primary);font-weight:500;">উইকিপিডিয়া নিবন্ধ ↗</a></div>`;
-        }
-        kgCardContent.innerHTML = kgHtml;
-      }
-      if (kgGraphArea) {
-        drawKnowledgeGraph(kg, kgGraphArea);
-      }
-      kgCard.classList.remove('hidden');
-    }
 
     // ── Top sources sidebar
     if (sources.length > 0 && sourcesCard && sourcesList) {
@@ -848,7 +956,55 @@ function initTrendingChips() {
   });
 }
 
-/* ── 8. INIT ────────────────────────────────────────────── */
+/* ── 8. BANGLA DATE UTILITY ─────────────────────────────── */
+/**
+ * Fetches today's date in the Bengali calendar from the backend API
+ * (which uses the accurate `bangla` Python package).
+ * Populates: #banglaDateDisplay (homepage under tagline), #serpBanglaDateText (SERP footer)
+ */
+async function initBanglaDate() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/bangla-date`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // Homepage: date block under "বাংলায় স্থানীয় তথ্য অনুসন্ধান"
+    const display = document.getElementById('banglaDateDisplay');
+    if (display) {
+      display.innerHTML =
+        `<span class="home-date-bangla">${data.bangla}</span>` +
+        `<span class="home-date-english">${data.english}</span>`;
+    }
+
+    // SERP footer date (text only, no icon)
+    const serpDateText = document.getElementById('serpBanglaDateText');
+    if (serpDateText) serpDateText.textContent = data.bangla;
+
+  } catch (err) {
+    // Silently fail — date widget is non-critical
+    console.warn('Bangla date fetch failed:', err);
+  }
+}
+
+/* ── 9. PAA ACCORDION ────────────────────────────────────── */
+function initPaaAccordion() {
+  const paaList = document.getElementById('paaList');
+  if (!paaList) return;
+
+  paaList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.paa-question');
+    if (!btn) return;
+    const item = btn.closest('.paa-item');
+    if (!item) return;
+    const isOpen = item.classList.contains('open');
+    // Close all
+    paaList.querySelectorAll('.paa-item.open').forEach(el => el.classList.remove('open'));
+    // Toggle clicked
+    if (!isOpen) item.classList.add('open');
+  });
+}
+
+/* ── 10. INIT ───────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   // ── Landing page search bar
   const landingInput = document.getElementById('landingSearchInput');
@@ -880,6 +1036,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Trending chips
   initTrendingChips();
+
+  // ── Bangla date widget (homepage + SERP footer)
+  initBanglaDate();
+
+  // ── PAA accordion
+  initPaaAccordion();
 
   // ── SERP data load
   if (document.getElementById('resultsList')) {

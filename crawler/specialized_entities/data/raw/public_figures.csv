@@ -1,0 +1,11 @@
+entity_id,name_bn,name_en,acronym,category
+fig_01,প্রধানমন্ত্রী,Prime Minister,PM,Public Figures
+fig_02,রাষ্ট্রপতি,President,,Public Figures
+fig_03,শিক্ষামন্ত্রী,Education Minister,,Public Figures
+fig_04,স্বরাষ্ট্রমন্ত্রী,Home Minister,,Public Figures
+fig_05,মেয়র,Mayor,,Public Figures
+fig_06,প্রধান বিচারপতি,Chief Justice,CJ,Public Figures
+fig_07,সেনাপ্রধান,Army Chief,,Public Figures
+fig_08,আইজিপি,Inspector General of Police,IGP,Public Figures
+fig_09,অর্থমন্ত্রী,Finance Minister,,Public Figures
+fig_10,পররাষ্ট্রমন্ত্রী,Foreign Minister,,Public Figures

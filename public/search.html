@@ -14,7 +14,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600&family=Inter:opsz,wght@14..32,300..600&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/khujo.css?v=13" />
+  <link rel="stylesheet" href="css/khujo.css?v=40" />
 </head>
 
 <body>
@@ -61,7 +61,6 @@
             </form>
           </div>
 
-
         </div>
       </div>
     </header>
@@ -70,10 +69,50 @@
     <nav class="serp-tabs" aria-label="ফলাফলের ধরন">
       <div class="content-container">
         <div class="serp-tabs-inner">
-          <button class="tab-btn active" aria-current="page">সব ফলাফল</button>
-          <span class="tab-btn" data-tab="images">ছবি</span>
-          <span class="tab-btn coming-soon" title="শীঘ্রই আসছে">খবর</span>
-          <span class="tab-btn coming-soon" title="শীঘ্রই আসছে">সরকারি তথ্য</span>
+
+          <!-- সব ফলাফল — Google blue magnifier -->
+          <button class="tab-btn active" aria-current="page" id="tab-all">
+            <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              style="color:var(--tab-all)">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            সব ফলাফল
+          </button>
+
+          <!-- ছবি — Google green image icon -->
+          <span class="tab-btn" data-tab="images" id="tab-images" role="button" tabindex="0">
+            <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              style="color:var(--tab-images)">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="m21 15-5-5L5 21"/>
+            </svg>
+            ছবি
+          </span>
+
+          <!-- খবর — Google red newspaper -->
+          <span class="tab-btn coming-soon" data-tab="news" id="tab-news" title="শীঘ্রই আসছে">
+            <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              style="color:var(--tab-news)">
+              <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+              <path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>
+            </svg>
+            খবর
+          </span>
+
+          <!-- সরকারি তথ্য — Google yellow shield -->
+          <span class="tab-btn coming-soon" data-tab="govt" id="tab-govt" title="শীঘ্রই আসছে">
+            <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+              style="color:var(--tab-govt)">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            সরকারি তথ্য
+          </span>
+
         </div>
       </div>
     </nav>
@@ -85,18 +124,43 @@
 
           <!-- Main column -->
           <section class="serp-main" aria-label="অনুসন্ধান ফলাফল">
+
+            <!-- Spell correction banner (shown by JS when needed) -->
+            <div id="spellCorrection" class="spell-correction" role="alert" aria-live="polite"></div>
+
+            <!-- Featured Snippet / Answer Box (shown by JS when direct_answer exists) -->
+            <div id="answerBox" class="answer-box" aria-label="সরাসরি উত্তর">
+              <div class="answer-box-label">সরাসরি উত্তর</div>
+              <div id="answerBoxText" class="answer-box-text"></div>
+              <div id="answerBoxSource" class="answer-box-source"></div>
+            </div>
+
+            <!-- Result count / stats -->
             <p id="resultMeta" class="result-meta"></p>
+
+            <!-- Result list -->
             <div id="resultsList"></div>
+
+            <!-- People Also Ask accordion (shown by JS) -->
+            <div id="paaBox" class="paa-box" aria-label="আরও জিজ্ঞাসা করুন">
+              <div class="paa-title">আরও জিজ্ঞাসা করুন</div>
+              <div id="paaList"></div>
+            </div>
+
+            <!-- Related Searches chips (shown by JS) -->
+            <div id="relatedSearches" class="related-searches" aria-label="সম্পর্কিত অনুসন্ধান">
+              <div class="related-searches-title">সম্পর্কিত অনুসন্ধান</div>
+              <div id="relatedChips" class="related-chips-grid"></div>
+            </div>
+
           </section>
 
           <!-- Sidebar -->
           <aside class="serp-sidebar" aria-label="অতিরিক্ত তথ্য">
 
-            <!-- Knowledge Graph sidebar card (Fixes D7 & D8) -->
+            <!-- Knowledge Graph sidebar card -->
             <section id="kgCard" class="sources-card hidden" aria-label="জ্ঞানকোষ">
-              <p class="card-label">জ্ঞানকোষ ও সম্পর্কিত তথ্য</p>
               <div id="kgCardContent"></div>
-              <div id="kgGraphArea" style="margin-top:12px;"></div>
             </section>
 
             <!-- Top Sources card -->
@@ -131,6 +195,9 @@
       <div class="content-container">
         <div class="serp-footer-inner">
           <span>খোঁজো · বাংলাদেশের স্থানীয় তথ্য অনুসন্ধান</span>
+          <div class="serp-bangla-date" id="serpBanglaDate" aria-label="আজকের বাংলা তারিখ">
+            <span id="serpBanglaDateText"></span>
+          </div>
           <div class="footer-links">
             <button type="button">গোপনীয়তা</button>
             <button type="button">শর্তাবলী</button>
@@ -143,7 +210,7 @@
   </div>
 
   <script src="/js/avro-lib.min.js"></script>
-  <script type="module" src="/js/khujo.js?v=13"></script>
+  <script type="module" src="/js/khujo.js?v=40"></script>
 </body>
 
 </html>

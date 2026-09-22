@@ -150,6 +150,29 @@ async def serve_index():
     return {"message": "Welcome to Khujo API"}
 
 
+# --- Bangla Date Endpoint ---
+@app.get("/api/v1/bangla-date")
+async def bangla_date():
+    """Returns today's date in the Bengali calendar (বঙ্গাব্দ) using the `bangla` package."""
+    try:
+        import bangla as bangla_lib
+        from datetime import date
+        today = date.today()
+        result = bangla_lib.get_date(today.day, today.month, today.year)
+        bangla_str = f"{result['date']} {result['month']}, {result['year']} বঙ্গাব্দ"
+        # English date formatted as e.g. "22 September 2026" (cross-platform)
+        english_str = f"{today.day} {today.strftime('%B')} {today.year}"
+        return {
+            "bangla": bangla_str,
+            "english": english_str,
+            "weekday": result.get("weekday", ""),
+            "season": result.get("season", ""),
+        }
+    except ImportError:
+        raise HTTPException(status_code=500, detail="bangla package not installed. Run: pip install bangla")
+    except Exception as e:
+        raise handle_error("bangla_date", e)
+
 # --- Public Search Endpoint ---
 @app.get("/api/v1/search")
 async def search(
@@ -230,6 +253,14 @@ async def search(
                 "image_url": image_url,
                 "images": images,
                 "facts": facts,
+                "logo_url": metadata_json.get("logo_url") or metadata_json.get("image_url") if isinstance(metadata_json, dict) else None,
+                "entity_type": metadata_json.get("category", "").lower().replace(" ", "_") if isinstance(metadata_json, dict) else None,
+                "official_website": metadata_json.get("official_website") if isinstance(metadata_json, dict) else None,
+                "latitude": metadata_json.get("latitude") if isinstance(metadata_json, dict) else None,
+                "longitude": metadata_json.get("longitude") if isinstance(metadata_json, dict) else None,
+                "subtitle": metadata_json.get("subtitle") if isinstance(metadata_json, dict) else None,
+                "rating": metadata_json.get("rating") if isinstance(metadata_json, dict) else None,
+                "reviews_count": metadata_json.get("reviews_count") if isinstance(metadata_json, dict) else None,
                 "sources": [],
                 "related_entities": []
             }

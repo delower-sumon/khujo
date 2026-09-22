@@ -15,7 +15,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600&family=Inter:opsz,wght@14..32,300..600&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/khujo.css" />
+  <link rel="stylesheet" href="css/khujo.css?v=41" />
 </head>
 
 <body>
@@ -33,7 +33,11 @@
               <span class="brand-name latin">khujo</span>
             </span>
           </a>
-          <span class="for-bd-badge">বেটা সংস্করণ</span>
+
+          <!-- Right side: Beta badge -->
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span class="for-bd-badge">বেটা সংস্করণ</span>
+          </div>
         </div>
       </div>
     </header>
@@ -45,6 +49,8 @@
         <!-- Hero text -->
         <div class="hero-text">
           <h1 class="hero-title">খোঁজো</h1>
+          <!-- Secondary tagline -->
+          <span class="hero-tagline-secondary">বাংলাদেশের নিজস্ব অনুসন্ধান</span>
         </div>
 
 
@@ -77,8 +83,10 @@
         </div>
 
         <p class="hero-sub" style="margin-top: 40px;">
-          বাংলায় স্থানীয় তথ্য অনুসন্ধান
+          বাংলায় স্থানীয় তথ্য অনুসন্ধান
         </p>
+        <!-- Bangla + English date display -->
+        <div id="banglaDateDisplay" class="home-date-display" aria-label="আজকের তারিখ"></div>
 
       </div>
     </main>
@@ -89,6 +97,7 @@
         <div class="landing-footer">
           <span>বাংলাদেশ</span>
           <span>খোঁজো একটি স্থানীয় জ্ঞানভিত্তিক অনুসন্ধান প্রকল্প</span>
+
         </div>
       </div>
     </footer>

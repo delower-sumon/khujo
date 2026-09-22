@@ -1,0 +1,195 @@
+entity_id,name_bn,name_en,acronym,category
+uni_crawler_1,,University of Dhaka,DU,Universities
+uni_crawler_2,,University of Rajshahi,RU,Universities
+uni_crawler_3,,University of Chittagong,CU,Universities
+uni_crawler_4,,Jahangirnagar University,JU,Universities
+uni_crawler_5,,"Islamic University, Bangladesh",IU,Universities
+uni_crawler_6,,Khulna University,KU,Universities
+uni_crawler_7,,Jagannath University,JnU,Universities
+uni_crawler_8,,Comilla University,CoU,Universities
+uni_crawler_9,,Jatiya Kabi Kazi Nazrul Islam University,JKKNIU,Universities
+uni_crawler_10,,Bangladesh University of Professionals,BUP,Universities
+uni_crawler_11,,Begum Rokeya University,BRUR,Universities
+uni_crawler_12,,University of Barisal,BU,Universities
+uni_crawler_13,,"Rabindra University, Bangladesh",RUB,Universities
+uni_crawler_14,,Netrokona University,NkU,Universities
+uni_crawler_15,,Kishoreganj University,KgU,Universities
+uni_crawler_16,,Meherpur University,MU,Universities
+uni_crawler_17,,University of Bogura,UB,Universities
+uni_crawler_18,,Thakurgaon University,TU,Universities
+uni_crawler_19,,Naogaon University,NaU,Universities
+uni_crawler_20,,Shahjalal University of Science and Technology,SUST,Universities
+uni_crawler_21,,Hajee Mohammad Danesh Science & Technology University,HSTU,Universities
+uni_crawler_22,,Mawlana Bhashani Science and Technology University,MBSTU,Universities
+uni_crawler_23,,Patuakhali Science and Technology University,PSTU,Universities
+uni_crawler_24,,Noakhali Science and Technology University,NSTU,Universities
+uni_crawler_25,,Jashore University of Science and Technology,JUST,Universities
+uni_crawler_26,,Pabna University of Science and Technology,PUST,Universities
+uni_crawler_27,,Gopalganj Science and Technology University,GSTU,Universities
+uni_crawler_28,,Rangamati Science and Technology University,RmSTU,Universities
+uni_crawler_29,,Jamalpur Science and Technology University,JSTU,Universities
+uni_crawler_30,,Chandpur Science and Technology University,CSTU,Universities
+uni_crawler_31,,Sunamganj Science and Technology University,SSTU,Universities
+uni_crawler_32,,Lakshmipur Science and Technology University,LSTU,Universities
+uni_crawler_33,,Pirojpur Science and Technology University,PrSTU,Universities
+uni_crawler_34,,Satkhira University of Science and Technology,SaUST,Universities
+uni_crawler_35,,Narayanganj Science and Technology University,NGSTU,Universities
+uni_crawler_36,,Bangladesh University of Engineering & Technology,BUET,Universities
+uni_crawler_37,,Military Institute of Science and Technology,MIST,Universities
+uni_crawler_38,,Rajshahi University of Engineering & Technology,RUET,Universities
+uni_crawler_39,,Khulna University of Engineering & Technology,KUET,Universities
+uni_crawler_40,,Chittagong University of Engineering & Technology,CUET,Universities
+uni_crawler_41,,Dhaka University of Engineering & Technology,DUET,Universities
+uni_crawler_42,,Bangladesh Agricultural University,BAU,Universities
+uni_crawler_43,,Gazipur Agricultural University,GAU,Universities
+uni_crawler_44,,Sher-e-Bangla Agricultural University,SBAU,Universities
+uni_crawler_45,,Sylhet Agricultural University,SAU,Universities
+uni_crawler_46,,Khulna Agricultural University,KAU,Universities
+uni_crawler_47,,Habiganj Agricultural University,HAU,Universities
+uni_crawler_48,,Kurigram Agricultural University,KuriAU,Universities
+uni_crawler_49,,Shariatpur Agriculture University,ShAU,Universities
+uni_crawler_50,,Bangladesh Medical University,BMU,Universities
+uni_crawler_51,,Chittagong Medical University,CMU,Universities
+uni_crawler_52,,Rajshahi Medical University,RMU,Universities
+uni_crawler_53,,Sylhet Medical University,SMU,Universities
+uni_crawler_54,,Khulna Medical University,KMU,Universities
+uni_crawler_55,,Chittagong Veterinary and Animal Sciences University,CVASU,Universities
+uni_crawler_56,,Bangladesh University of Textiles,BUTEX,Universities
+uni_crawler_57,,Bangladesh Maritime University,BMU,Universities
+uni_crawler_58,,"University of Frontier Technology, Bangladesh",UFTB,Universities
+uni_crawler_59,,Aviation and Aerospace University Bangladesh,AAUB,Universities
+uni_crawler_60,,National University Bangladesh,NU,Universities
+uni_crawler_61,,Bangladesh Open University,BOU,Universities
+uni_crawler_62,,Islamic Arabic University,IAU,Universities
+uni_crawler_63,,Dhaka Central University,DCU,Universities
+uni_crawler_64,,Sylhet Engineering College.,SEC,Universities
+uni_crawler_65,,Mymensingh Engineering College.,MEC,Universities
+uni_crawler_66,,Faridpur Engineering College.,FEC,Universities
+uni_crawler_67,,Barisal Engineering College.,BEC,Universities
+uni_crawler_68,,"Textile Engineering College, Chittagong",CTEC,Universities
+uni_crawler_69,,Pabna Textile Engineering College,PTEC,Universities
+uni_crawler_70,,"Textile Engineering College, Noakhali",TECN,Universities
+uni_crawler_71,,"Tangail Textile Engineering College, Tangail.",TTEC,Universities
+uni_crawler_72,,Barishal Textile Engineering College,BTEC,Universities
+uni_crawler_73,,"Jhenaidah Textile Engineering College, Jhenaidah",JTEC,Universities
+uni_crawler_74,,Rangpur Textile Engineering College,RTEC,Universities
+uni_crawler_75,,Gopalganj Textile Engineering College,GTEC,Universities
+uni_crawler_76,,Jamalpur Textile Engineering College,JTEC,Universities
+uni_crawler_77,,International University of Business Agriculture and Technology,IUBAT,Universities
+uni_crawler_78,,North South University,NSU,Universities
+uni_crawler_79,,"Independent University, Bangladesh",IUB,Universities
+uni_crawler_80,,American International University-Bangladesh,AIUB,Universities
+uni_crawler_81,,Dhaka International University,DIU,Universities
+uni_crawler_82,,"International Islamic University, Chittagong",IIUC,Universities
+uni_crawler_83,,Asian University of Bangladesh,AUB,Universities
+uni_crawler_84,,East West University,EWU,Universities
+uni_crawler_85,,Gono Bishwabidyalay,GB,Universities
+uni_crawler_86,,People's University of Bangladesh,PUB,Universities
+uni_crawler_87,,Queens University,QU,Universities
+uni_crawler_88,,University of Asia Pacific (Bangladesh),UAP,Universities
+uni_crawler_89,,Chittagong Independent University (CIU),CIU,Universities
+uni_crawler_90,,Bangladesh University,BU,Universities
+uni_crawler_91,,BGC Trust University Bangladesh,BGCTUB,Universities
+uni_crawler_92,,Brac University,BracU,Universities
+uni_crawler_93,,Manarat International University,MIU,Universities
+uni_crawler_94,,"Premier University, Chittagong",PU,Universities
+uni_crawler_95,,"Southern University, Bangladesh",SUB,Universities
+uni_crawler_96,,Sylhet International University,SIU,Universities
+uni_crawler_97,,University of Development Alternative,UODA,Universities
+uni_crawler_98,,"City University, Bangladesh",CUB,Universities
+uni_crawler_99,,Daffodil International University,DIU,Universities
+uni_crawler_100,,Green University of Bangladesh,GUB,Universities
+uni_crawler_101,,IBAIS University,IU,Universities
+uni_crawler_102,,Leading University,LU,Universities
+uni_crawler_103,,"Northern University, Bangladesh",NUB,Universities
+uni_crawler_104,,Prime University,PU,Universities
+uni_crawler_105,,Southeast University,SEU,Universities
+uni_crawler_106,,Stamford University Bangladesh,SU,Universities
+uni_crawler_107,,State University of Bangladesh,SUB,Universities
+uni_crawler_108,,"Eastern University, Bangladesh",EU,Universities
+uni_crawler_109,,Metropolitan University,MU,Universities
+uni_crawler_110,,Millennium University,MU,Universities
+uni_crawler_111,,Primeasia University,PAU,Universities
+uni_crawler_112,,Royal University of Dhaka,RUD,Universities
+uni_crawler_113,,United International University,UIU,Universities
+uni_crawler_114,,University of Information Technology and Sciences,UITS,Universities
+uni_crawler_115,,"University of South Asia, Bangladesh",USAB,Universities
+uni_crawler_116,,Presidency University,PU,Universities
+uni_crawler_117,,Uttara University,UU,Universities
+uni_crawler_118,,Victoria University of Bangladesh,VUB,Universities
+uni_crawler_119,,World University of Bangladesh,WUB,Universities
+uni_crawler_120,,Asa University Bangladesh,ASAUB,Universities
+uni_crawler_121,,Bangladesh Islami University,BIU,Universities
+uni_crawler_122,,East Delta University,EDU,Universities
+uni_crawler_123,,Northern University of Business and Technology Khulna,NUB,Universities
+uni_crawler_124,,Britannia University,BU,Universities
+uni_crawler_125,,Feni University,FU,Universities
+uni_crawler_126,,Khwaja Yunus Ali University,KYAU,Universities
+uni_crawler_127,,European University of Bangladesh,EUB,Universities
+uni_crawler_128,,First Capital University Of Bangladesh,FCUB,Universities
+uni_crawler_129,,BGMEA University of Fashion & Technology,BUFT,Universities
+uni_crawler_130,,Hamdard University Bangladesh,HUB,Universities
+uni_crawler_131,,Ishakha International University,IIUB,Universities
+uni_crawler_132,,North East University Bangladesh,NEUB,Universities
+uni_crawler_133,,"North Western University, Bangladesh",NWU,Universities
+uni_crawler_134,,Port City International University,PCIU,Universities
+uni_crawler_135,,Varendra University,VU,Universities
+uni_crawler_136,,Sonargaon University,SU,Universities
+uni_crawler_137,,Cox's Bazar International University,CBIU,Universities
+uni_crawler_138,,Fareast International University,FIU,Universities
+uni_crawler_139,,German University Bangladesh,GUB,Universities
+uni_crawler_140,,North Bengal International University,NBIU,Universities
+uni_crawler_141,,Notre Dame University Bangladesh,NDUB,Universities
+uni_crawler_142,,Ranada Prasad Shaha University,RPSU,Universities
+uni_crawler_143,,Brahmaputra International University,BIU,Universities
+uni_crawler_144,,Times University Bangladesh,TMUB,Universities
+uni_crawler_145,,Canadian University of Bangladesh,CUB,Universities
+uni_crawler_146,,Global University Bangladesh,GUB,Universities
+uni_crawler_147,,NPI University of Bangladesh,NPIUB,Universities
+uni_crawler_148,,Rabindra Maitree University,RMU,Universities
+uni_crawler_149,,University of Scholars,IUS,Universities
+uni_crawler_150,,University of Creative Technology Chittagong,UCTC,Universities
+uni_crawler_151,,Anwer Khan Modern University,AKMU,Universities
+uni_crawler_152,,University of Global Village,UIGV,Universities
+uni_crawler_153,,Khulna Khan Bahadur Ahsanullah University,KKBAU,Universities
+uni_crawler_154,,"Trust University, Barishal",TUB,Universities
+uni_crawler_155,,University of Brahmanbaria,UOB,Universities
+uni_crawler_156,,University of Skill Enrichment and Technology,USET,Universities
+uni_crawler_157,,International Standard University,ISU,Universities
+uni_crawler_158,,ZNRF University of Management Sciences,ZUMS,Universities
+uni_crawler_159,,Bandarban University,BdU,Universities
+uni_crawler_160,,RTM Al-Kabir Technical University,RTM-AKTU,Universities
+uni_crawler_161,,International Islami University of Science and Technology Bangladesh,IIUSTB,Universities
+uni_crawler_162,,Microland University of Science and Technology,MUST,Universities
+uni_crawler_163,,Lalon University of Science & Arts,LUSA,Universities
+uni_crawler_164,,Grameen University,GU,Universities
+uni_crawler_165,,University of Science & Technology Chittagong,USTC,Universities
+uni_crawler_166,,Ahsanullah University of Science and Technology,AUST,Universities
+uni_crawler_167,,Pundra University of Science and Technology,PDUST,Universities
+uni_crawler_168,,Bangladesh University of Business and Technology,BUBT,Universities
+uni_crawler_169,,Atish Dipankar University of Science and Technology,ADUST,Universities
+uni_crawler_170,,ZH Sikder University of Science & Technology,ZHSUST,Universities
+uni_crawler_171,,Rajshahi Science & Technology University,RSTU,Universities
+uni_crawler_172,,Bangladesh Army International University of Science & Technology,BAIUST,Universities
+uni_crawler_173,,"Bangladesh Army University of Science & Technology, Khulna","BAUST, Khulna",Universities
+uni_crawler_174,,"Bangladesh Army University of Science and Technology, Saidpur","BAUST, Saidpur",Universities
+uni_crawler_175,,CCN University of Science & Technology,CCNUST,Universities
+uni_crawler_176,,Central University of Science and Technology,CUST,Universities
+uni_crawler_177,,Dr. Momtaz Begum University of Science and Technology,MUST,Universities
+uni_crawler_178,,Central Women's University,CWU,Universities
+uni_crawler_179,,Shanto-Mariam University of Creative Technology,SMUCT,Universities
+uni_crawler_180,,University of Liberal Arts Bangladesh,ULAB,Universities
+uni_crawler_181,,Bangladesh University of Health Sciences,BUHS,Universities
+uni_crawler_182,,Exim Bank Agricultural University Bangladesh,EBAUB,Universities
+uni_crawler_183,,Bangladesh Army University of Engineering & Technology,BAUET,Universities
+uni_crawler_184,,Tagore University of Creative Arts,TUCA,Universities
+uni_crawler_185,,Islamic University of Technology,IUT,Universities
+uni_crawler_186,,Asian University for Women,AUW,Universities
+uni_crawler_187,,Mymensingh University of Engineering and Technology,MUET,Universities
+uni_crawler_188,,Mymensingh Medical University,MMU,Universities
+uni_crawler_189,,Thakurgaon University of Science and Technology,TSTU,Universities
+uni_crawler_190,,Marine Science University of Barisal,MSUB,Universities
+uni_crawler_191,,Michael Madhusudan Cultural University,MMCU,Universities
+uni_crawler_192,,Bangladesh University of Juridical Sciences,BUJS,Universities
+uni_crawler_193,,Bangladesh University of Educational Planning and Administration,BUEdPA,Universities
+uni_crawler_194,,University of Blue Economy Sciences and Technology,UBEST,Universities

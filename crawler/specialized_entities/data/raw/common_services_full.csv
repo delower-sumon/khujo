@@ -1,0 +1,21 @@
+entity_id,name_bn,name_en,acronym,category
+srv_0,হাসপাতাল,Hospital,,Common Services
+srv_1,থানা,Police Station,PS,Common Services
+srv_2,ফায়ার সার্ভিস,Fire Service,,Common Services
+srv_3,রেলওয়ে স্টেশন,Railway Station,,Common Services
+srv_4,বিমানবন্দর,Airport,,Common Services
+srv_5,পোস্ট অফিস,Post Office,,Common Services
+srv_6,ব্যাংক,Bank,,Common Services
+srv_7,এটিএম,ATM,ATM,Common Services
+srv_8,ফার্মেসি,Pharmacy,,Common Services
+srv_9,রেস্তোরাঁ,Restaurant,,Common Services
+srv_10,বাস স্ট্যান্ড,Bus Stand,,Common Services
+srv_11,লঞ্চ ঘাট,Launch Terminal,,Common Services
+srv_12,পাসপোর্ট অফিস,Passport Office,,Common Services
+srv_13,বিআরটিএ,BRTA,BRTA,Common Services
+srv_14,ওয়াসা,WASA,WASA,Common Services
+srv_15,ডেস্কো,DESCO,DESCO,Common Services
+srv_16,টিতাশ গ্যাস,Titas Gas,,Common Services
+srv_17,সিটি কর্পোরেশন,City Corporation,,Common Services
+srv_18,উপজেলা পরিষদ,Upazila Parishad,,Common Services
+srv_19,ইউনিয়ন পরিষদ,Union Parishad,,Common Services

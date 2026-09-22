@@ -1,0 +1,11 @@
+entity_id,name_bn,name_en,acronym,category
+srv_01,হাসপাতাল,Hospital,,Common Services
+srv_02,থানা,Police Station,PS,Common Services
+srv_03,ফায়ার সার্ভিস,Fire Service,,Common Services
+srv_04,রেলওয়ে স্টেশন,Railway Station,,Common Services
+srv_05,বিমানবন্দর,Airport,,Common Services
+srv_06,পোস্ট অফিস,Post Office,,Common Services
+srv_07,ব্যাংক,Bank,,Common Services
+srv_08,এটিএম,ATM,ATM,Common Services
+srv_09,ফার্মেসি,Pharmacy,,Common Services
+srv_10,রেস্তোরাঁ,Restaurant,,Common Services

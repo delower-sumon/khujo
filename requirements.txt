@@ -14,3 +14,4 @@ yt-dlp>=2026.8.19
 youtube-transcript-api>=1.2.4
 psutil>=7.2.2
 avro-py>=2025.11.3
+bangla>=0.0.6
